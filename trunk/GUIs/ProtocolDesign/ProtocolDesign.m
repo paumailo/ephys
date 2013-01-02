@@ -1,0 +1,538 @@
+function varargout = ProtocolDesign(varargin)
+% h = ProtocolDesign
+%
+% Design protocols for electrophysiolgy ControlPanel2
+% 
+% DJS 2012
+
+% Last Modified by GUIDE v2.5 30-Mar-2012 12:05:40
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @ProtocolDesign_OpeningFcn, ...
+                   'gui_OutputFcn',  @ProtocolDesign_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+function ProtocolDesign_OpeningFcn(hObj, ~, h, varargin)
+h.output = hObj;
+
+if nargin > 3
+    % Load schedule file pointed to by varargin{1}
+    protocol = LoadProtocolFile(h,varargin{1});
+    set(h.param_table,'Data',protocol.param_data);
+else
+    % Clear Parameter Table
+    set(h.param_table,'Data',dfltrow);
+end
+
+% Update h structure
+guidata(hObj, h);
+
+function varargout = ProtocolDesign_OutputFcn(hObj, ~, h)  %#ok<INUSL>
+varargout{1} = h.output;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% Protocol Setup 
+function SaveProtocolFile(h,fn)
+% Save current protocol to file
+if ~exist('fn','var') || isempty(fn)
+    pn = getpref('EPHYS2','ProtDir',cd);
+    [fn,pn] = uiputfile({'*.prot','Protocol File (*.prot)'}, ...
+        'Save Protocol File',pn);
+    setpref('EPHYS2','ProtDir',pn);
+    if ~fn, return; end
+    fn = fullfile(pn,fn);
+end
+
+protocol = h.protocol;
+if isfield(protocol,'COMPILED')
+    protocol = rmfield(protocol,'COMPILED');
+end
+
+% trim any undefined parameters
+fldn = fieldnames(protocol.MODULES);
+% fldn(ismember(fldn,{'INFO','OPTIONS','COMPILED'})) = [];
+for i = 1:length(fldn)
+    v = protocol.MODULES.(fldn{i}).data;
+    v(~ismember(1:size(v,1),findincell(v(:,1))),:) = [];
+    protocol.MODULES.(fldn{i}).data = v;
+end
+
+protocol = AffixOptions(h,protocol);
+protocol = CompileProtocol(protocol);
+if protocol.OPTIONS.compile_at_runtime
+    protocol.COMPILED = rmfield(protocol.COMPILED,'trials');
+end
+
+TD = get(h.param_table,'UserData');
+protocol.TABLEDATA = TD;
+
+save(fn,'protocol','-mat');
+
+fprintf('Protocol saved: ''%s''\n',fn);
+
+function r = NewProtocolFile(h)
+r = [];
+% Create new protocol file
+if isfield(h,'protocol') && ~isempty(h.protocol)
+    r = questdlg('Would you like to save the current protocol before creating a new one?', ...
+        'Create New Protocol', ...
+        'Yes','No','Cancel','Cancel');
+    switch r
+        case 'Cancel'
+            return
+        case 'Yes'
+            SaveProtocolFile(h);
+    end
+end
+
+set(h.param_table,'Data',dfltrow,'Enable','off');
+set(h.module_select,'String','','Value',1);
+set(h.splash,'Visible','on');
+h.protocol = [];
+guidata(h.ProtocolDesign,h);
+
+function protocol = LoadProtocolFile(h,fn)
+% Load previously saved protocol from file
+protocol = [];
+
+r = NewProtocolFile(h);
+if strcmp(r,'Cancel'), return; end
+
+if ~exist('fn','var') || isempty(fn) || ~exist(fn,'file')
+    pn = getpref('EPHYS2','ProtDir',cd);
+    [fn,pn] = uigetfile({'*.prot','Protocol File (*.prot)'},'Locate Protocol File',pn);
+    if ~fn, return; end
+end
+
+load(fullfile(pn,fn),'-mat');
+
+if ~exist('protocol','var')
+    error('ProtocolDesign:Unknown protocol file data');
+end
+
+% Populate module list
+fldn = fieldnames(protocol.MODULES);
+obj = findobj(h.ProtocolDesign,'tag','module_select');
+set(obj,'String',fldn,'Value',1);
+
+% Ensure all buddy variables are accounted for
+n = {'<ADD>','<NONE>'};
+for i = 1:length(fldn)
+    n = union(n,protocol.MODULES.(fldn{i}).data(:,3));
+end
+cf = get(h.param_table,'ColumnFormat');
+cf{3} = n;
+set(h.param_table,'ColumnFormat',cf);
+
+if isfield(protocol,'TABLEDATA')
+    TD = protocol.TABLEDATA;
+else
+    TD = [];
+end
+set(h.param_table,'UserData',TD);
+
+% Populate options
+Op = protocol.OPTIONS;
+set(h.opt_randomize,         'Value', Op.randomize);
+set(h.opt_compile_at_runtime,'Value', Op.compile_at_runtime);
+set(h.opt_isi,               'String',num2str(Op.ISI));
+set(h.opt_num_reps,          'String',num2str(Op.num_reps));
+
+if isfield(Op,'trialfunc')
+    set(h.trial_selectfunc,'String',Op.trialfunc);
+else
+    set(h.trial_selectfunc,'String','< default >');
+end
+set(h.protocol_info,'String',protocol.INFO);
+
+set(h.param_table,'Enable','on');
+set(h.splash,'Visible','off');
+
+h.protocol = protocol;
+guidata(h.ProtocolDesign,h);
+
+setpref('EPHYS2','ProtDir',pn);
+
+SetParamTable(h,protocol);
+
+function p = AffixOptions(h,p)
+% affix protocol options
+p.OPTIONS.randomize          = get(h.opt_randomize,         'Value');
+p.OPTIONS.compile_at_runtime = get(h.opt_compile_at_runtime,'Value');
+p.OPTIONS.ISI                = str2num(get(h.opt_isi,       'String')); %#ok<ST2NM>
+p.OPTIONS.num_reps           = str2num(get(h.opt_num_reps,  'String')); %#ok<ST2NM>
+p.OPTIONS.trialfunc          = get(h.trial_selectfunc,      'String');
+p.INFO                       = get(h.protocol_info,         'String');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% Table
+function param_table_CellEditCallback(hObj, evnt, h) %#ok<DEFNU>
+I = evnt.Indices;
+row = I(1);
+col = I(2);
+
+data = get(hObj,'data');
+
+if col == 3 && strcmp(evnt.NewData,'<ADD>')
+    % Add new Buddy variable
+    nd = inputdlg('Enter new Buddy:','Buddy Variable');
+    if isempty(nd)
+        data{row,col} = '<NONE>';
+        set(hObj,'data',data);
+        return
+    end
+    cf = get(hObj,'ColumnFormat');
+    od = cf{3};
+    
+    if ~ismember(nd,od)
+        od = sort({char(nd) od{:}}); %#ok<CCAT,FLPST>
+        cf{3} = fliplr(od);
+        set(hObj,'ColumnFormat',cf);
+        data{row,3} = char(nd);
+    end
+    
+elseif col == 4
+    if length(str2num(data{row,4})) ~= 2 %#ok<ST2NM>
+        data{row,5} = false;
+    end
+
+elseif col == 5
+    if ~isempty(evnt.Error), data{row,col} = evnt.EditData; end
+    if length(str2num(data{row,4})) ~= 2 %#ok<ST2NM>
+        data{row,5} = false;
+        helpdlg(['Random option only available when a range is specified in ''Values'' field.  ', ...
+            'Range is defined by two values such as: ''2 6'''], ...
+            'Parameter Table');
+    end
+
+elseif col == 6 % wav files
+    if data{row,6}
+%         S = get(h.param_table,'UserData');
+        uiwait(SchedWAVgui(h.ProtocolDesign,[]))
+        S = getappdata(h.ProtocolDesign,'SchedWAVgui_DATA');
+        if isempty(S)
+            data{row,4} = '';
+            data{row,5} = false;
+            data{row,6} = false;
+        else
+            data{row,2} = 'Write';
+            data{row,4} = ['FILE IDs: ' mat2str(1:length(S))];
+            data{row,5} = false;
+            data{row,6} = true;
+        end
+    else
+        data{row,4} = '';
+        S = [];
+    end
+    UD = get(hObj,'UserData');
+    UD.WAV{row} = S;
+    set(hObj,'UserData',UD);
+    
+elseif col == 7 && ~strcmp(evnt.NewData,'< NONE >')
+    % Select calibration file from Calibration directory
+    dd = getpref('ProtocolDesign','CALDIR',cd);
+    if ~ischar(dd), dd = cd; end % this may happen
+    
+    [fn,dd] = uigetfile({'*.cal','Calibration (*.cal)'}, ...
+        'Select a Calibration',dd);
+    
+    if ~fn, return; end
+    % update data cell matrix with filename
+    data{row,7} = fn;
+
+    setpref('ProtocolData','CALDIR',dd);
+    
+end
+
+set(hObj,'Data',data);
+
+% store protocol data
+v = cellstr(get(h.module_select,'String'));
+v = v{get(h.module_select,'Value')};
+h.protocol.MODULES.(v).data = get(hObj,'Data');
+guidata(h.ProtocolDesign,h);
+
+function param_table_CellSelectionCallback(hObj, evnt, h) %#ok<DEFNU>
+h.CURRENTCELL = evnt.Indices;
+guidata(h.ProtocolDesign,h);
+
+% make sure we always have an extra row for new parameter
+data = get(hObj,'data');
+
+if ~isempty(h.CURRENTCELL) && h.CURRENTCELL(2) == 4 ...
+        && data{h.CURRENTCELL(1),6} % check if WAV files
+    uiwait(helpdlg('This field should not be edited when using WAV files'));
+end
+
+k = find(~ismember(1:size(data,1),findincell(data(:,1)))); %#ok<EFIND>
+
+if ~isfield(h,'PA5flag'), h.PA5flag = 0; end
+if isempty(k) && ~h.PA5flag
+    data(end+1,:) = dfltrow;
+    set(hObj,'data',data);
+end
+
+function trial_selectfunc_Callback(hObj, evnt, h) %#ok<INUSD,DEFNU>
+cfunc = get(hObj,'String');
+if ~exist(cfunc,'file')
+    errordlg(sprintf('The function ''%s'' was not found on MATLAB''s search path.',cfunc), ...
+        'Custom Trial Selection');
+    set(hObj,'String','< default >');
+end
+
+function SetParamTable(h,protocol)
+% Updates parameter table with protocol data
+
+v = get(h.module_select,'String');
+v = v{get(h.module_select,'Value')};
+if isempty(protocol) || ~isfield(protocol.MODULES,v)
+    d = dfltrow;
+else
+    d = protocol.MODULES.(v).data;
+end
+
+if isfield(h,'PA5flag') && h.PA5flag, d{1} = 'SetAtten'; end
+ce = true(size(dfltrow));
+ce([1 end-1 end]) = ~h.PA5flag;
+
+set(h.param_table,'ColumnEditable',ce,'Data',d);
+
+
+
+function d = dfltrow
+% default row definition
+d = {'' 'Write/Read' '< NONE >' '' false false '< NONE >'};
+
+function view_compiled_Callback(h) %#ok<DEFNU>
+if ~isfield(h,'protocol'), return; end
+h.protocol = AffixOptions(h,h.protocol);
+CompiledProtocolTrials(h.protocol,'trunc',2000);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% GUI Callbacks
+function opt_num_reps_Callback(hObj, h) %#ok<INUSD,DEFNU>
+% Check number of repetitions
+d = get(hObj,'String');
+d = str2num(d); %#ok<ST2NM>
+if length(d) ~= 1
+    warndlg('Number of repetitions must be a scalar value','Bad Value');
+    if isempty(d), d = 5; end
+    set(hObj,'String',num2str(d(1)));
+end
+
+function opt_isi_Callback(hObj, h) %#ok<INUSD,DEFNU>
+% Check inter-stimulus interval (ISI)
+d = get(hObj,'String');
+d = str2num(d); %#ok<ST2NM>
+if length(d) < 1 || length(d) > 2
+    warndlg('Number of repetitions must be a scalar value for constant ISI or two values for random interval','Bad Value');
+    if isempty(d), d = 300; end
+    set(hObj,'String',num2str(d(1)));
+end
+
+function remove_parameter_Callback(h) %#ok<DEFNU>
+% Remove currently selected parameter from table
+if ~isfield(h,'CURRENTCELL') || isempty(h.CURRENTCELL), return; end
+C = h.CURRENTCELL;
+
+data = get(h.param_table,'data');
+data(C(1),:) = [];
+set(h.param_table,'data',data);
+
+h.CURRENTCELL = [];
+v = get(h.module_select,'String');
+v = v{get(h.module_select,'Value')};
+h.protocol.MODULES.(v).data = data;
+
+% **** MUST ALSO REMOVE ANY CALIBRATION AND BUFFER DATA ***
+
+guidata(h.ProtocolDesign,h);
+
+function module_select_Callback(hObj, h) %#ok<DEFNU>
+% handles module selection
+if ~isfield(h,'protocol'), h.protocol = []; end
+
+v = cellstr(get(hObj,'String'));
+v = v{get(hObj,'Value')};
+if strfind(v,'PA5')
+    h.PA5flag = true;
+else
+    h.PA5flag = false;
+end
+guidata(h.ProtocolDesign,h);
+
+SetParamTable(h,h.protocol);
+
+function add_module_Callback(h) %#ok<DEFNU>
+% add new module to protocol
+ov = cellstr(get(h.module_select,'String'));
+
+options.Resize = 'off';
+options.WindowStyle = 'modal';
+nv = inputdlg('Enter hardware module alias (case sensitive):', ...
+    'Hardware Alias',1,{'Stim'},options);
+if isempty(nv), return; end
+
+ov(~ismember(1:length(ov),findincell(ov))) = [];
+
+if ~ismember(nv,ov)
+    ov{end+1} = char(nv);
+%     ov = sort(ov);
+end
+
+h.PA5flag = strfind(char(nv),'PA5'); % PA5 attenuation module
+if isempty(h.PA5flag), h.PA5flag = false; end
+if h.PA5flag
+    data = dfltrow;
+    data{1} = 'SetAtten';
+    set(h.param_table,'Data',data);
+end
+guidata(h.ProtocolDesign,h);
+
+set(h.module_select,'String',ov,'Value',find(ismember(ov,nv)));
+set(h.param_table,'Enable','on');
+if isempty(ov)
+    set(h.splash,'Visible','on');
+else
+    set(h.splash,'Visible','off');
+end
+
+function remove_module_Callback(h) %#ok<DEFNU>
+% remove selected module from protocol
+ov  = cellstr(get(h.module_select,'String'));
+idx = get(h.module_select,'Value');
+v = ov{idx};
+
+r = questdlg( ...
+    sprintf('Are you certain you would like to remove the ''%s'' module?',v), ...
+    'Remove Module','Yes','No','No');
+
+if strcmp(r,'No'), return; end
+
+ov(idx) = [];
+set(h.module_select,'String',ov,'Value',1);
+
+if isempty(ov), set(h.param_table,'Enable','off'); end
+
+function rpvds_tags_Callback(h) %#ok<DEFNU>
+% Grab parameter tags from an existing RPvds file
+fh = findobj('Type','figure','-and','Name','RPfig');
+if isempty(fh), fh = figure('Visible','off','Name','RPfig'); end
+
+[fn,pn] = uigetfile({'*.rcx', 'RPvds File (*.rcx)'},'Select RPvds File');
+if ~fn, return; end
+
+RP = actxcontrol('RPco.x','parent',fh);
+RP.ReadCOF(fullfile(pn,fn));
+
+data = dfltrow;
+k = 1;
+n = RP.GetNumOf('ParTag');
+for i = 1:n
+    x = RP.GetNameOf('ParTag', i);
+    % remove any error messages and OpenEx proprietary tags (starting with 'z')
+    if ~(any(ismember(x,'/\|')) || ~isempty(strfind(x,'rPvDsHElpEr')) || x(1) == 'z' ...
+            || x(1) == '~')
+        data(k,:) = dfltrow;
+        data{k,1} = x;
+        k = k + 1;
+    end
+end
+
+delete(RP);
+close(fh);
+
+set(h.param_table,'data',data)
+
+v = cellstr(get(h.module_select,'String'));
+v = v{get(h.module_select,'Value')};
+h.protocol.MODULES.(v).data = data;
+guidata(h.ProtocolDesign,h);
+
+
+
