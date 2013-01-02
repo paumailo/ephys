@@ -1,0 +1,10 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+This is a new project to develop a robust, powerful, and dynamic Matlab toolbox for designing and running electrophysiology experiments.  This toolbox integrates with Tucker-Davis Technologies ([http://www.tdt.com tdt.com]) proprietary OpenEx software and real-time stimulus generation and data acquisition hardware.
+
+
+= Details =
+
+This project is in its infancy but will eventually include software developed to run electrophysiolgy, behavior (operant conditioning and other paradigms), and combined behavior/electrophysiology experiments in conjunction with TDT software.
