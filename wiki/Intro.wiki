@@ -1,4 +1,4 @@
-#summary Electrophysiology toolbox
+#summary An Electrophysiology toolbox for Matlab
 
 = Introduction =
 
