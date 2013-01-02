@@ -9,4 +9,4 @@ This project is in its infancy but will eventually include software developed to
 This project is handled by a subversioning system which can be accessed with software such as [http://tortoisesvn.net TortoiseSVN].
 
 = Issues =
-Issues with the current release of the software can be raised and addressed using the 
+Issues with the current release of the software can be raised and addressed using the [https://code.google.com/p/ephys/issues Issues] page on this wiki.
