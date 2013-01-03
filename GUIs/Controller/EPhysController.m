@@ -499,6 +499,7 @@ else
 end
 
 % Trigger on Stim module
+% 1/3/13 TODO: UPDATE TRIGGER TO USE ZBUSB TRIGGER AS PER MARK HANUS EMAIL
 ud{2} = DATrigger(G_DA,'Stim.~Trig');
 
 % Figure out next ISI
