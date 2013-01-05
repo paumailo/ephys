@@ -58,23 +58,18 @@ set(h.popup_databases,'String',dbs,'Value',i);
 Connect2DB(h.popup_databases,h);
 
 
-
-
-% function SetPrefs(h) %#ok<DEFNU>
-% objs = findobj(h.figure1,'-regexp','tag','list_','-or','-regexp','tag','popup');
-% rstr   = cell(size(objs));
-% objstr = cell(size(objs));
-% for i = 1:length(objs)
-%     objstr{i} = get(objs(i),'tag');
-%     rstr{i}   = get_string(objs(i));
-% end
-% setpref('DB_Browser',objstr,rstr);
+function closeme(hObj,h) %#ok<INUSD,DEFNU>
+delete(hObj);
 
 
 
 
 
-%%
+
+
+
+
+%% Database
 function Connect2DB(hObj,h)
 if ~myisopen % if connection is lost, reconnect to database
     DB_Connect;
@@ -88,12 +83,14 @@ function UpdateLists(hObj,h)
 hierarchy = {'popup_databases','list_experiments','list_tanks', ...
     'list_blocks','list_channels','list_units'};
 
-starth = find(strcmp(get(hObj,'tag'),hierarchy));
+cla(h.axes_unit);
 
+starth = find(strcmp(get(hObj,'tag'),hierarchy)); drawnow
+set(h.figure1,'Pointer','watch');
 for i = starth:length(hierarchy)
     id = get_listid(h.(hierarchy{i}));
-    if i < length(hierarchy) && isempty(id)
-        set(h.(hierarchy{i+1}),'Value',1,'String','< NOTHING HERE >');
+    if isempty(id) 
+        set(h.(hierarchy{i}),'Value',1,'String','< NOTHING HERE >');
         continue
     end
     switch hierarchy{i}
@@ -112,7 +109,7 @@ for i = starth:length(hierarchy)
 
         case 'list_blocks'
             e = mym(['SELECT CONCAT(id,". ",target,channel) AS str ', ...
-                'FROM channels c WHERE c.block_id = {Si}'],id);
+                'FROM channels WHERE block_id = {Si} ORDER BY channel'],id);
             
         case 'list_channels'
             e = mym(['SELECT CONCAT(u.id,". ",p.class," (",u.unit_count,")") ', ...
@@ -120,15 +117,40 @@ for i = starth:length(hierarchy)
                 'ON u.pool = p.id WHERE u.channel_id = {Si}'],id);
         
         case 'list_units'
-            % Get unit info
+            e = mym('SELECT * FROM units WHERE id = {Si}',id);
+            w = str2num(char(e.pool_waveform{1}')); %#ok<ST2NM>
+            s = str2num(char(e.pool_stddev{1}')); %#ok<ST2NM>
+            fill([1:length(w) length(w):-1:1],[w+s fliplr(w-s)], ...
+                [0.6 0.6 0.6],'Parent',h.axes_unit);
+            hold(h.axes_unit,'on');
+            plot(h.axes_unit,1:length(w),w,'-k','LineWidth',2)
+            hold(h.axes_unit,'off');
+            axis(h.axes_unit,'tight');
+            y = max(abs(ylim(h.axes_unit)));
+            ylim(h.axes_unit,[-y y]);
             continue
     end
     setlistid(h,hierarchy{i+1},e.str);
     drawnow
 end
+set(h.figure1,'Pointer','arrow');
+
+function get_protocol_Callback(h) %#ok<DEFNU>
+set(h.figure1,'Pointer','watch'); drawnow
+id = get_listid(h.list_blocks);
+params = DB_GetParams(id);
+assignin('base','params',params);
+fprintf('Parameters structure in workspace: params\n')
+whos params
+set(h.figure1,'Pointer','arrow');
+
+function get_lfp_Callback(h)
+set(h.figure1,'Pointer','watch'); drawnow
+
+set(h.figure1,'Pointer','arrow');
 
 
-
+function get_spiketimes_Callback(h)
 
 
 
@@ -147,16 +169,13 @@ end
 function id = get_listid(hObj)
 % get unique table id from list string
 str = get_string(hObj);
-id  = strtok(str,'.');
+id  = str2num(strtok(str,'.')); 
 
 function id = setlistid(h,name,list)
 p = getpref('DB_Browser',name,'');
 id = find(strcmp(list,p));
 if isempty(id), id = 1; end
 set(h.(name),'String',list,'Value',id);
-
-
-
 
 
 
