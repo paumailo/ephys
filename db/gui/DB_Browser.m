@@ -54,7 +54,8 @@ dbpref = getpref('DB_Browser','databases',[]);
 Connect2DB(h,dbpref);
 
 
-function closeme(hObj,h) %#ok<INUSD,DEFNU>
+function closeme(hObj,h) %#ok<DEFNU>
+UpdatePrefs(h.hierarchy,h);
 delete(hObj);
 
 
@@ -98,9 +99,9 @@ if strncmp(get(hObj,'tag'),'showall',7)
     starth = starth - 1;
 end
 
-UpdatePrefs(ord(starth:end),h);
-
 set(h.figure1,'Pointer','watch'); drawnow
+
+UpdatePrefs(ord(starth:end),h);
 
 for i = starth:length(ord)
     if strcmp('databases',ord{i})
@@ -145,7 +146,8 @@ for i = starth:length(ord)
         case 'tanks'
             e = mym(['SELECT CONCAT(b.id,". ",p.alias," [",b.block,"]") ', ...
                 'AS str FROM blocks b JOIN db_util.protocol_types p ', ...
-                'ON b.protocol = p.pid WHERE b.tank_id = {Si} {S}'],id,iustr);
+                'ON b.protocol = p.pid WHERE b.tank_id = {Si} {S} ', ...
+                'ORDER BY block'],id,iustr);
             
         case 'blocks'
             e = mym(['SELECT CONCAT(id,". ",target,channel) AS str ', ...
@@ -161,87 +163,16 @@ for i = starth:length(ord)
             continue
     end
     
-    set(h.(['list_' ord{i+1}]),'Value',1,'String',e.str);
-    
-    SetListPref(ord{i},h);
-    
+    val = GetListPref(ord{i+1},e.str);
+    set(h.(['list_' ord{i+1}]),'String',e.str,'Value',val);
+
 end
+
 plot_unit_waveform(id,h);
 
 set(h.figure1,'Pointer','arrow');
 
-
-
-function ExcludeItem(hObj,h) %#ok<DEFNU>
-tag = get(hObj,'tag');
-table = tag(9:end); % cut out 'exclude_' prefix
-id = get_listid(h.(['list_' table]));
-DB_InUse(table,id,'toggle');
-UpdateLists(hObj,h);
-
-
-
-%%
-function get_protocol_Callback(h) %#ok<DEFNU>
-set(h.figure1,'Pointer','watch'); drawnow
-id = get_listid(h.list_blocks);
-params = DB_GetParams(id);
-assignin('base','params',params);
-fprintf('Parameters structure in workspace: params\n')
-whos params
-set(h.figure1,'Pointer','arrow');
-
-function get_lfp_Callback(h) %#ok<DEFNU>
-set(h.figure1,'Pointer','watch'); drawnow
-id = get_listid(h.list_channels);
-[lfp.wave,lfp.tvec] = DB_GetWave(id);
-assignin('base','lfp',lfp);
-fprintf('LFP structure in workspace: lfp\n')
-whos lfp
-set(h.figure1,'Pointer','arrow');
-
-function get_spiketimes_Callback(h) %#ok<DEFNU>
-set(h.figure1,'Pointer','watch'); drawnow
-id = get_listid(h.list_units);
-spiketimes = DB_GetSpiketimes(id);
-assignin('base','spiketimes',spiketimes);
-fprintf('Spiketimes structure in workspace: spiketimes\n')
-whos spiketimes
-set(h.figure1,'Pointer','arrow');
-
-
-function in_use = check_inuse(table,id,hObj)
-in_use = DB_InUse(table,id);
-if in_use
-    bgc = [0.941 0.941 0.941];
-else
-    bgc = [1 0.57 0.57];
-end
-set(hObj,'BackgroundColor',bgc);
-
-
-%% Helper functions
-function rstr = get_string(hObj)
-% get currently select string
-v = get(hObj,'Value');
-s = cellstr(get(hObj,'String'));
-if v > length(s), v = 1; end
-if isempty(s)
-    rstr = '';
-else
-    rstr = s{v};
-end
-
-function id = get_listid(hObj)
-% get unique table id from list string
-str = get_string(hObj);
-id  = str2num(strtok(str,'.'));  %#ok<ST2NM>
-
-
-
-
 function UpdatePrefs(ord,h)
-% ord = h.hierarchy;
 vals = cell(size(ord));
 for i = 1:length(ord)
     if strcmp('databases',ord{i})
@@ -271,7 +202,7 @@ for i = 1:length(ord)
             if isempty(id), continue; end
             e = mym(['SELECT CONCAT(target,channel) AS str ', ...
                 'FROM channels WHERE id = {Si}'],id);
-            vals{i} = e.str;
+            vals{i} = char(e.str);
         case 'units'
             if isempty(id), continue; end
             e = mym(['SELECT p.class FROM units u ', ...
@@ -282,33 +213,90 @@ for i = 1:length(ord)
 end
 setpref('DB_Browser',ord,vals);
 
-function SetListPref(ord,h)
-val = getpref('DB_Browser',ord,[]);
-if isempty(val), return; end
-
-if strcmp('databases',ord)
-    lOrd = h.popup_databases;
-else
-    lOrd = h.(['list_' ord]);
-end
+function val = GetListPref(ord,str)
+pref = getpref('DB_Browser',ord,[]);
+val = 1;
+if isempty(pref), return; end
 
 switch ord
     case {'databases', 'experiments'}
         return
+
     otherwise
-        str = get(lOrd,'String');
         for j = 1:length(str);
-            instr = strfind(str{j},char(val));
+            instr = strfind(str{j},char(pref));
             if instr
-                set(lOrd,'Value',j);
+                val = j;
                 break
             end
         end
         
 end
 
+function ExcludeItem(hObj,h) %#ok<DEFNU>
+tag = get(hObj,'tag');
+table = tag(9:end); % cut out 'exclude_' prefix
+id = get_listid(h.(['list_' table]));
+DB_InUse(table,id,'toggle');
+UpdateLists(hObj,h);
+
+function in_use = check_inuse(table,id,hObj)
+in_use = DB_InUse(table,id);
+if in_use
+    bgc = [0.941 0.941 0.941];
+else
+    bgc = [1 0.57 0.57];
+end
+set(hObj,'BackgroundColor',bgc);
 
 
+
+%% Get Data
+function get_protocol_Callback(h) %#ok<DEFNU>
+set(h.figure1,'Pointer','watch'); drawnow
+id = get_listid(h.list_blocks);
+params = DB_GetParams(id);
+assignin('base','params',params);
+fprintf('Parameters structure in workspace: params\n')
+whos params
+set(h.figure1,'Pointer','arrow');
+
+function get_lfp_Callback(h) %#ok<DEFNU>
+set(h.figure1,'Pointer','watch'); drawnow
+id = get_listid(h.list_channels);
+[lfp.wave,lfp.tvec] = DB_GetWave(id);
+assignin('base','lfp',lfp);
+fprintf('LFP structure in workspace: lfp\n')
+whos lfp
+set(h.figure1,'Pointer','arrow');
+
+function get_spiketimes_Callback(h) %#ok<DEFNU>
+set(h.figure1,'Pointer','watch'); drawnow
+id = get_listid(h.list_units);
+spiketimes = DB_GetSpiketimes(id);
+assignin('base','spiketimes',spiketimes);
+fprintf('Spiketimes structure in workspace: spiketimes\n')
+whos spiketimes
+set(h.figure1,'Pointer','arrow');
+
+
+
+%% Helper functions
+function rstr = get_string(hObj)
+% get currently select string
+v = get(hObj,'Value');
+s = cellstr(get(hObj,'String'));
+if v > length(s), v = 1; end
+if isempty(s)
+    rstr = '';
+else
+    rstr = s{v};
+end
+
+function id = get_listid(hObj)
+% get unique table id from list string
+str = get_string(hObj);
+id  = str2num(strtok(str,'.'));  %#ok<ST2NM>
 
 function plot_unit_waveform(id,h)
 cla(h.axes_unit,'reset');
