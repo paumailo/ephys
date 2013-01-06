@@ -1,13 +1,13 @@
-function varargout = UploadUtility(varargin)
+function varargout = DB_UploadUtility(varargin)
 
-% Last Modified by GUIDE v2.5 21-Nov-2011 00:47:10
+% Last Modified by GUIDE v2.5 06-Jan-2013 10:58:00
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @UploadUtility_OpeningFcn, ...
-                   'gui_OutputFcn',  @UploadUtility_OutputFcn, ...
+                   'gui_OpeningFcn', @DB_UploadUtility_OpeningFcn, ...
+                   'gui_OutputFcn',  @DB_UploadUtility_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -22,19 +22,18 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before UploadUtility is made visible.
-function UploadUtility_OpeningFcn(hObj, ~, h, varargin)
-% Choose default command line output for UploadUtility
+% --- Executes just before DB_UploadUtility is made visible.
+function DB_UploadUtility_OpeningFcn(hObj, ~, h, varargin)
+% Choose default command line output for DB_UploadUtility
 h.output = hObj;
 
-h.regKey = 'HKCU\Software\MATHWORKS\MATLAB\UploadUtility';
 
 set(hObj,'Pointer','watch');
 PopulateDBs(h);
 PopulateExperiments(h);
 set(h.db_description,'String',db_descr);
 
-preg = GetRegKey(h.regKey,'datasetpath');
+preg = getpref('UploadUtility','datasetpath',[]);
 if ~isempty(preg)
     set(h.ds_path,'String',preg);
     ds_locate_path_Callback(h.ds_locate_path,preg,h);
@@ -48,7 +47,7 @@ guidata(hObj, h);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = UploadUtility_OutputFcn(hObj, ~, h)  %#ok<INUSL>
+function varargout = DB_UploadUtility_OutputFcn(hObj, ~, h)  %#ok<INUSL>
 varargout{1} = h.output;
 
 
@@ -101,9 +100,9 @@ if isempty(db), db_newdb_Callback(h.db_newdb,[],h); end
 db = cellstr(get(h.db_list,'String'));
 db = db{get(h.db_list,'Value')};
 
-DB_Connect(db);
+mym('use',db);
 
-SetRegKey(h.regKey,'database',db);
+setpref('UploadUtility','database',db);
 
 set(h.db_description,'String',db_descr);
 
@@ -117,7 +116,7 @@ set(h.db_description,'String',db_descr);
 function db_add_descr
 s = [];
 try %#ok<TRYNC>
-    s = mym(['SELECT CAST(infostr as CHAR) FROM dbinfo ', ...
+    s = myms(['SELECT CAST(infostr as CHAR) FROM dbinfo ', ...
         'WHERE infotype = "description"']);
 end
 
@@ -134,7 +133,7 @@ end
 function s = db_descr
 s = [];
 try %#ok<TRYNC>
-    s = mym(['SELECT CAST(infostr as CHAR) FROM dbinfo ', ...
+    s = myms(['SELECT CAST(infostr as CHAR) FROM dbinfo ', ...
         'WHERE infotype = "description"']);
 end
 
@@ -153,17 +152,20 @@ set(h.db_newdb,'Enable','off');
 dbs = DB_Connect;
 
 set(h.db_list,'Value',1,'String',dbs);
-rdb = GetRegKey(h.regKey,'database');
+rdb = getpref('UploadUtility','database',[]);
 if ~isempty(rdb) && ismember(rdb,dbs)
-    set(h.db_list,'Value',find(ismember(dbs,rdb)));
+    val = find(ismember(dbs,rdb));
+else
+    val = 1;
 end
+set(h.db_list,'Value',val);
 
-DB_Connect(dbs{get(h.db_list,'Value')});
+mym('use', dbs{val});
 
 % get electrode types
-electrodes = mym(['SELECT CONCAT(manufacturer,'' - '',product_id) ', ...
+e = myms(['SELECT CONCAT(manufacturer,'' - '',product_id) AS electrodes ', ...
     'FROM db_util.electrode_types']);
-set(h.ds_electrode,'String',electrodes,'Value',1);
+set(h.ds_electrode,'String',e,'Value',1);
 
 set(h.ds_electrode,'Value',1);
 
@@ -193,7 +195,7 @@ set(h.db_newdb,'Enable','on');
 
 
 %% Experiment/Subject
-function expt_subject_list_Callback(hObj, ~, h) %#ok<INUSL,DEFNU>
+function expt_subject_list_Callback(hObj, ~, h) %#ok<DEFNU>
 e = cellstr(get(h.expt_list,'String'));
 e = e{get(h.expt_list,'Value')};
 s = cellstr(get(hObj,'String'));
@@ -229,7 +231,7 @@ for i = 1:length(s)
     cats = sprintf('%s"%s",',cats,s{i});
 end
 cats(end) = [];  cats(end+1) = ')';
-id = mym(cats);
+id = myms(cats);
 id = num2str(id(:)','%d,'); id(end) = [];
 mym(['UPDATE experiments SET researcher = "{S}" ', ...
      'WHERE name = "{S}"'],id,e);
@@ -249,7 +251,7 @@ else
     ename = ename{get(h.expt_list,'Value')};
 end
 
-exptexists = mym('SELECT id FROM experiments WHERE name="{S}"',char(ename));
+exptexists = myms(sprintf('SELECT id FROM experiments WHERE name="%s"',char(ename)));
 if isempty(exptexists), exptexists = 0; end
 
 ename = char(ename);
@@ -282,7 +284,7 @@ function expt_new_subject_Callback(hObj, ~, h) %#ok<INUSL>
 db = cellstr(get(h.db_list,'String'));
 db = db{get(h.db_list,'Value')};
 uiwait(DB_NewSubjPrompt(db));
-subj = mym('SELECT name FROM subjects');
+subj = myms('SELECT name FROM subjects');
 if isempty(subj), return; end
 set(h.expt_subject_list,'String',subj);
 set(h.expt_subject_list,'Value',length(subj));
@@ -290,7 +292,7 @@ set(h.expt_subject_list,'Value',length(subj));
 function PopulateExperiments(h)
 set(h.modify_descr,'Enable','on');
 
-expts = mym('SELECT name FROM experiments');
+expts = myms('SELECT name FROM experiments');
 
 if isempty(expts)
     expt_new_expt_Callback(h.expt_new_expt,[],h);
@@ -312,28 +314,26 @@ function PopulateExperimentInfo(h)
 expt_name = cellstr(get(h.expt_list,'String'));
 expt_name = expt_name{get(h.expt_list,'Value')};
 
-[id,subject_id,rid] = mym( ...
+[id,subject_id,researcher] = myms(sprintf( ...
     ['SELECT id,subject_id,researcher ', ...
-     'FROM experiments WHERE name="{S}"'], ...
-    expt_name);
+     'FROM experiments WHERE name="%s"'],expt_name));
 
 if isempty(id),
     expt_new_subject_Callback(h.expt_new_subject, [], h)
     return
 end
 
-subjects = mym('SELECT name FROM subjects');
+subjects = myms('SELECT name FROM subjects');
 if ~isempty(subject_id)
     set(h.expt_subject_list,'String',subjects);
     set(h.expt_subject_list,'Value',subject_id);
 end
 
 % get researchers
-rstr = mym( ...
-    ['SELECT CONCAT(initials, '' - '', name) ', ...
+rout = myms(['SELECT CONCAT(initials, '' - '', name) AS name ', ...
      'FROM db_util.researchers']);
-set(h.expt_researchers,'String',rstr);
-rid = str2num(char(rid)); %#ok<ST2NM>
+set(h.expt_researchers,'String',rout);
+rid = str2num(char(researcher)); %#ok<ST2NM>
 if ~isempty(rid)
     set(h.expt_researchers, 'Value', rid);
 end
@@ -449,7 +449,7 @@ if isempty(pn)
     if ~pn, return; end
 end
 
-SetRegKey(h.regKey,'datasetpath',pn);
+setpref('UploadUtility','datasetpath',pn);
 
 if pn(end) ~= '\', pn(end+1) = '\'; end
 set(h.ds_path,'String',pn);
@@ -488,4 +488,3 @@ function upload_remove_Callback(hObj, ~, h)
 
 
 function dtype_trials_Callback(hObject, eventdata, handles)
-
