@@ -45,17 +45,13 @@ function varargout = DB_Browser_OutputFcn(hObj, event, h)  %#ok<INUSL>
 % Get default command line output from h structure
 varargout{1} = h.output;
 
-dbs = DB_Connect;
+h.hierarchy = {'databases','experiments','tanks', ...
+    'blocks','channels','units'};
+guidata(h.figure1,h);
 
-lastdb = getpref('DB_Browser','lastdb',dbs{1});
+dbpref = getpref('DB_Browser','databases',[]);
 
-i = find(ismember(dbs,lastdb));
-if isempty(i), i = 1; end
-
-% populate databases
-set(h.popup_databases,'String',dbs,'Value',i);
-
-Connect2DB(h.popup_databases,h);
+Connect2DB(h,dbpref);
 
 
 function closeme(hObj,h) %#ok<INUSD,DEFNU>
@@ -70,71 +66,122 @@ delete(hObj);
 
 
 %% Database
-function Connect2DB(hObj,h)
+function Connect2DB(h,dbpref)
+if nargin == 1, dbpref = []; end
+
 if ~myisopen % if connection is lost, reconnect to database
-    DB_Connect;
+    dbs = DB_Connect;
+else
+    dbs = dblist;
 end
-rstr = get_string(hObj);
-mym(['use ' rstr]);
+
+if isempty(dbpref)
+    i = get(h.popup_databases,'Value');
+    dbpref = dbs{i};
+end
+
+mym(['use ' dbpref]);
+
+i = find(ismember(dbs,dbpref));
+set(h.popup_databases,'String',dbs,'Value',i);
 
 UpdateLists(h.popup_databases,h);
 
 function UpdateLists(hObj,h)
-hierarchy = {'popup_databases','list_experiments','list_tanks', ...
-    'list_blocks','list_channels','list_units'};
+ord = h.hierarchy;
 
-cla(h.axes_unit);
+[~,str] = strtok(get(hObj,'tag'),'_');
+str(1) = [];
+starth = find(strcmp(str,ord));
 
-starth = find(strcmp(get(hObj,'tag'),hierarchy)); drawnow
-set(h.figure1,'Pointer','watch');
-for i = starth:length(hierarchy)
-    id = get_listid(h.(hierarchy{i}));
-    if isempty(id) 
-        set(h.(hierarchy{i}),'Value',1,'String','< NOTHING HERE >');
+if strncmp(get(hObj,'tag'),'showall',7)
+    starth = starth - 1;
+end
+
+UpdatePrefs(ord(starth:end),h);
+
+set(h.figure1,'Pointer','watch'); drawnow
+
+for i = starth:length(ord)
+    if strcmp('databases',ord{i})
+        lOrd = h.popup_databases;
+    else
+        lOrd = h.(['list_' ord{i}]);
+    end
+    id = get_listid(lOrd);
+    
+    if isempty(id) && i > 1
+        set(lOrd,'Value',1,'String','< NOTHING HERE >');
+        if i < length(ord)
+            set(h.(['list_' ord{i+1}]),'Value',1,'String','< NOTHING HERE >');
+        end
         continue
     end
-    switch hierarchy{i}
-        case 'popup_databases'
-            e = mym('SELECT CONCAT(id,". ",name) AS str FROM experiments');
+    
+    if i < length(ord)
+        
+        % THIS SEEMS KIND OF CLUMSY
+        saval = get(h.(['showall_' ord{i+1}]),'Value');
+        if ~saval
+            iustr = 'AND in_use = TRUE';
+        else
+            iustr = '';
+        end
+    end
+    
+    if ~isempty(id)
+        check_inuse(ord{i},id,h.(['exclude_' ord{i}]));
+    end
+
+    switch ord{i}
+        case 'databases'
+            if ~isempty(iustr), iustr = 'WHERE in_use = TRUE'; end
+            e = mym('SELECT CONCAT(id,". ",name) AS str FROM experiments {S}',iustr);
             
-        case 'list_experiments'
-            
+        case 'experiments'
             e = mym(['SELECT CONCAT(id,". ",tank_condition," [",name,"]") ', ...
-                'AS str FROM tanks WHERE exp_id = {Si}'],id);
+                'AS str FROM tanks WHERE exp_id = {Si} {S}'],id,iustr);
             
-        case 'list_tanks'
+        case 'tanks'
             e = mym(['SELECT CONCAT(b.id,". ",p.alias," [",b.block,"]") ', ...
                 'AS str FROM blocks b JOIN db_util.protocol_types p ', ...
-                'ON b.protocol = p.pid WHERE b.tank_id = {Si}'],id);
-
-        case 'list_blocks'
-            e = mym(['SELECT CONCAT(id,". ",target,channel) AS str ', ...
-                'FROM channels WHERE block_id = {Si} ORDER BY channel'],id);
+                'ON b.protocol = p.pid WHERE b.tank_id = {Si} {S}'],id,iustr);
             
-        case 'list_channels'
+        case 'blocks'
+            e = mym(['SELECT CONCAT(id,". ",target,channel) AS str ', ...
+                'FROM channels WHERE block_id = {Si} {S} ORDER BY channel'],id,iustr);
+            
+        case 'channels'
             e = mym(['SELECT CONCAT(u.id,". ",p.class," (",u.unit_count,")") ', ...
                 'AS str FROM units u JOIN class_lists.pool_class p ', ...
-                'ON u.pool = p.id WHERE u.channel_id = {Si}'],id);
-        
-        case 'list_units'
-            e = mym('SELECT * FROM units WHERE id = {Si}',id);
-            w = str2num(char(e.pool_waveform{1}')); %#ok<ST2NM>
-            s = str2num(char(e.pool_stddev{1}')); %#ok<ST2NM>
-            fill([1:length(w) length(w):-1:1],[w+s fliplr(w-s)], ...
-                [0.6 0.6 0.6],'Parent',h.axes_unit);
-            hold(h.axes_unit,'on');
-            plot(h.axes_unit,1:length(w),w,'-k','LineWidth',2)
-            hold(h.axes_unit,'off');
-            axis(h.axes_unit,'tight');
-            y = max(abs(ylim(h.axes_unit)));
-            ylim(h.axes_unit,[-y y]);
+                'ON u.pool = p.id WHERE u.channel_id = {Si} {S}'],id,iustr);
+            
+        case 'units'
+            % plot unit waveform after unit is selected
             continue
     end
-    setlistid(h,hierarchy{i+1},e.str);
-    drawnow
+    
+    set(h.(['list_' ord{i+1}]),'Value',1,'String',e.str);
+    
+    SetListPref(ord{i},h);
+    
 end
+plot_unit_waveform(id,h);
+
 set(h.figure1,'Pointer','arrow');
 
+
+
+function ExcludeItem(hObj,h) %#ok<DEFNU>
+tag = get(hObj,'tag');
+table = tag(9:end); % cut out 'exclude_' prefix
+id = get_listid(h.(['list_' table]));
+DB_InUse(table,id,'toggle');
+UpdateLists(hObj,h);
+
+
+
+%%
 function get_protocol_Callback(h) %#ok<DEFNU>
 set(h.figure1,'Pointer','watch'); drawnow
 id = get_listid(h.list_blocks);
@@ -144,15 +191,33 @@ fprintf('Parameters structure in workspace: params\n')
 whos params
 set(h.figure1,'Pointer','arrow');
 
-function get_lfp_Callback(h)
+function get_lfp_Callback(h) %#ok<DEFNU>
 set(h.figure1,'Pointer','watch'); drawnow
+id = get_listid(h.list_channels);
+[lfp.wave,lfp.tvec] = DB_GetWave(id);
+assignin('base','lfp',lfp);
+fprintf('LFP structure in workspace: lfp\n')
+whos lfp
+set(h.figure1,'Pointer','arrow');
 
+function get_spiketimes_Callback(h) %#ok<DEFNU>
+set(h.figure1,'Pointer','watch'); drawnow
+id = get_listid(h.list_units);
+spiketimes = DB_GetSpiketimes(id);
+assignin('base','spiketimes',spiketimes);
+fprintf('Spiketimes structure in workspace: spiketimes\n')
+whos spiketimes
 set(h.figure1,'Pointer','arrow');
 
 
-function get_spiketimes_Callback(h)
-
-
+function in_use = check_inuse(table,id,hObj)
+in_use = DB_InUse(table,id);
+if in_use
+    bgc = [0.941 0.941 0.941];
+else
+    bgc = [1 0.57 0.57];
+end
+set(hObj,'BackgroundColor',bgc);
 
 
 %% Helper functions
@@ -160,6 +225,7 @@ function rstr = get_string(hObj)
 % get currently select string
 v = get(hObj,'Value');
 s = cellstr(get(hObj,'String'));
+if v > length(s), v = 1; end
 if isempty(s)
     rstr = '';
 else
@@ -169,21 +235,92 @@ end
 function id = get_listid(hObj)
 % get unique table id from list string
 str = get_string(hObj);
-id  = str2num(strtok(str,'.')); 
-
-function id = setlistid(h,name,list)
-p = getpref('DB_Browser',name,'');
-id = find(strcmp(list,p));
-if isempty(id), id = 1; end
-set(h.(name),'String',list,'Value',id);
+id  = str2num(strtok(str,'.'));  %#ok<ST2NM>
 
 
 
 
+function UpdatePrefs(ord,h)
+% ord = h.hierarchy;
+vals = cell(size(ord));
+for i = 1:length(ord)
+    if strcmp('databases',ord{i})
+        lOrd = h.popup_databases;
+    else
+        lOrd = h.(['list_' ord{i}]);
+    end
+    rstr = get_string(lOrd);
+    id = get_listid(lOrd);
+    
+    switch ord{i}
+        case 'databases'
+            vals{i} = rstr;
+        case 'experiments'
+            vals{i} = rstr;
+        case 'tanks'
+            if isempty(id), continue; end
+            e = mym('SELECT tank_condition FROM tanks WHERE id = {Si}',id);
+            vals{i} = char(e.tank_condition);
+        case 'blocks'
+            if isempty(id), continue; end
+            e = mym(['SELECT p.alias FROM blocks b ', ...
+                'JOIN db_util.protocol_types p ', ...
+                'ON b.protocol = p.pid WHERE b.id = {Si}'],id);
+            vals{i} = char(e.alias);
+        case 'channels'
+            if isempty(id), continue; end
+            e = mym(['SELECT CONCAT(target,channel) AS str ', ...
+                'FROM channels WHERE id = {Si}'],id);
+            vals{i} = e.str;
+        case 'units'
+            if isempty(id), continue; end
+            e = mym(['SELECT p.class FROM units u ', ...
+                'JOIN class_lists.pool_class p ', ...
+                'ON u.pool = p.id WHERE u.id = {Si}'],id);
+            vals{i} = char(e.class);
+    end
+end
+setpref('DB_Browser',ord,vals);
+
+function SetListPref(ord,h)
+val = getpref('DB_Browser',ord,[]);
+if isempty(val), return; end
+
+if strcmp('databases',ord)
+    lOrd = h.popup_databases;
+else
+    lOrd = h.(['list_' ord]);
+end
+
+switch ord
+    case {'databases', 'experiments'}
+        return
+    otherwise
+        str = get(lOrd,'String');
+        for j = 1:length(str);
+            instr = strfind(str{j},char(val));
+            if instr
+                set(lOrd,'Value',j);
+                break
+            end
+        end
+        
+end
 
 
 
 
-
-
-
+function plot_unit_waveform(id,h)
+cla(h.axes_unit,'reset');
+if isempty(id), return; end
+e = mym('SELECT * FROM units WHERE id = {Si}',id);
+w = str2num(char(e.pool_waveform{1}')); %#ok<ST2NM>
+s = str2num(char(e.pool_stddev{1}')); %#ok<ST2NM>
+fill([1:length(w) length(w):-1:1],[w+s fliplr(w-s)], ...
+    [0.6 0.6 0.6],'Parent',h.axes_unit);
+hold(h.axes_unit,'on');
+plot(h.axes_unit,1:length(w),w,'-k','LineWidth',2)
+hold(h.axes_unit,'off');
+axis(h.axes_unit,'tight');
+y = max(abs(ylim(h.axes_unit)));
+ylim(h.axes_unit,[-y y]);

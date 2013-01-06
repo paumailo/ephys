@@ -15,13 +15,17 @@ function varargout = DB_GetWave(channel_id,epoch)
 %
 % DJS (c) 2013
 %
-% See also DB_GetParams
+% See also DB_GetParams, DB_GetSpiketimes
 
 % Check input
 if nargin<1
-    error('DB:DB_GetFRA:NrInputArguments','Not enough input arguments.');
+    error('DB_GetWave: Not enough input arguments.');
 elseif nargin == 1
     epoch = [];
+end
+
+if ~isempty(epoch) && numel(epoch) ~= 2
+    error('DB_GetWave: epoch parameter requires two scalars');
 end
 
 database = dbcurr;
@@ -36,13 +40,14 @@ p = DB_GetParams(block_id);
 Fs = p.wave_fs;
 
 if isempty(epoch)
-    % retrieve waveform data
+    % retrieve all waveform data
     w = mym(['SELECT waveform FROM wave_data ', ...
         'WHERE channel_id = {Si} ORDER BY param_id'],channel_id);
     w = cell2mat(w.waveform);
     t = (0:length(w)-1)' / Fs;
     
 else
+    % retrieve an epoch of waveform data
     pid(1) = find(epoch(1) >= p.VALS.onset,1,'last');
     pid(2) = find(epoch(2) <= p.VALS.onset,1,'first');
     w = mym(['SELECT waveform FROM wave_data ', ...
