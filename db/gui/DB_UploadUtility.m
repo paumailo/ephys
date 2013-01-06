@@ -82,13 +82,11 @@ else
     dbs{end+1} = char(newdb);
 end
 
-set(h.db_list,'String',dbs);
-set(h.db_list,'Value',length(dbs));
+set(h.db_list,'String',dbs,'Value',length(dbs));
 
-dbopen(char(newdb));
+mym('use',char(newdb));
 
-set(h.expt_expt_subject_list,'Value',1);
-set(h.expt_expt_subject_list,'String',' ');
+set(h.expt_expt_subject_list,'Value',1,'String',' ');
 
 PopulateDBs(h);
 PopulateExperiments(h);
