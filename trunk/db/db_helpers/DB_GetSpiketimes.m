@@ -4,7 +4,7 @@ function Spiketimes = DB_GetSpiketimes(unit_id,epoch)
 %
 % DJS 2013
 %
-% See also DB_GetParams, DB_GetWave
+% See also shapedata_spikes, DB_GetParams, DB_GetWave
 
 
 % Check input

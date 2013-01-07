@@ -37,7 +37,7 @@ h.output = hObj;
 guidata(hObj, h);
 
 % UIWAIT makes DB_Browser wait for user response (see UIRESUME)
-% uiwait(h.figure1);
+% uiwait(h.DB_Browser);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -47,7 +47,7 @@ varargout{1} = h.output;
 
 h.hierarchy = {'databases','experiments','tanks', ...
     'blocks','channels','units'};
-guidata(h.figure1,h);
+guidata(h.DB_Browser,h);
 
 dbpref = getpref('DB_Browser','databases',[]);
 
@@ -99,7 +99,7 @@ if strncmp(get(hObj,'tag'),'showall',7)
     starth = starth - 1;
 end
 
-set(h.figure1,'Pointer','watch'); drawnow
+set(h.DB_Browser,'Pointer','watch'); drawnow
 
 UpdatePrefs(ord(starth:end),h);
 
@@ -165,7 +165,7 @@ for i = starth:length(ord)
     
     val = GetListPref(ord{i+1},e.str);
     set(h.(['list_' ord{i+1}]),'String',e.str,'Value',val);
-    setappdata(h.figure1,ord{i+1},get_listid(h.(['list_' ord{i+1}])));
+    setappdata(h.DB_Browser,ord{i+1},get_listid(h.(['list_' ord{i+1}])));
 end
 
 plot_unit_waveform(id,h);
@@ -175,7 +175,7 @@ if ~isempty(pf)
     LaunchParams(h);
 end
 
-set(h.figure1,'Pointer','arrow');
+set(h.DB_Browser,'Pointer','arrow');
 
 function UpdatePrefs(ord,h)
 vals = cell(size(ord));
@@ -261,45 +261,35 @@ set(hObj,'BackgroundColor',bgc);
 
 %% Get Data
 function get_protocol_Callback(h) %#ok<DEFNU>
-set(h.figure1,'Pointer','watch'); drawnow
+set(h.DB_Browser,'Pointer','watch'); drawnow
 id = get_listid(h.list_blocks);
 params = DB_GetParams(id);
 assignin('base','params',params);
 fprintf('Parameters structure in workspace: params\n')
 whos params
-set(h.figure1,'Pointer','arrow');
+set(h.DB_Browser,'Pointer','arrow');
 
 function get_lfp_Callback(h) %#ok<DEFNU>
-set(h.figure1,'Pointer','watch'); drawnow
+set(h.DB_Browser,'Pointer','watch'); drawnow
 id = get_listid(h.list_channels);
 [lfp.wave,lfp.tvec] = DB_GetWave(id);
 assignin('base','lfp',lfp);
 fprintf('LFP structure in workspace: lfp\n')
 whos lfp
-set(h.figure1,'Pointer','arrow');
+set(h.DB_Browser,'Pointer','arrow');
 
 function get_spiketimes_Callback(h) %#ok<DEFNU>
-set(h.figure1,'Pointer','watch'); drawnow
+set(h.DB_Browser,'Pointer','watch'); drawnow
 id = get_listid(h.list_units);
 spiketimes = DB_GetSpiketimes(id);
 assignin('base','spiketimes',spiketimes);
 fprintf('Spiketimes structure in workspace: spiketimes\n')
 whos spiketimes
-set(h.figure1,'Pointer','arrow');
+set(h.DB_Browser,'Pointer','arrow');
 
 
 
 %% Helper functions
-function rstr = get_string(hObj)
-% get currently select string
-v = get(hObj,'Value');
-s = cellstr(get(hObj,'String'));
-if v > length(s), v = 1; end
-if isempty(s)
-    rstr = '';
-else
-    rstr = s{v};
-end
 
 function id = get_listid(hObj)
 % get unique table id from list string
@@ -332,6 +322,13 @@ function LaunchParams(h)
 block_id = get_listid(h.list_blocks);
 DB_ParameterBreakout(block_id);
 
+function LaunchPlot(h) %#ok<DEFNU>
+LaunchParams(h);
+f = findobj('Tag','DB_GenericPlot');
+if isempty(f)
+    f = DB_GenericPlot;
+end
+figure(f)
 
 
 

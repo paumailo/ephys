@@ -22,7 +22,7 @@ end
 Fs = params.wave_fs;
 
 % sort trials by onsets
-ons = params.lists.onset;
+ons = params.VALS.onset;
 
 winsamps = floor(Fs*win(1)):ceil(Fs*win(2));
 
@@ -35,7 +35,7 @@ for i = 1:length(ons)
 end
 
 for i = 1:length(dimparams)
-    vals{i} = params.lists.(dimparams{i}); %#ok<AGROW>
+    vals{i} = unique(params.VALS.(dimparams{i})); %#ok<AGROW>
 end
 
 if length(vals) == 1

@@ -108,7 +108,10 @@ end
 
 
 
-
-
+function TableCellSelect(hObj,evnt,~) %#ok<DEFNU>
+% Store values of selected cells in current table UserData
+ind = evnt.Indices(:,1);
+d = get(hObj,'Data');
+set(hObj,'UserData',cell2mat(d(ind)))
 
 

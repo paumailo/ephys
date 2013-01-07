@@ -21,10 +21,10 @@ for i = 1:2:length(varargin)
     end
 end
 
-binvec = win(1):binsize:win(2)-binsize;
+binvec = win(1):binsize:win(2);
 
 % sort spikes by onsets
-ons = params.lists.onset;
+ons = params.VALS.onset;
 raster = cell(size(ons));
 
 % psth:   bins/trials
@@ -43,12 +43,13 @@ for i = 1:length(dimparams)
     vals{i} = unique(params.VALS.(dimparams{i})); %#ok<AGROW>
 end
 
-if length(vals) == 1
+% THERE'S PROBABLY A MORE CLEVER WAY OF DOING THIS...
+if length(dimparams) == 1
     % data:    bins/param1
     data = zeros(length(binvec),length(vals{1}));
     for i = 1:length(vals{1})
         ind = params.VALS.(dimparams{1}) == vals{1}(i);
-        data(:,i) = sum(psth(:,ind),2);
+        data(:,i) = mean(psth(:,ind),2);
     end
     
     
@@ -59,7 +60,7 @@ elseif length(dimparams) == 2
         for j = 1:length(vals{2})
             ind = params.VALS.(dimparams{1}) == vals{1}(i) ...
                 & params.VALS.(dimparams{2}) == vals{2}(j);
-            data(:,i,j) = sum(psth(:,ind),2);
+            data(:,i,j) = mean(psth(:,ind),2);
         end
     end
     
@@ -73,7 +74,7 @@ elseif length(dimparams) == 3
                 ind = params.VALS.(dimparams{1}) == vals{1}(i) ...
                     & params.VALS.(dimparams{2}) == vals{2}(j) ...
                     & params.VALS.(dimparams{3}) == vals{3}(k);
-                data(:,i,j,k) = sum(psth(:,ind),2);
+                data(:,i,j,k) = mean(psth(:,ind),2);
             end
         end
     end
