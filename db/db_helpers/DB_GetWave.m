@@ -15,7 +15,7 @@ function varargout = DB_GetWave(channel_id,epoch)
 %
 % DJS (c) 2013
 %
-% See also DB_GetParams, DB_GetSpiketimes
+% See also, DB_GetWaves, DB_GetParams, DB_GetSpiketimes
 
 % Check input
 if nargin<1
