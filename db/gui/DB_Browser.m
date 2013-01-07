@@ -165,16 +165,15 @@ for i = starth:length(ord)
     
     val = GetListPref(ord{i+1},e.str);
     set(h.(['list_' ord{i+1}]),'String',e.str,'Value',val);
-
+    setappdata(h.figure1,ord{i+1},get_listid(h.(['list_' ord{i+1}])));
 end
 
 plot_unit_waveform(id,h);
 
-% UpdateParams(h);
-
-% if get(h.auto_plot_update,'Value')
-%     UpdatePlots(h);
-% end
+pf = findobj('type','figure','-and','tag','ParameterBreakout');
+if ~isempty(pf)
+    LaunchParams(h);
+end
 
 set(h.figure1,'Pointer','arrow');
 
@@ -256,53 +255,6 @@ end
 set(hObj,'BackgroundColor',bgc);
 
 
-% %% Plot Data
-% function UpdatePlots(h)
-% % TODO: ADD SUPPORT FOR 2DIM PLOTS AND OPTIONS FOR USER
-% p1 = get_string(h.list_params1);
-% p2 = get_string(h.list_params2);
-% 
-% id = get_listid(h.list_units);
-% spiketimes = DB_GetSpiketimes(id);
-% 
-% id = get_listid(h.list_blocks);
-% params = DB_GetParams(id);
-% 
-% % remove blank trials
-% if isfield(params.VALS,'levl')
-%     ind = params.VALS.levl ~= -100;
-%     params.VALS = structfun(@(x) (x(ind)),params.VALS,'UniformOutput',false);
-% end
-% if isfield(params.VALS,'freq')
-%     ind = params.VALS.freq > 0;
-%     params.VALS = structfun(@(x) (x(ind)),params.VALS,'UniformOutput',false);
-% end
-% 
-% [data,vals] = shapedata_spikes(spiketimes,params,{p1},'win',[0 0.1]);
-% 
-% 
-% f = findobj('type','figure','-and','tag','DB_Browser_SpikePlot');
-% if isempty(f)
-%     f = figure('tag','DB_Browser_SpikePlot');
-%     axes('parent',f,'tag','SpikePlot');
-% end
-% ax = findobj(f,'type','axes');
-% cla(ax,'reset');
-% imagesc(vals{1},vals{2},data','parent',ax);
-% xlabel(ax,'time'); ylabel(ax,p1);
-% set(ax,'ydir','normal');
-
-% function UpdateParams(h)
-% id = get_listid(h.list_blocks);
-% params = DB_GetParams(id);
-% pt = params.param_type;
-% 
-% ind = ismember(pt,{'onset','ofset','idx'});
-% pt(ind) = [];
-% 
-% set(h.list_params1,'Value',1,'String',pt);
-% set(h.list_params2,'Value',1,'String',pt);
-
 
 
 
@@ -368,3 +320,18 @@ hold(h.axes_unit,'off');
 axis(h.axes_unit,'tight');
 y = max(abs(ylim(h.axes_unit)));
 ylim(h.axes_unit,[-y y]);
+
+
+
+
+
+
+
+%% External
+function LaunchParams(h)
+block_id = get_listid(h.list_blocks);
+DB_ParameterBreakout(block_id);
+
+
+
+
