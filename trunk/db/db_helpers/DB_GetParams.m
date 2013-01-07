@@ -26,8 +26,7 @@ if isempty(PP) || block_id ~= PP.block_id || ~strcmp(PP.database,database)
     end
     
     % reorganize protocol data
-    pt = mym('SELECT id,param FROM db_util.param_types');
-    pid =  pt.id; pstr = pt.param;
+    [pid,pstr] = myms('SELECT id,param FROM db_util.param_types');
     
     ind = ~ismember(pid,unique(PP.param_type));
     pid(ind) = []; pstr(ind) = [];
@@ -57,7 +56,7 @@ if isempty(PP) || block_id ~= PP.block_id || ~strcmp(PP.database,database)
     end
     
     for i = 1:length(pid)
-        p.VALS.(pstr{i})  = p.param_value(:,i);
+        p.VALS.(pstr{i}) = p.param_value(:,i);
     end
     
     p.updated = true;

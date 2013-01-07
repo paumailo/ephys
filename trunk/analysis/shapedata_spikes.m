@@ -38,9 +38,9 @@ for i = 1:length(ons)
 end
 
 
-
+% select parameter for dimensions
 for i = 1:length(dimparams)
-    vals{i} = params.lists.(dimparams{i}); %#ok<AGROW>
+    vals{i} = unique(params.VALS.(dimparams{i})); %#ok<AGROW>
 end
 
 if length(vals) == 1
