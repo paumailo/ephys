@@ -6,7 +6,7 @@ function varargout = EPhysController(varargin)
 % 
 % See also, ProtocolDesign, CalibrationUtil
 %
-% DJS 2011
+% DJS 2013
 
 % Last Modified by GUIDE v2.5 10-Dec-2012 16:45:00
 
@@ -39,6 +39,9 @@ h.output = hObj;
 % Instantiate TDT ActiveX Controls
 if ~isa(G_DA,'COM.TDevAcc_X'), G_DA = TDT_SetupDA; end
 if ~isa(G_TT,'COM.TTank_X'),   G_TT = TDT_SetupTT; end
+
+h.activex1 = actxcontrol('TTankInterfaces.TankSelect', ...
+    'parent',h.EPhysController,'position',[35 215 204 350]);
 
 % Update h structure
 guidata(hObj, h);
