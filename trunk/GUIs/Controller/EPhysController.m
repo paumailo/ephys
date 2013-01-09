@@ -457,8 +457,24 @@ DA.SetTargetVal(trig_str,1);
 t = hat; % start timer for next trial
 DA.SetTargetVal(trig_str,0);
 
+function t = DAZBUSBtrig(DA)
+% This will trigger zBusB synchronously across modules
+%   Note: Two ScriptTag components must be included in one of the RPvds
+%   circuits.  
+%       The ZBUS_ON ScriptTag should have the following code:
+%           Sub main
+%               TDT.ZTrgOn(Asc("B"))
+%           End Sub
+% 
+%       The ZBUS_OFF ScriptTag should have the following code:
+%           Sub main
+%               TDT.ZTrgOff(Asc("B"))
+%           End Sub
 
 
+DA.SetTargetVal('ZBUSB_ON',1);
+t = hat; % start timer for next trial
+DA.SetTargetVal('ZBUSB_OFF',1);
 
 
 
@@ -499,8 +515,7 @@ else
 end
 
 % Trigger on Stim module
-% 1/3/13 TODO: UPDATE TRIGGER TO USE ZBUSB TRIGGER AS PER MARK HANUS EMAIL
-ud{2} = DATrigger(G_DA,'Stim.~Trig');
+DAZBUSBtrig(G_DA);
 
 % Figure out next ISI
 ud{3} = ITI(G_COMPILED.OPTIONS);

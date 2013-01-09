@@ -52,6 +52,10 @@ h.output = hObj;
 % Update h structure
 guidata(hObj, h);
 
+if ~isempty(varargin) && varargin{1}
+    UpdatePlot(h);
+end
+
 
 
 % --- Outputs from this function are returned to the command line.
@@ -244,7 +248,12 @@ set(f,'Name',nstr);
 
 
 
-
+function Send2Workspace(h) %#ok<DEFNU>
+data = get(h.axes_main,'UserData');
+vn = genvarname('data');
+assignin('base',vn,data);
+eval(sprintf('whos %s',vn))
+eval(sprintf('%s',vn))
 
 
 

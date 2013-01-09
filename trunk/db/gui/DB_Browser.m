@@ -324,10 +324,7 @@ DB_ParameterBreakout(block_id);
 
 function LaunchPlot(h) %#ok<DEFNU>
 LaunchParams(h);
-f = findobj('Tag','DB_GenericPlot');
-if isempty(f)
-    f = DB_GenericPlot;
-end
+f = DB_GenericPlot(true);
 figure(f)
 
 
