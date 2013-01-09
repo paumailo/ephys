@@ -1,24 +1,7 @@
 function varargout = DB_GenericPlot(varargin)
-% DB_GENERICPLOT MATLAB code for DB_GenericPlot.fig
-%      DB_GENERICPLOT, by itself, creates a new DB_GENERICPLOT or raises the existing
-%      singleton*.
+% DB_GenericPlot
 %
-%      H = DB_GENERICPLOT returns the handle to a new DB_GENERICPLOT or the handle to
-%      the existing singleton*.
-%
-%      DB_GENERICPLOT('CALLBACK',hObj,evnt,h,...) calls the local
-%      function named CALLBACK in DB_GENERICPLOT.M with the given input arguments.
-%
-%      DB_GENERICPLOT('Property','Value',...) creates a new DB_GENERICPLOT or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before DB_GenericPlot_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to DB_GenericPlot_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
+% DJS 2013
 
 % Edit the above text to modify the response to help DB_GenericPlot
 
@@ -90,6 +73,8 @@ varargout{1} = h.output;
 
 %%
 function UpdatePlot(h,ax)
+% TODO: SPLIT THIS FUNCTION UP INTO SEPARATE ROUTINES
+
 if nargin == 1 || isempty(ax), ax = h.axes_main; end
 
 set(h.DB_GenericPlot,'Pointer','watch'); drawnow
@@ -101,7 +86,10 @@ ids = RetrieveIDs;
 window  = str2num(get(h.opt_window, 'String'))/1000; %#ok<ST2NM>
 binsize = str2num(get(h.opt_binsize,'String'))/1000; %#ok<ST2NM>
 
-isSpike = get(h.radio_spiketimes,'Value');
+isSpike  = get(h.radio_spiketimes,'Value');
+isSmooth = get(h.opt_smooth_2d,'Value');
+isInterp = get(h.opt_interp,'Value');
+
 
 % see if we can reuse data from the current plot
 info = get(h.axes_main,'UserData');
@@ -146,6 +134,8 @@ if isvector(data)
     xlabel(ax,'time (s)'); ylabel(ax,'mean spike count');
     
 elseif ndims(data) == 2 %#ok<ISMAT>
+    if isSmooth, data = sgsmooth2d(data); end
+    if isInterp, data = interp2(data,3);  end
     imagesc(dimvals{1},dimvals{2},data','Parent',ax);
     xlabel(ax,'time (s)'); ylabel(ax,vals{1,1});
     colorbar
@@ -156,6 +146,8 @@ elseif ndims(data) == 3
     else
         data = squeeze(sqrt(mean(data.^2)));
     end
+    if isSmooth, data = sgsmooth2d(data); end
+    if isInterp, data = interp2(data,3);  end
     imagesc(dimvals{2},dimvals{3},data','Parent',ax);
     xlabel(ax,vals{1,1}); ylabel(ax,vals{1,2});
     colorbar
