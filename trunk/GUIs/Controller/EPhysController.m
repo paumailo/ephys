@@ -40,6 +40,8 @@ h.output = hObj;
 if ~isa(G_DA,'COM.TDevAcc_X'), G_DA = TDT_SetupDA; end
 if ~isa(G_TT,'COM.TTank_X'),   G_TT = TDT_SetupTT; end
 
+h.activex1 = actxcontrol('TTankInterfaces.TankSelect', ...
+    'parent',h.EPhysController,'position',[35 215 204 350]);
 
 % Update h structure
 guidata(hObj, h);
@@ -85,7 +87,7 @@ delete(hObj);
 
 
 %% Tanks
-function activex2_TankChanged(hObj, evnt, h) %#ok<INUSL,DEFNU>
+function activex1_TankChanged(hObj, evnt, h) %#ok<INUSL,DEFNU>
 global G_TT
 
 if ~isa(G_TT,'COM.TTank_X'), G_TT = TDT_SetupTT; end
