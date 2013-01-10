@@ -433,7 +433,7 @@ h.protocol.MODULES.(v).data = data;
 
 guidata(h.ProtocolDesign,h);
 
-function module_select_Callback(hObj, h) %#ok<DEFNU>
+function module_select_Callback(hObj, h) 
 % handles module selection
 if ~isfield(h,'protocol'), h.protocol = []; end
 
@@ -482,6 +482,9 @@ else
     set(h.splash,'Visible','off');
 end
 
+module_select_Callback(h.module_select, h);
+
+
 function remove_module_Callback(h) %#ok<DEFNU>
 % remove selected module from protocol
 ov  = cellstr(get(h.module_select,'String'));
@@ -494,10 +497,17 @@ r = questdlg( ...
 
 if strcmp(r,'No'), return; end
 
+if isfield(h.protocol.MODULES,v)
+    h.protocol.MODULES = rmfield(h.protocol.MODULES,v);
+    guidata(h.ProtocolDesign,h);
+end
+
 ov(idx) = [];
 set(h.module_select,'String',ov,'Value',1);
 
 if isempty(ov), set(h.param_table,'Enable','off'); end
+
+module_select_Callback(h.module_select, h);
 
 function rpvds_tags_Callback(h) %#ok<DEFNU>
 % Grab parameter tags from an existing RPvds file

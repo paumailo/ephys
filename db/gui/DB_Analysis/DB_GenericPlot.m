@@ -88,7 +88,7 @@ binsize = str2num(get(h.opt_binsize,'String'))/1000; %#ok<ST2NM>
 
 isSpike  = get(h.radio_spiketimes,'Value');
 isSmooth = get(h.opt_smooth_2d,'Value');
-isInterp = get(h.opt_interp,'Value');
+isInterp = get(h.opt_interpolate,'Value');
 
 
 % see if we can reuse data from the current plot
