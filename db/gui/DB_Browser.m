@@ -55,7 +55,7 @@ Connect2DB(h,dbpref);
 
 
 function closeme(hObj,h) %#ok<DEFNU>
-UpdatePrefs(h.hierarchy,h);
+% UpdatePrefs(h.hierarchy,h);
 delete(hObj);
 
 
@@ -67,10 +67,13 @@ delete(hObj);
 
 
 %% Database
-function Connect2DB(h,dbpref)
+
+function Connect2DB(h,dbpref,reg)
 if nargin == 1, dbpref = []; end
 
-if ~myisopen % if connection is lost, reconnect to database
+if nargin == 3 && reg
+    dbs = DB_Connect(true);
+elseif ~myisopen % if connection is lost, reconnect to database
     dbs = DB_Connect;
 else
     dbs = dblist;
@@ -90,6 +93,7 @@ UpdateLists(h.popup_databases,h);
 
 function UpdateLists(hObj,h)
 ord = h.hierarchy;
+
 
 [~,str] = strtok(get(hObj,'tag'),'_');
 str(1) = [];
@@ -159,7 +163,7 @@ for i = starth:length(ord)
                 'ON u.pool = p.id WHERE u.channel_id = {Si} {S}'],id,iustr);
             
         case 'units'
-            % plot unit waveform after unit is selected
+            setappdata(h.DB_Browser,ord{i},get_listid(h.(['list_' ord{i}])));
             continue
     end
     
@@ -323,7 +327,6 @@ block_id = get_listid(h.list_blocks);
 DB_ParameterBreakout(block_id);
 
 function LaunchPlot(h) %#ok<DEFNU>
-LaunchParams(h);
 f = DB_GenericPlot(true);
 figure(f)
 

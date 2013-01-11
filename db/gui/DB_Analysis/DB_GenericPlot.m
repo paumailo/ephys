@@ -82,19 +82,18 @@ set(h.DB_GenericPlot,'Pointer','watch'); drawnow
 [params,vals] = RetrieveParams;
 ids = RetrieveIDs;
 
-% get options
+% get options -------------------------------------------------------------
 window  = str2num(get(h.opt_window, 'String'))/1000; %#ok<ST2NM>
 binsize = str2num(get(h.opt_binsize,'String'))/1000; %#ok<ST2NM>
 
-isSpike  = get(h.radio_spiketimes,'Value');
-isSmooth = get(h.opt_smooth_2d,'Value');
-isInterp = get(h.opt_interpolate,'Value');
+isSpike  = get(h.radio_spiketimes,  'Value');
+isSmooth = get(h.opt_smooth_2d,     'Value');
+isInterp = get(h.opt_interpolate,   'Value');
 
 
-% see if we can reuse data from the current plot
+% see if we can reuse data from the current plot --------------------------
 info = get(h.axes_main,'UserData');
 if ~isempty(info) && ~isequal(ax,h.axes_main)
-    
     data = info.data;
     vals = info.vals;
     ids  = info.ids;
@@ -126,7 +125,7 @@ else
     end
 end
 
-% plot data
+% plot data ---------------------------------------------------------------
 cla(ax,'reset');
 
 if isvector(data)
