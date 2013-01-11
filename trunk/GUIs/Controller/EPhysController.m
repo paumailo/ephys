@@ -29,7 +29,7 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-% --- Executes just before ephyscontroller is made visible.
+% -- Executes just before ephyscontroller is made visible.
 function EPhysController_OpeningFcn(hObj, ~, h, varargin)
 global G_DA G_TT
 
