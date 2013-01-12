@@ -40,8 +40,8 @@ h.output = hObj;
 if ~isa(G_DA,'COM.TDevAcc_X'), G_DA = TDT_SetupDA; end
 if ~isa(G_TT,'COM.TTank_X'),   G_TT = TDT_SetupTT; end
 
-h.activex1 = actxcontrol('TTankInterfaces.TankSelect', ...
-    'parent',h.EPhysController,'position',[35 215 204 350]);
+% h.activex2 = actxcontrol('TTankInterfaces.TankSelect', ...
+%     'parent',h.EPhysController,'position',[35 215 204 350]);
 
 % Update h structure
 guidata(hObj, h);
@@ -87,7 +87,7 @@ delete(hObj);
 
 
 %% Tanks
-function activex1_TankChanged(hObj, evnt, h) %#ok<INUSL,DEFNU>
+function activex2_TankChanged(hObj, evnt, h) %#ok<INUSL,DEFNU>
 global G_TT
 
 if ~isa(G_TT,'COM.TTank_X'), G_TT = TDT_SetupTT; end
@@ -260,6 +260,8 @@ protocol_list_Callback(h.protocol_list, [], h);
 
 %% Session Control 
 function control_record_Callback(hObj, ~, h) 
+clear global G_DA G_TT
+
 global G_DA G_COMPILED G_PAUSE G_FLAGS
 
 G_PAUSE = false;
@@ -289,7 +291,8 @@ if ~isfield(protocol,'COMPILED') %#ok<NODEF> % Compile Now
 end
 
 % Instantiate OpenDeveloper ActiveX control and select active tank
-G_DA = TDT_SetupDA(h.ActTank);
+if ~isa(G_DA,'COM.TDevAcc_X'), G_DA = TDT_SetupDA; end
+G_DA.SetTankName(h.ActTank);
 
 % Prepare OpenWorkbench
 G_DA.SetSysMode(0); % Idle
@@ -326,20 +329,20 @@ monitor_channel_Callback(h.monitor_channel, [], h);
 G_FLAGS.update = G_DA.GetTargetType('Stim.~Updated');
 
 % figure out first timer period
-% per = max(G_COMPILED.OPTIONS.ISI/1000);
-per = ITI(G_COMPILED.OPTIONS);
+t = hat;
+per = t + ITI(G_COMPILED.OPTIONS);
 
 % Create new timer for RPvds control of experiment
 delete(timerfind('Name','EPhysTimer'));
 T = timer(                                   ...
-    'BusyMode',     'drop',                  ...
-    'ExecutionMode','fixedDelay',            ...
+    'BusyMode',     'queue',                 ...
+    'ExecutionMode','fixedRate',             ...
     'TasksToExecute',inf,                    ...
-    'Period',        0.001,                    ...
+    'Period',        0.01,                  ...
     'Name',         'EPhysTimer',            ...
-    'TimerFcn',     {@RuntimeTimer,  G_DA}, ...
+    'TimerFcn',     {@RuntimeTimer,  G_DA},  ...
     'StartDelay',   1,                       ...
-    'UserData',     {h.EPhysController hat per});
+    'UserData',     {h.EPhysController t per});
 
 % 'ErrorFcn',{@StartTrialError,G_DA}, ...
 
@@ -475,9 +478,9 @@ function t = DAZBUSBtrig(DA)
 %           End Sub
 
 
-DA.SetTargetVal('ZBUSB_ON',1);
+DA.SetTargetVal('Stim.ZBUSB_ON',1);
 t = hat; % start timer for next trial
-DA.SetTargetVal('ZBUSB_OFF',1);
+DA.SetTargetVal('Stim.ZBUSB_OFF',1);
 
 
 
@@ -504,27 +507,26 @@ global G_COMPILED G_DA G_FLAGS G_PAUSE
 if G_PAUSE, return; end
 
 ud = get(hObj,'UserData');
-% ud{1} = figure handle
-% ud{2} = last call to hat
-% ud{3} = time of next trigger
-if hat - ud{2} < ud{3} - 0.015, return; end
+% ud{1} = figure handle; ud{2} = last trigger ; ud{3} = next trigger
+if hat < ud{3} - 0.025, return; end
 
-% hold the computer hostage for a few milliseconds until the set amount of
-% time before the next trigger
+% hold computer hostage for a few milliseconds until the next trigger time
 if G_FLAGS.update
-    while hat - ud{2} < ud{3} && DA.GeTargetVal('Stim.~Updated'); end
+    while hat < ud{3} && DA.GeTargetVal('Stim.~Updated'); end
 else
-    while hat - ud{2} < ud{3}; end
+    while hat < ud{3}; end
 end
 
 % Trigger on Stim module
-DAZBUSBtrig(G_DA);
+ud{2} = DAZBUSBtrig(G_DA);
+% fprintf('Trig Time Discrepancy = %0.5f\n',ud{2}-ud{3})
 
-% Figure out next ISI
-ud{3} = ITI(G_COMPILED.OPTIONS);
+% Figure out time of next trigger
+ud{3} = ud{2}+ITI(G_COMPILED.OPTIONS);
+
 set(hObj,'UserData',ud);
 
-% retrieve up to date GUI object handles
+% retrieve up-to-date GUI object handles
 h = guidata(ud{1});
 
 % Check if session has been completed (or user has manually halted session)

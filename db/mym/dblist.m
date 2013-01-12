@@ -7,8 +7,10 @@ else
     % new compilation of mym returns structure DJS 1/2013
     dbs = mym('show databases');
     names = dbs.Database;
-    % remove reserved database names DJS 1/2013
-    reserved = {'information_schema','class_lists','db_util','mysql'};
-    i = ismember(names,reserved);
-    names(i) = [];
+    % remove incompatible databases from list DJS 1/2013
+    ind = false(size(names));
+    for i = 1:length(names)
+        ind(i) = ~istable([names{i} '.protocols']);
+    end
+    names(ind) = [];
 end   

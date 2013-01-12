@@ -21,7 +21,7 @@ for i = 1:length(spike.threshold)
     tmpName = strcat('Acq.aSnip~',num2str(i));
     % removed error because it is thrown if too few channels are being run
     if DA.SetTargetVal(tmpName, spike.threshold(i)) == 0    % set spike detection thresholds
-        %             error('Unable to set threshold');
+%                     error('Unable to set threshold');
     end
 end
 
