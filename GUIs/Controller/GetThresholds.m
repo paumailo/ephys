@@ -31,7 +31,7 @@ path = 'C:\Electrophys\RunTime Files\';
 
 if ~isdir(path), mkdir(path); end
 
-filename = fullfile(path,'Hoops.mat');
+filename = fullfile(path,'Thresh.mat');
 
 save(filename,'spike', 'wave');
 
