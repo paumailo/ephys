@@ -38,8 +38,8 @@ cfg.datatype = 'Spikes';
 NThreads = 3; 
 
 for tind = 1:length(TANKS)
-    [~,TANKS{i},~] = fileparts(TANKS{tind});
-    cfg.tank = TANKS{i};
+    [~,TANKS{tind},~] = fileparts(TANKS{tind});
+    cfg.tank = TANKS{tind};
     [data,scfg] = getTankData(cfg);
     
     Fs = scfg.fsample;
