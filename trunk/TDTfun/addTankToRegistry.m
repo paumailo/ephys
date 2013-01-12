@@ -17,13 +17,13 @@ if isempty(b)
     [~,b] = system('systeminfo');
 end
 
-a = strfind(b,'Windows 7');
-if isempty(a), a = strfind(b,'Vista'); end
-if ~isempty(a)
-    regKey = 'HKLM\SOFTWARE\Wow6432Node\TDT\TTank\EnumTanks';
-else
-    regKey = 'HKLM\Software\TDT\TTank\EnumTanks';
-end
+% a = strfind(b,'Windows 7');
+% if isempty(a), a = strfind(b,'Vista'); end
+% if ~isempty(a)
+regKey = 'HKLM\SOFTWARE\Wow6432Node\TDT\TTank\EnumTanks';
+% else
+%     regKey = 'HKLM\Software\TDT\TTank\EnumTanks';
+% end
 
 if ~strcmp(directory(end),'\'), directory(end+1) = '\'; end % DJS 3/10
 
