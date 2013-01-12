@@ -280,7 +280,6 @@ set(h.control_pause,'Enable','off');
 set(h.control_halt,'Enable','on');
 ph = findobj(h.EPhysController,'-regexp','tag','protocol\w');
 set(ph,'Enable','off');
-UpdateProgress(h,0)
 
 % load selected protocol file
 load(fullfile(pinfo.dir,[pinfo.name{ind} '.prot']),'-mat')
@@ -289,6 +288,9 @@ load(fullfile(pinfo.dir,[pinfo.name{ind} '.prot']),'-mat')
 if ~isfield(protocol,'COMPILED') %#ok<NODEF> % Compile Now 
     protocol = CompileProtocol(protocol);
 end
+
+trem = mean(protocol.COMPILED.OPTIONS.ISI) * size(protocol.COMPILED.trials{1},1);
+UpdateProgress(h,0,trem);
 
 % Instantiate OpenDeveloper ActiveX control and select active tank
 if ~isa(G_DA,'COM.TDevAcc_X'), G_DA = TDT_SetupDA; end
@@ -566,7 +568,8 @@ if G_FLAGS.update, DATrigger(G_DA,'Stim.~Update');   end
 G_COMPILED.tidx = G_COMPILED.tidx + 1;
 
 % Update progress bar
-UpdateProgress(h,G_COMPILED.tidx/size(G_COMPILED.trials,1));
+trem = mean(G_COMPILED.OPTIONS.ISI) * (size(G_COMPILED.trials{1},1)-G_COMPILED.tidx);
+UpdateProgress(h,G_COMPILED.tidx/size(G_COMPILED.trials,1),trem);
 
 
 function i = ITI(Opts)
@@ -609,8 +612,23 @@ i = fix(i) / 1000; % round to nearest millisecond
 
 
 %% GUI Functions
-function UpdateProgress(h,v)
+function UpdateProgress(h,v,trem)
 % Update progress bar
-set(h.progress_status,'String',sprintf('Progress: %0.1f%%',v*100));
+set(h.progress_status,'String', ...
+    sprintf('Progress: %0.1f%% | Time Remaining: %0.0f s',v*100,trem));
 plot(h.progress_bar,[0 v],[0 0],'-r','linewidth',15);
 set(h.progress_bar,'xlim',[0 1],'ylim',[-0.9 1],'xtick',[],'ytick',[]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
