@@ -8,9 +8,10 @@ function rstr = get_string(hObj)
 
 v = get(hObj,'Value');
 s = cellstr(get(hObj,'String'));
-if v > length(s), v = 1; end
 if isempty(s)
     rstr = '';
-else
+elseif length(v) == 1
     rstr = s{v};
+else
+    rstr = s(v);
 end

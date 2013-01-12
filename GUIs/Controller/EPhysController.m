@@ -290,7 +290,7 @@ if ~isfield(protocol,'COMPILED') %#ok<NODEF> % Compile Now
 end
 
 trem = mean(protocol.COMPILED.OPTIONS.ISI) * size(protocol.COMPILED.trials{1},1);
-UpdateProgress(h,0,trem);
+UpdateProgress(h,0,trem/1000);
 
 % Instantiate OpenDeveloper ActiveX control and select active tank
 if ~isa(G_DA,'COM.TDevAcc_X'), G_DA = TDT_SetupDA; end
@@ -569,7 +569,7 @@ G_COMPILED.tidx = G_COMPILED.tidx + 1;
 
 % Update progress bar
 trem = mean(G_COMPILED.OPTIONS.ISI) * (size(G_COMPILED.trials{1},1)-G_COMPILED.tidx);
-UpdateProgress(h,G_COMPILED.tidx/size(G_COMPILED.trials,1),trem);
+UpdateProgress(h,G_COMPILED.tidx/size(G_COMPILED.trials,1),trem/1000);
 
 
 function i = ITI(Opts)

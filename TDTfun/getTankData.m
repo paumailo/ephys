@@ -152,6 +152,7 @@ if ~cfg.silently, fprintf('\n'); end
 for bidx = 1:length(cfg.blocks)
     DO.id   = cfg.blocks(bidx); 
     DO.name = blocklist{bidx}; 
+    DO.tank = cfg.tank;
     
     DO.Wave = [];
     DO.Snip = [];
@@ -204,16 +205,18 @@ for bidx = 1:length(cfg.blocks)
         n = TT.ReadEventsV(1,'Etyp',0,0,0,0,'NODATA');
         if n
             protocol = TT.ParseEvV(0,1);
-        else
-            fprintf('\n*** Unknown experiment type ***\n')
-            protocol = 2000;
-%             pstr = inputdlg('Please Enter Protocol #','Unknown Experiment Type');
-%             if isempty(pstr)
-%                  continue
-%             else
-%                 protocol = str2num(char(pstr)); %#ok<ST2NM>
-%             end
         end
+    end
+    
+    if isempty(protocol) || protocol < 1
+        fprintf('\n*** Unknown experiment type ***\n')
+        protocol = 9999;
+        %             pstr = inputdlg('Please Enter Protocol #','Unknown Experiment Type');
+        %             if isempty(pstr)
+        %                  continue
+        %             else
+        %                 protocol = str2num(char(pstr)); %#ok<ST2NM>
+        %             end
     end
     
 
@@ -313,14 +316,11 @@ for bidx = 1:length(cfg.blocks)
         end
         for i = 1:length(DO.paramspec)            
             t = TT.GetEpocsV(DO.paramspec{i},0,0,10^6)';
-            if i == 1
-                ons = t(:,2);
-            end
-            
             DO.epochs(:,i) = t(:,1);
         end
-        DO.epochs(:,end+1)  = ons;
         DO.paramspec{end+1} = 'onset';
+        DO.epochs(:,end+1)  = t(:,2); % append onset times
+        
 
       
     else
