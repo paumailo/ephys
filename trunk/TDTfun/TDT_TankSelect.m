@@ -32,7 +32,7 @@ if isempty(tanks) && (~nargin || ~isa(varargin{1},'COM.TTank_X'))
 elseif isempty(tanks) && isa(varargin{1},'COM.TTank_X')
     tanks = TDT_RegTanks(varargin{1});
 end
-
+tanks = sort(tanks);
 
 varargout{1} = [];
 varargout{2} = 0;

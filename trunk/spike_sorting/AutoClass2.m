@@ -41,12 +41,13 @@ AC.case_data_1 = [t '.case-data-1']; % case-data-1 file (used by AutoClass.exe)
 
 AC.exelocale = getpref('AutoClass','exelocale',[]);
 if isempty(AC.exelocale)
-    AC.exelocale = uigetdir(matlabroot,'Locate AutoClass Directory');
+    AC.exelocale = uigetdir(matlabroot,'Locate Directory with AutoClass.exe');
     if isempty(AC.exelocale)
         error('AutoClass2: need AutoClass directory!')
     end
-    setpref('AutoClass','exelocale',[AC.exelocale '\'])
+    setpref('AutoClass','exelocale',AC.exelocale)
 end
+if AC.exelocale(end) ~= '\', AC.exelocale(end+1) = '\'; end
 
 
 %CALCULATE VARIANCE OF DATA

@@ -27,9 +27,9 @@ function Pooling_GUI2_OpeningFcn(hObject, eventdata, handles, varargin) %#ok<INU
 % Choose default command line output for Pooling_GUI2
 handles.output = hObject;
 
-handles.regKey = 'HKCU\Software\MATHWORKS\MATLAB\Pooling';
-
-t = GetRegKey(handles.regKey,'SPIKEPLOTTYPE');
+% handles.regKey = 'HKCU\Software\MATHWORKS\MATLAB\Pooling';
+% t = GetRegKey(handles.regKey,'SPIKEPLOTTYPE');
+t = getpref('Pooling_GUI2','SPIKEPLOTTYPE',[]);
 if isempty(t), t = 'off'; end
 set(handles.toolbar_bands,'State',t);
 
@@ -63,8 +63,8 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
 if strcmp(EnsurePoolsSaved(handles),'Cancel'), return; end
 
 t = get(handles.toolbar_bands,'State');
-SetRegKey(handles.regKey,'SPIKEPLOTTYPE',t);
-
+% SetRegKey(handles.regKey,'SPIKEPLOTTYPE',t);
+setpref('Pooling_GUI2','SPIKEPLOTTYPE',t);
 
 % Hint: delete(hObject) closes the figure
 delete(hObject);
@@ -134,15 +134,16 @@ function t = ChooseClassedData
 % returns tank directory
 h = guidata(gcf);
 
-d = GetRegKey(h.regKey,'acdir');
-
+% d = GetRegKey(h.regKey,'acdir');
+d = getpref('Pooling_GUI2','acdir',[]);
 if ~exist('d','var') || isempty(d), d = []; end
 
 t = uigetdir(d,'Choose tank');
 
 if ~t, return; end
 
-SetRegKey(h.regKey,'acdir',t);
+% SetRegKey(h.regKey,'acdir',t);
+setpref('Pooling_GUI2','acdir',t);
 
 function datafiles = GetDatasets(t)
 % Get filenames of classed datasets
@@ -376,7 +377,8 @@ if x > length(ax); x =(nrows-2)*ncols+1; end
 yt = get(ax(x),'YTick');
 set(ax(x),'YTickLabel',num2str((yt)'*1000,'%0.2f'));
 
-SetRegKey(h.regKey,'PLOTSPIKESSTYLE',opt);
+% SetRegKey(h.regKey,'PLOTSPIKESSTYLE',opt);
+setpref('Pooling_GUI2','PLOTSPIKESSTYLE',opt);
 
 function EditClass(hObj,evnt,cid) %#ok<INUSL>
 h = guidata(hObj);
