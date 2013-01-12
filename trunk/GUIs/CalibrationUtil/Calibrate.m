@@ -21,4 +21,8 @@ function cvals = Calibrate(vals,C)
 x = C.data(:,1);
 y = C.data(:,end);
 
-cvals = pchip(x,y,vals);
+if length(y) == 1
+    cvals = y;
+else
+    cvals = pchip(x,y,vals);
+end

@@ -351,8 +351,11 @@ else
     d = protocol.MODULES.(v).data;
 end
 
-if isfield(h,'PA5flag') && h.PA5flag, d{1} = 'SetAtten'; end
+if ~isfield(h,'PA5flag'),   h.PA5flag = 0;  end
+
+if h.PA5flag, d{1} = 'SetAtten'; end
 ce = true(size(dfltrow));
+
 ce([1 end-1 end]) = ~h.PA5flag;
 
 set(h.param_table,'ColumnEditable',ce,'Data',d);
@@ -510,6 +513,8 @@ if isempty(ov), set(h.param_table,'Enable','off'); end
 module_select_Callback(h.module_select, h);
 
 function rpvds_tags_Callback(h) %#ok<DEFNU>
+if strcmp(get(h.param_table,'Enable'),'off'), return; end
+
 % Grab parameter tags from an existing RPvds file
 fh = findobj('Type','figure','-and','Name','RPfig');
 if isempty(fh), fh = figure('Visible','off','Name','RPfig'); end
@@ -526,13 +531,15 @@ n = RP.GetNumOf('ParTag');
 for i = 1:n
     x = RP.GetNameOf('ParTag', i);
     % remove any error messages and OpenEx proprietary tags (starting with 'z')
-    if ~(any(ismember(x,'/\|')) || ~isempty(strfind(x,'rPvDsHElpEr')) || x(1) == 'z' ...
-            || x(1) == '~')
+    if ~(any(ismember(x,'/\|')) || ~isempty(strfind(x,'rPvDsHElpEr')) ...
+            || any(x(1) == 'zZ') || x(1) == '~')
         data(k,:) = dfltrow;
         data{k,1} = x;
         k = k + 1;
     end
 end
+
+data = sortrows(data,1);
 
 delete(RP);
 close(fh);

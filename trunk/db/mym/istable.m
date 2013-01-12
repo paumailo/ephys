@@ -6,7 +6,7 @@ if ~myisopen
 else
    try 
      i = false;
-     [a,b,c,d,e,f] = mym(['describe ' name]);  %#ok
+     [a,b,c,d,e,f] = myms(['describe ' name]);  %#ok
      i = true;
    catch
    end

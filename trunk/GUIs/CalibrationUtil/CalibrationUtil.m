@@ -1,7 +1,7 @@
 function varargout = CalibrationUtil(varargin)
 % varargout = CalibrationUtil(varargin)
 %
-% DJS 2011
+% DJS 2013
 
 % Edit the above text to modify the response to help CalibrationUtil
 
@@ -222,7 +222,7 @@ if ~isdir('CalUtil_RPvds')
         'Calibration');
 end
 
-persistent StimRP AcqRP
+global StimRP AcqRP
 
 switch get(hObj,'String')
     case 'Halt'
@@ -270,6 +270,13 @@ switch get(hObj,'String')
             cfg.acq.rpfile = [cfg.acq.rpfile '_RX6'];   
         end
         
+        if cfg.single_mod && isequal(cfg.stim.mod,'RZ6')
+            cfg.stim.rpfile = [cfg.stim.rpfile '_RZ6'];   
+        end
+        if cfg.single_mod && isequal(cfg.acq.mod,'RZ6')
+            cfg.acq.rpfile = [cfg.acq.rpfile '_RZ6'];   
+        end
+        
         cfg.stim.rpfile = [cfg.stim.rpfile '.rcx'];
         cfg.acq.rpfile  = [cfg.acq.rpfile  '.rcx'];
         
@@ -287,6 +294,7 @@ switch get(hObj,'String')
             set(hObj,'String','Halt')
             [hdr,data] = feval(calfunc,cfg,h);
             hdr.calfunc = calfunc;
+            CloseConnection(StimRP,AcqRP);
             SaveCalibration(hdr,data);
             set(hObj,'String','Run');
         catch
@@ -334,29 +342,31 @@ tax = h.time_domain;
 tvec = linspace(0,L/Fs,L)*1000;
 plot(tax,tvec,buffer,'-');
 mav = max(abs(buffer))*1.1;
-set(tax,'ylim',[-mav mav],'xlim',[0 10/max(freq)]*1000); grid(tax,'on');
+set(tax,'ylim',[-mav mav],'xlim',[0 20/max(freq)]*1000); grid(tax,'on');
 xlabel(tax,'time (ms'); ylabel(tax,'V'); title(tax,'Signal');
 
 % Plot Frequency Domain
 fax = h.freq_domain;
-% y = hann(L) .* buffer(:); % apply window function (blackmanharris may be better)
-% NFFT = 2^nextpow2(L); % Next power of 2 from length of y
-% Y = fft(y,NFFT)/L;
-% f = Fs/2*linspace(0,1,NFFT/2+1);
-% for i = 1:length(freq)
-%     plot(fax,[freq(i) freq(i)],[10^-5 0.01],'-c',freq(i),10^-5,'vc');
-%     hold(fax,'on');
-% end
-% plot(fax,f,2*abs(Y(1:NFFT/2+1)).^2);
-% hold(fax,'off');
-% set(fax,'ylim',[0 0.01],'xlim',[0 max(f)],'yscale','linear'); grid(fax,'on');
-% xlabel(fax,'Frequency (Hz)'); ylabel(fax,''); title(fax,'Power Spectrum')
-axes(fax);
-spectrogram(buffer,1024,512,8192,Fs,'yaxis');
-colormap(hot)
-set(fax,'yscale','linear','ytick',freq)
-y = ylim(fax);
-set(fax,'ylim',[y(1) 0.6*y(2)]);
+y = hann(L) .* buffer(:); % apply window function (blackmanharris may be better)
+NFFT = 2^nextpow2(L); % Next power of 2 from length of y
+Y = fft(y,NFFT)/L;
+f = Fs/2*linspace(0,1,NFFT/2+1);
+for i = 1:length(freq)
+    plot(fax,[freq(i) freq(i)],[10^-5 0.01],'-c',freq(i),10^-5,'vc');
+    hold(fax,'on');
+end
+plot(fax,f,2*abs(Y(1:NFFT/2+1)).^2);
+hold(fax,'off');
+set(fax,'ylim',[0 0.01],'xlim',[0 max(f)],'yscale','linear'); grid(fax,'on');
+xlabel(fax,'Frequency (Hz)'); ylabel(fax,''); title(fax,'Power Spectrum')
+
+% % Plot Spectrogram
+% axes(fax);
+% spectrogram(buffer,1024,512,8192,Fs,'yaxis');
+% colormap(hot)
+% set(fax,'yscale','linear','ytick',freq)
+% y = ylim(fax);
+% set(fax,'ylim',[y(1) 0.6*y(2)]);
 
 
 
@@ -414,6 +424,8 @@ function ref_piston_phone_Callback(hObj, ~, h) %#ok<DEFNU>
 cfg = GatherCFG(h);
 if isequal(cfg.acq.mod,'RX6')
     cfg.acq.rpfile = which('ACQ_Calibration_RX6.rcx');
+elseif isequal(cfg.acq.mod,'RZ6')
+    cfg.acq.rpfile = which('ACQ_Calibration_RZ6.rcx');
 else
     cfg.acq.rpfile = which('ACQ_Calibration.rcx');
 end
@@ -453,6 +465,8 @@ set(hObj,'Enable','on');
 
 
 function [hdr,data] = CalibrateNoise(cfg,h)
+global StimRP AcqRP
+
 % Runc calibration for noise type stimuli
 ref = cfg.ref;
 [StimRP,AcqRP,Fs] = OpenConnection(cfg);
@@ -466,7 +480,7 @@ lp = cfg.lp;
 hdr.timestamp = datestr(now);
 hdr.cfg = cfg;
 
-hdr.V = 1;
+hdr.V = 10;
 
 data = nan(length(hp),4);
 data(:,1) = hp;
@@ -508,6 +522,8 @@ CloseConnection(StimRP,AcqRP);
 
 
 function [hdr,data] = CalibrateTones(cfg,h)
+global StimRP AcqRP
+
 % Run calibration for tone type stimuli.
 ref = cfg.ref;
 
@@ -534,7 +550,7 @@ try %#ok<TRYNC>
     hdr.tolerance = tolerance;
     hdr.timestamp = datestr(now);
     hdr.cfg = cfg;
-    hdr.V = 1; % starting voltage
+    hdr.V = 10; % starting voltage
     
     data = nan(length(f),3);
     data(:,1) = f;
