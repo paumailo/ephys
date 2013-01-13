@@ -1,6 +1,5 @@
-function result = DB_UploadWaveData(tankname,cfg,BlockInfo)
-% result = DB_UploadWaveData(tankname,cfg)
-% result = DB_UploadWaveData(tankname,cfg,BlockInfo)
+function result = DB_UploadWaveData(tankname,BlockInfo)
+% result = DB_UploadWaveData(tankname,BlockInfo)
 %
 % Upload waveform data to a database.  A connection to the database should
 % already be established.
@@ -9,23 +8,17 @@ function result = DB_UploadWaveData(tankname,cfg,BlockInfo)
 
 result = 0; %#ok<NASGU>
 
-if ~exist('BlockInfo','var') || isempty(BlockInfo)
-    % get Block Info
-    cfg.tank     = tankname;
-    cfg.datatype = 'BlockInfo';
-    BlockInfo    = getTankData(cfg);
-end
-
 TT = [];
 
 % process each block
 for i = 1:length(BlockInfo)
-%     get Wave Data from tank
-        cfg.datatype   = 'Waves';
-        cfg.TT         = TT;
-        cfg.blocks     = BlockInfo(i).name;
-        [WaveData,cfg,TT] = getTankData(cfg);
-
+    %     get Wave Data from tank
+    cfg = [];
+    cfg.datatype   = 'Waves';
+    cfg.TT         = TT;
+    cfg.blocks     = BlockInfo(i).name;
+    [WaveData,~,TT] = getTankData(cfg);
+    
     Fs = BlockInfo(i).Wave.fsample;
 
     %----------------------------------------------------------------------

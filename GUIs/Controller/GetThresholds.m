@@ -21,11 +21,11 @@ if ~any(spike.threshold)
     fprintf('\n\n***** WARNING: No spike thresholds found! *****\n\n')
 end
 
-spike.HP = DA.GetTargetVal('Acq.SpikeHP');
-spike.LP = DA.GetTargetVal('Acq.SpikeLP'); %#ok<STRNU>
+spike.HP = DA.GetTargetVal('Acq.Spike_HP');
+spike.LP = DA.GetTargetVal('Acq.Spike_LP'); %#ok<STRNU>
 
-wave.HP = DA.GetTargetVal('Acq.WaveHP');
-wave.LP = DA.GetTargetVal('Acq.WaveLP'); %#ok<STRNU>
+wave.HP = DA.GetTargetVal('Acq.Wave_HP');
+wave.LP = DA.GetTargetVal('Acq.Wave_LP'); %#ok<STRNU>
 
 path = 'C:\Electrophys\RunTime Files\';
 

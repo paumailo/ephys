@@ -8,7 +8,7 @@ function varargout = EPhysController(varargin)
 %
 % DJS 2013
 
-% Last Modified by GUIDE v2.5 10-Dec-2012 16:45:00
+% Last Modified by GUIDE v2.5 13-Jan-2013 07:16:06
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -289,8 +289,8 @@ if ~isfield(protocol,'COMPILED') %#ok<NODEF> % Compile Now
     protocol = CompileProtocol(protocol);
 end
 
-trem = mean(protocol.COMPILED.OPTIONS.ISI) * size(protocol.COMPILED.trials{1},1);
-UpdateProgress(h,0,trem/1000);
+trem = mean(protocol.COMPILED.OPTIONS.ISI)/1000 * size(protocol.COMPILED.trials,1);
+UpdateProgress(h,0,trem);
 
 % Instantiate OpenDeveloper ActiveX control and select active tank
 if ~isa(G_DA,'COM.TDevAcc_X'), G_DA = TDT_SetupDA; end
@@ -526,6 +526,11 @@ ud{2} = DAZBUSBtrig(G_DA);
 % Figure out time of next trigger
 ud{3} = ud{2}+ITI(G_COMPILED.OPTIONS);
 
+% make sure trigger is finished before updating parameters for next trial
+while G_DA.GetTargetVal('Stim.~TrigState')
+    pause(0.005);
+end
+
 set(hObj,'UserData',ud);
 
 % retrieve up-to-date GUI object handles
@@ -550,9 +555,6 @@ if G_COMPILED.FINISHED
     return
 end
 
-% make sure trigger is finished before updating parameters for next trial
-while G_DA.GetTargetVal('Stim.~TrigState'), pause(0.001); end
-
 % Call user-defined trial select function
 if isfield(G_COMPILED,'trialfunc')
     G_COMPILED = feval(G_COMPILED.trialfunc,G_DA,G_COMPILED);
@@ -562,14 +564,18 @@ end
 DAUpdateParams(G_DA,G_COMPILED);
 
 % Optional: Trigger '~Update' tag on Stim module following DAUpdateParams
-if G_FLAGS.update, DATrigger(G_DA,'Stim.~Update');   end
+%     > confirms to Stim module that parameters have been updated
+if G_FLAGS.update
+    DATrigger(G_DA,'Stim.~Update');
+end
 
 % Increment trial index
 G_COMPILED.tidx = G_COMPILED.tidx + 1;
 
 % Update progress bar
-trem = mean(G_COMPILED.OPTIONS.ISI) * (size(G_COMPILED.trials{1},1)-G_COMPILED.tidx);
-UpdateProgress(h,G_COMPILED.tidx/size(G_COMPILED.trials,1),trem/1000);
+
+trem = mean(G_COMPILED.OPTIONS.ISI)/1000 * (size(G_COMPILED.trials,1)-G_COMPILED.tidx);
+UpdateProgress(h,G_COMPILED.tidx/size(G_COMPILED.trials,1),trem);
 
 
 function i = ITI(Opts)
@@ -615,9 +621,18 @@ i = fix(i) / 1000; % round to nearest millisecond
 function UpdateProgress(h,v,trem)
 % Update progress bar
 set(h.progress_status,'String', ...
-    sprintf('Progress: %0.1f%% | Time Remaining: %0.0f s',v*100,trem));
+    sprintf('Progress: %0.1f%% | Time Remaining: %0.0f sec',v*100,trem));
 plot(h.progress_bar,[0 v],[0 0],'-r','linewidth',15);
 set(h.progress_bar,'xlim',[0 1],'ylim',[-0.9 1],'xtick',[],'ytick',[]);
+
+
+
+
+
+
+
+
+
 
 
 
