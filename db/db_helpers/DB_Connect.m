@@ -25,6 +25,7 @@ elseif nargin == 0
     try
         mym('open',prevcon{1},prevcon{2},prevcon{3});
     catch %#ok<CTCH>
+        % try again
         newcon = PromptNewInfo(prevcon);
         if ~isempty(newcon)
             host = newcon{1}; user = newcon{2}; pass = newcon{3};

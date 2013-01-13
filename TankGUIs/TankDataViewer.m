@@ -73,7 +73,6 @@ varargout{1} = h.output;
 function InitializeTankList(h)
 tanks = TDT_RegTanks;
 set(h.list_tanks,'Value',length(tanks),'String',tanks);
-% UpdateBlocksList(h)
 
 function UpdateBlocksList(h) %#ok<DEFNU>
 cfg = [];
@@ -101,6 +100,8 @@ blockstr = get_string(h.list_blocks);
 if strcmp(blockstr,'<NO BLOCKS FOUND>')
     set(h.list_event1,'Value',1,'String','<NO EVENTS FOUND>','UserData',[]);
     set(h.list_event2,'Value',1,'String','<NO EVENTS FOUND>','UserData',[]);
+    set(findobj('type','figure'),'Pointer','arrow');
+    set(get(h.figure1,'children'),'Enable','on');
     return
 end
 
@@ -114,6 +115,8 @@ pspec = blockinfo.paramspec;
 if isempty(pspec{1})
     set(h.list_event1,'Value',1,'String','<NO EVENTS FOUND>','UserData',[]);
     set(h.list_event2,'Value',1,'String','<NO EVENTS FOUND>','UserData',[]);
+    set(findobj('type','figure'),'Pointer','arrow');
+    set(get(h.figure1,'children'),'Enable','on');
     return
 end
 
@@ -147,10 +150,15 @@ blockinfo = get(h.list_event1,'UserData');
 ev1ind  = ismember(blockinfo.paramspec,event1);
 ev1p    = blockinfo.epochs(:,ev1ind); 
 uev1p   = unique(ev1p);
+uev1p(isnan(uev1p)) = [];
 
 ev2ind  = ismember(blockinfo.paramspec,event2);
 ev2p    = blockinfo.epochs(:,ev2ind); 
 uev2p   = unique(ev2p);
+uev2p(isnan(uev2p)) = [];
+
+if isempty(uev1p), uev1p = {'<NO PARAMS>'}; end
+if isempty(uev2p), uev2p = {'<NO PARAMS>'}; end
 
 set(h.list_param1,'Value',1:length(uev1p),'String',uev1p);
 set(h.list_param2,'Value',1:length(uev2p),'String',uev2p);
@@ -178,7 +186,7 @@ nrows = ceil(nchan / ncols);
 
 win     = str2num(get(h.edit_window,'String')); %#ok<ST2NM>
 binsize = str2num(get(h.edit_binsize,'String')); %#ok<ST2NM>
-binvec = win(1):binsize:win(2);
+binvec  = win(1):binsize:win(2);
 
 onind = ismember(blockinfo.paramspec,'onset');
 ons = blockinfo.epochs(:,onind)' + win(1);
@@ -204,13 +212,22 @@ ev2ind = ismember(blockinfo.paramspec,event2);
 ev2p   = blockinfo.epochs(:,ev2ind);
 uev2p  = str2double(get_string(h.list_param2));
 
+
 fprintf('Plotting')
 clf(f); figure(f);
-for i = 1:size(psth,3)
+minn = min([size(psth,3) nchan]);
+for i = 1:minn
     ax = subplot(nrows,ncols,i,'Parent',f);
     PlotData(ax,h,psth(:,:,i),spikes(i).channel,binvec, ...
         event1,event2,ev1p,ev2p,uev1p,uev2p);
     fprintf('.')
+end
+if get(h.opt_scaletogether,'Value')
+    axs = get(f,'children');
+    cs  = cell2mat(get(axs,'clim'));
+    cs(cs(:,1) == -1,:) = []; % default clim
+    cs  = [min(cs(:)) max(cs(:))];
+    set(axs,'clim',cs);
 end
 fprintf('done\n')
 
@@ -249,16 +266,24 @@ else
         % Plot histogram with y-axis as an event and x-axis as time
         data = zeros(length(uev2p),length(binvec));
         for j = 1:length(uev2p)
-            ind = ev2p == uev2p(j) & ev1p == uev1p;
+            if isnan(uev1p)
+                ind = ev2p == uev2p(j);
+            else
+                ind = ev2p == uev2p(j) & ev1p == uev1p;
+            end
             data(j,:) = mean(psth(:,ind),2);
         end
         event1 = 'time';
         uev1p  = binvec;
-    elseif length(uev2p) == 1
+    elseif length(uev2p) == 1 || strcmp(uev2p,'<NO PARAMS>')
         % Plot histogram with x-axis as an event and y-axis as time
         data = zeros(length(binvec),length(uev1p));
         for j = 1:length(uev1p)
-            ind = ev1p == uev1p(j) & ev2p == uev2p;
+            if isnan(uev2p)
+                ind = ev1p == uev1p(j);
+            else
+                ind = ev1p == uev1p(j) & ev2p == uev2p;
+            end
             data(:,j) = mean(psth(:,ind),2);
         end
         event2 = 'time';
