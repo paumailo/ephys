@@ -295,6 +295,7 @@ else
         for j = 1:length(uev1p)
             for k = 1:length(uev2p)
                 ind = ev1p == uev1p(j) & ev2p == uev2p(k);
+                if ~any(ind), continue; end
                 data(k,j) = mean(sumr(ind));
             end
         end
