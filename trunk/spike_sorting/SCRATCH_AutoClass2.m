@@ -102,11 +102,7 @@ for tind = 1:length(TANKS)
         s.info.detect.event_channel = ones(size(W,1),1);
         s = ss_align(s);
         W = s.waveforms;    
-
-        cfg.AutoClass.wrappedtimestamps = s.spiketimes;
-        
-        clear s
-        
+                
         % Run PCA on aligned spikes
         fprintf('\t> Running PCA on aligned waveforms\n')
         [coeffs,scores,latent] = princomp(W);
@@ -114,6 +110,10 @@ for tind = 1:length(TANKS)
         fprintf('\t> Saving PCA results\n')
         save(cfg.PCA.filename,'coeffs','scores','latent');
         
+        
+        cfg.AutoClass.wrappedtimestamps = s.spiketimes;
+        
+        clear s
         
         % Append some info to cfg structure
         cfg.spiketotal = size(W,1);
@@ -153,4 +153,4 @@ for i = 1:length(TANKS)
         AutoClassReport2(f);
     end    
 end
-
+fprintf('*** We''re all done here ***'\n)

@@ -25,17 +25,21 @@ for i = 1:length(spike.threshold)
     end
 end
 
+% *************************************************************************
+% NOTE: UNABLE TO GET/SET FILTERS FROM THE SpikePac NeuroFilter COMPONENT.
+% CONTACT TDT
+% *************************************************************************
 % set spike filters
-if ~DA.SetTargetVal('Acq.SpikeHP',spike.HP) || ~DA.SetTargetVal('Acq.SpikeLP',spike.LP)
-    disp('Unable to set Spike filters!');
-    beep
-end
+% if ~DA.SetTargetVal('Acq.Spike_HP',spike.HP) || ~DA.SetTargetVal('Acq.Spike_LP',spike.LP)
+%     disp('Unable to set Spike filters!');
+%     beep
+% end
 
 % set wave (lfp) filters
-if ~DA.SetTargetVal('Acq.WaveHP',wave.HP) || ~DA.SetTargetVal('Acq.WaveLP',wave.LP)
-    disp('Unable to set Wave filters!');
-    %         beep
-end
+% if ~DA.SetTargetVal('Acq.Wave_HP',wave.HP) || ~DA.SetTargetVal('Acq.Wave_LP',wave.LP)
+%     disp('Unable to set Wave filters!');
+%     %         beep
+% end
 
 hoops.spike = spike;
 hoops.wave  = wave;
