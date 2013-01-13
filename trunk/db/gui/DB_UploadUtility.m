@@ -106,7 +106,6 @@ set(h.db_description,'String',db_descr);
 
 PopulateExperiments(h);
 
-
 function modify_descr_Callback(hObj, ~, h) %#ok<INUSL,DEFNU>
 db_add_descr;
 set(h.db_description,'String',db_descr);
@@ -430,9 +429,21 @@ if flags.spikes, dtype.spikes = dtype.spikes(bidx); end
 if flags.mu,     dtype.mu     = dtype.mu(bidx);     end
 if flags.lfp,    dtype.lfp    = dtype.lfp(bidx);    end
 % if flags.trials, dtype.trials = dtype.trials(bidx); end
-% .
-% .
-% .
+
+queue = get(h.upload_queue,'UserData');
+
+queue(end+1).tank   = get_string(h.ds_list);
+queue(end+1).blocks = get_string(h.ds_blocks);
+queue(end+1).flags  = flags;
+
+set(h.upload_queue,'UserData',queue);
+
+qstr = get(h.upload_queue,'String');
+%*********** REFORM BLOCKS STRING **************
+qstr{end+1} = [queue(end).tank '|' queue(end).blocks];
+
+set(h.upload_queue,'String',qstr);
+
 
 function ds_path_Callback(hObj, ~, h) %#ok<INUSL>
 % Manually locate parent directory
@@ -461,7 +472,7 @@ ind = false(size(sd));
 for i = 1:length(sd) % loop through subdirectories to find valid 'Info.mat' files
     ind(i) = isempty(dir([pn sd{i} '\' sd{i} '_Info.mat']));
 end
-sd(ind) = [];
+sd(~ind) = [];
 set(h.ds_list,'Value',length(sd),'String',sd);
 
 function ds_blocks_Callback(hObj, ~, h)
@@ -480,7 +491,28 @@ end
 
 %% Upload
 function upload_data_Callback(hObj, ~, h)
-
+queue = get(hObj,'UserData');
+for i = 1:length(queue)
+    
+    % update tanks
+    
+    % update electrode
+    
+        % update blocks
+    
+        % update protocols
+    
+        % update channels
+        
+        % update units
+        
+        % update spike_data
+        
+        % updata wave_data
+%         DB_UploadWaveData(tank,cfg,binfo)
+        
+    
+end
 
 function upload_remove_Callback(hObj, ~, h)
 
