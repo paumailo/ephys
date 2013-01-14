@@ -664,9 +664,9 @@ for i = 1:length(Queue)
                     
                     % update spike_data
                     uidx = find(uind);
-                    for kk = 1:uidx
+                    for kk = 1:length(uidx)
                         mym('INSERT spike_data (unit_id,spike_time) VALUES ({Si},{S})', ...
-                            uid,st(kk));
+                            uid,st(uidx(kk)));
                     end
                 end
                 fprintf('done\n')
