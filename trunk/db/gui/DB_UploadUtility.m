@@ -522,21 +522,49 @@ for i = 1:length(Queue)
     B = Q.BlockInfo;
     
     exptid = myms(sprintf('SELECT id FROM experiments WHERE name = "%s"',Q.experiment));
-        
+    
+    % Delete any existing data for this tank
+    oldtid = myms(sprintf('SELECT id FROM tanks WHERE name = "%s"',Q.tank));
+    if ~isempty(oldtid)
+        oldbid = myms(sprintf('SELECT id FROM blocks WHERE tank_id = %d',oldtid));
+        for b = 1:length(oldbid)
+            oldcid = myms(sprintf('SELECT id FROM channels WHERE block_id = %d',oldbid(b)));
+            mym('DELETE IGNORE FROM channels WHERE block_id = {Si}',oldbid(b));
+            mym('DELETE FROM protocols WHERE block_id = {Si}',oldbid(b));
+            if ~isempty(oldcid)
+                s = sprintf('%d,',oldcid); s(end) = [];
+                mym('DELETE IGNORE FROM wave_data WHERE channel_id IN ({S})',s);
+                olduid = myms(sprintf('SELECT id FROM units WHERE channel_id IN (%s)',s));
+                if ~isempty(olduid)
+                    s = sprintf('%d,',olduid); s(end) = [];
+                    mym('DELETE IGNORE FROM spike_data WHERE unit_id IN ({S})',s);
+                end
+            end
+
+        end
+        mym('DELETE IGNORE FROM tanks WHERE id = {Si}',oldtid);
+        mym('DELETE IGNORE FROM blocks WHERE tank_id = {Si}',oldtid);
+    end
+    
+    
+    
+    
+    
+    
     % update tanks
     spikefs = 0; wavefs = 0;
     if Q.hasSpikes, spikefs = B(1).Snip.fsample; end
     if Q.hasWaves,  wavefs  = B(1).Wave.fsample; end
     
-    mym(['REPLACE tanks (exp_id,tank_condition,tank_date,name,spike_fs,wave_fs,tank_notes) ', ...
+    mym(['INSERT tanks (exp_id,tank_condition,tank_date,name,spike_fs,wave_fs,tank_notes) ', ...
         'VALUES ({Si},"{S}","{S}","{S}",{S},{S},"{S}")'], ...
         exptid,Q.condition,datestr(B(1).date,'yyyy-mm-dd'),Q.tank, ...
         num2str(spikefs,'%0.5f'),num2str(wavefs,'%0.5f'),Q.tanknotes);
     tid = myms(sprintf('SELECT id FROM tanks WHERE name = "%s"',Q.tank));
     
     % update electrode
-    mym(['REPLACE electrodes (tank_id,type,depth,target) VALUES ', ...
-        '({Si},(SELECT id FROM db_util.electrode_types WHERE product_id = "{S}"),' ...
+    mym(['INSERT electrodes (tank_id,type,depth,target) VALUES ', ...
+        '({Si},(SELECT id FROM db_util.electrode_types WHERE STRCMP(product_id,"{S}")),' ...
         '{S},"{S}")'],tid,Q.electrode,Q.elecdepth,Q.electarget);
     
     for j = 1:length(B)
@@ -552,10 +580,11 @@ for i = 1:length(Queue)
         
         % remove any existing protocol for this block id
         fprintf('\tUploading protocol data for block %d (%d of %d) ...',B(j).id,j,length(B))
-        testid = myms(sprintf('SELECT id FROM protocols WHERE block_id = %d LIMIT 1',blockid));
-        if ~isempty(testid)
-            mym('DELETE protocols WHERE block_id = {Si}',blockid);
-        end
+
+        
+        
+        
+        
         
         % get parameter codes from db_util.param_types; insert new codes if does not exist
         parcode = nan(size(B(j).paramspec));
@@ -569,10 +598,10 @@ for i = 1:length(Queue)
             end
         end
         % create matrix for protocol
-        param_id    = repmat(1:size(B(j).epochs,1),size(B(j).epochs,2),1);
-        param_type  = repmat(parcode(:),1,size(B(j).epochs,1));
-        param_value = B(j).epochs';
-        nepochs = numel(B(j).epochs);
+        param_id      = repmat(1:size(B(j).epochs,1),size(B(j).epochs,2),1);
+        param_type    = repmat(parcode(:),1,size(B(j).epochs,1));
+        param_value   = B(j).epochs';
+        nepochs       = numel(B(j).epochs);
         protdata(:,1) = repmat(blockid,nepochs,1);
         protdata(:,2) = param_id(:);
         protdata(:,3) = param_type(:);
@@ -586,13 +615,10 @@ for i = 1:length(Queue)
                 protdata(k,1),protdata(k,2),protdata(k,3),num2str(protdata(k,4),'%0.5f'));
         end
         clear protdata
+        fprintf(' done\n')
         
         % update channels
-        testid = myms(sprintf('SELECT id FROM channels WHERE block_id = %d',blockid));
-        if ~isempty(testid)
-            mym('DELETE channels WHERE block_id = {Si}',blockid);
-        end
-        if Q.hasWaves
+        if ~isempty(B(j).Wave)
             channels = B(j).Wave.channels;
         else
             channels = B(j).Snip.channels;
@@ -676,12 +702,13 @@ for i = 1:length(Queue)
     end
     
     
-    if Q.hasWaves
+    if ~isempty(B(j).Wave)
         % updata wave_data
-        DB_UploadWaveData(Q.tank,B);
+        DB_UploadWaveData(Q.tank,B(j));
         
     end
 end
+fprintf('\nCompleted upload at %s\n\n',datestr(now,'dd-mmm-yyyy HH:MM:SS'))
 % set(allobjs,'Enable','on');
 
 function upload_remove_Callback(hObj, ~, h) %#ok<INUSL,DEFNU>

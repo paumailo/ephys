@@ -16,35 +16,28 @@ for i = 1:length(BlockInfo)
     cfg = [];
     cfg.datatype   = 'Waves';
     cfg.TT         = TT;
+    cfg.tank       =  tankname;
     cfg.blocks     = BlockInfo(i).name;
     [WaveData,~,TT] = getTankData(cfg);
     
     Fs = BlockInfo(i).Wave.fsample;
 
     %----------------------------------------------------------------------
-%     clear WaveData
-%     n = floor(BlockInfo(i).Strm.fsample/1200);
-%     Fs = BlockInfo(i).Strm.fsample / n;
-% 
-%     for j = 1:32
-%         cfg.datatype   = 'Stream';
-%         cfg.TT         = TT;
-%         cfg.blocks     = BlockInfo(i).name;
-%         cfg.channel    = j;
-%         [S,cfg,TT]     = getTankData(cfg);
+    % Decimate
+%     n = floor(Fs/1200);
+%     Fs = Fs / n;
 % 
 %         % build a LFP filter (lowpass at 300 Hz)
-%         Fs = 1200;
-%         Wp = 300 * 2 / Fs;
-%         Ws = 500 * 2 / Fs;
+%         Wp = 600 * 2 / Fs;
+%         Ws = 1000 * 2 / Fs;
 %         [N,Wn] = buttord( Wp, Ws, 3, 20);
 %         [Lb,La] = butter(N,Wn);
 %         
-%         S.waves = downsample(S.waves,n);
+%         S.waves = downsample(WaveData,n);
 %         WaveData.waves(:,j) = filtfilt(Lb, La, S.waves);
 %         clear S
-%     end
-%     mym('UPDATE tanks SET wave_fs = {S}',num2str(Fs));
+%     
+% %     mym('UPDATE tanks SET wave_fs = {S} WHERE STRCMP(name,"{S}")',num2str(Fs),tankname);
     %----------------------------------------------------------------------
 
     % Split WaveData according to epoch onsets
@@ -70,7 +63,7 @@ for i = 1:length(BlockInfo)
 
     if isempty(cids), continue; end
 
-    fprintf('Uploading Wave Data on Block %d of %d ... ',i,length(BlockInfo))
+    fprintf('Uploading Wave Data on Block %d ... ',BlockInfo(i).id)
     for k = 1:length(cids)
         for j = 1:length(sampon)
             mym([ ...
