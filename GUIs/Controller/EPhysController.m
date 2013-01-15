@@ -167,6 +167,7 @@ ChkReady(h);
 function protocol_locate_dir_Callback(hObj, ~, h) %#ok<DEFNU,INUSL>
 % locate directory containing protocols
 dn = getpref('EPHYS2','ProtDir',cd);
+if ~ischar(dn), dn = cd; end
 dn = uigetdir(dn,'Locate Protocol Directory');
 
 if ~dn, return; end
