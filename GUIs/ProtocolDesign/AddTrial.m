@@ -1,5 +1,5 @@
-function schedule = AddTrial(schedule,varargin)
-% schedule = AddTrial(schedule,varargin)
+function [schedule,fail] = AddTrial(schedule,varargin)
+% [schedule,fail] = AddTrial(schedule,varargin)
 % 
 % INPUTS: schedule should be empty or the returned structure from a
 % previous call to this function.
@@ -37,6 +37,8 @@ function schedule = AddTrial(schedule,varargin)
 %      If all data is numeric, then schedule.trials =
 %      CELL2MAT(schedule.trials) can be used.
 % 
+%       fail ... true if there was an error during operation, false if all
+%                   is good
 % DJS (c) 2010
 
 
@@ -57,15 +59,16 @@ if iscell(varargin{1})
     end
     
     for i = 1:length(varargin)
-        schedule = BAT(schedule,varargin{i});
+        [schedule,fail] = BAT(schedule,varargin{i});
+        if fail, break; end
     end
 else
-    schedule = BAT(schedule,varargin{1});
+    [schedule,fail] = BAT(schedule,varargin{1});
 end
-    
+
     
 
-function schedule = BAT(schedule,varargin)
+function [schedule,fail] = BAT(schedule,varargin)
 if isempty(schedule) || ~isfield(schedule,'trials'),    schedule.trials = {}; end
 if ~isfield(schedule,'buds') || ~iscell(schedule.buds), schedule.buds = []; end
 
@@ -96,9 +99,9 @@ if ischar(vin{1})
             
             if ~any(strcmp(vin{2},buds))
                 buds{end+1} = vin{2};
-                trials = combinetrials(trials,vin{3},1);
+                [trials,fail] = combinetrials(trials,vin{3},1);
             else
-                trials = combinetrials(trials,vin{3},0);
+                [trials,fail] = combinetrials(trials,vin{3},0);
             end
     end
 else
@@ -106,9 +109,9 @@ else
         vin{1} = num2cell(vin{1});
     end
     if length(vin) == 1
-        trials = combinetrials(trials,vin{1},1);
+        [trials,fail] = combinetrials(trials,vin{1},1);
     else
-        trials = combinetrials(trials,vin,1);
+        [trials,fail] = combinetrials(trials,vin,1);
     end
 end
 
@@ -116,14 +119,18 @@ schedule.trials = trials;
 schedule.buds   = buds;
 
 
-function trials = combinetrials(trials,newtrials,expand)
+function [trials,fail] = combinetrials(trials,newtrials,expand)
 [i,j] = size(trials);
-
+fail = false;
 if expand
     trials = repmat(trials,length(newtrials),1);
     if i > 0, newtrials = repmat(newtrials,i,1);    end
 else
-    newtrials = repmat(newtrials,i/length(newtrials),1);
+    if rem(i,length(newtrials)) % results in non-integer value
+        fail = true;
+    else
+        newtrials = repmat(newtrials,i/length(newtrials),1);
+    end
 end
 
 trials(1:numel(newtrials),j+1) = newtrials(:);
