@@ -2,7 +2,7 @@ function varargout = ProtocolDesign(varargin)
 % h = ProtocolDesign
 %
 % Design protocols for electrophysiolgy ControlPanel2
-% 
+%
 % DJS 2012
 
 % Last Modified by GUIDE v2.5 30-Mar-2012 12:05:40
@@ -10,11 +10,11 @@ function varargout = ProtocolDesign(varargin)
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
-                   'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @ProtocolDesign_OpeningFcn, ...
-                   'gui_OutputFcn',  @ProtocolDesign_OutputFcn, ...
-                   'gui_LayoutFcn',  [] , ...
-                   'gui_Callback',   []);
+    'gui_Singleton',  gui_Singleton, ...
+    'gui_OpeningFcn', @ProtocolDesign_OpeningFcn, ...
+    'gui_OutputFcn',  @ProtocolDesign_OutputFcn, ...
+    'gui_LayoutFcn',  [] , ...
+    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
 end
@@ -37,6 +37,10 @@ else
     % Clear Parameter Table
     set(h.param_table,'Data',dfltrow);
 end
+
+UpdateProtocolDur(h);
+
+splash('on');
 
 % Update h structure
 guidata(hObj, h);
@@ -65,7 +69,7 @@ varargout{1} = h.output;
 
 
 
-%% Protocol Setup 
+%% Protocol Setup
 function SaveProtocolFile(h,fn)
 % Save current protocol to file
 if ~exist('fn','var') || isempty(fn)
@@ -76,6 +80,12 @@ if ~exist('fn','var') || isempty(fn)
     if ~fn, return; end
     fn = fullfile(pn,fn);
 end
+
+
+set(h.ProtocolDesign,'Name','Protocol Design | SAVING ...');
+fprintf('Saving protocol ...')
+GUISTATE(h.ProtocolDesign,'off');
+
 
 protocol = h.protocol;
 if isfield(protocol,'COMPILED')
@@ -93,16 +103,38 @@ end
 
 protocol = AffixOptions(h,protocol);
 protocol = CompileProtocol(protocol);
+
+% replace buffers with file ids
+for i = 1:length(fldn)
+    d = protocol.MODULES.(fldn{i}).data;
+    idx = find(cell2mat(d(:,6)));
+    for j = 1:length(idx)
+        v = ['File IDs: [' num2str(1:length(d{idx(j),4})) ']'];
+        d{idx(j),4} = v;
+        protocol.MODULES.(fldn{i}).data = d;
+    end
+end
+
 if protocol.OPTIONS.compile_at_runtime
     protocol.COMPILED = rmfield(protocol.COMPILED,'trials');
 end
 
-TD = get(h.param_table,'UserData');
-protocol.TABLEDATA = TD;
-
 save(fn,'protocol','-mat');
 
-fprintf('Protocol saved: ''%s''\n',fn);
+GUISTATE(h.ProtocolDesign,'on');
+set(h.ProtocolDesign,'Name','Protocol Design');
+fprintf(' done\nFile Location: ''%s''\n',fn);
+
+function GUISTATE(fh,onoff)
+pdchildren = findobj(fh,'-property','Enable');
+set(pdchildren,'Enable',onoff);
+if strcmpi(onoff,'on')
+    set(fh,'pointer','arrow'); 
+else
+    set(fh,'pointer','watch'); 
+end
+drawnow
+
 
 function r = NewProtocolFile(h)
 r = [];
@@ -121,9 +153,23 @@ end
 
 set(h.param_table,'Data',dfltrow,'Enable','off');
 set(h.module_select,'String','','Value',1);
-set(h.splash,'Visible','on');
+
+splash('off');
+
 h.protocol = [];
+
+set(h.protocol_dur,'String','', ...
+    'backgroundcolor',get(h.ProtocolDesign,'Color'));
 guidata(h.ProtocolDesign,h);
+
+function splash(onoff)
+h = findobj('tag','pdsplash');
+if isequal(onoff,'on')
+    set(h,'visible','on');
+else
+    set(h,'visible','off');
+end
+
 
 function protocol = LoadProtocolFile(h,fn)
 % Load previously saved protocol from file
@@ -138,6 +184,9 @@ if ~exist('fn','var') || isempty(fn) || ~exist(fn,'file')
     if ~fn, return; end
 end
 
+set(h.ProtocolDesign,'Name','Protocol Design: Loading ...');
+GUISTATE(h.ProtocolDesign,'off');
+
 load(fullfile(pn,fn),'-mat');
 
 if ~exist('protocol','var')
@@ -150,7 +199,7 @@ obj = findobj(h.ProtocolDesign,'tag','module_select');
 set(obj,'String',fldn,'Value',1);
 
 % Ensure all buddy variables are accounted for
-n = {'<ADD>','<NONE>'};
+n = {'< ADD >','< NONE >'};
 for i = 1:length(fldn)
     n = union(n,protocol.MODULES.(fldn{i}).data(:,3));
 end
@@ -180,14 +229,20 @@ end
 set(h.protocol_info,'String',protocol.INFO);
 
 set(h.param_table,'Enable','on');
-set(h.splash,'Visible','off');
-
+splash('off');
 h.protocol = protocol;
 guidata(h.ProtocolDesign,h);
 
 setpref('EPHYS2','ProtDir',pn);
 
 SetParamTable(h,protocol);
+
+UpdateProtocolDur(h);
+
+set(h.ProtocolDesign,'Name','Protocol Design');
+GUISTATE(h.ProtocolDesign,'on');
+
+
 
 function p = AffixOptions(h,p)
 % affix protocol options
@@ -233,11 +288,11 @@ col = I(2);
 
 data = get(hObj,'data');
 
-if col == 3 && strcmp(evnt.NewData,'<ADD>')
+if col == 3 && strcmp(evnt.NewData,'< ADD >')
     % Add new Buddy variable
     nd = inputdlg('Enter new Buddy:','Buddy Variable');
     if isempty(nd)
-        data{row,col} = '<NONE>';
+        data{row,col} = '< NONE >';
         set(hObj,'data',data);
         return
     end
@@ -255,7 +310,12 @@ elseif col == 4
     if length(str2num(data{row,4})) ~= 2 %#ok<ST2NM>
         data{row,5} = false;
     end
-
+%     data{row,6} = false;
+%     if isfield(h.protocol.MODULES.(get_string(h.module_select)),'buffers') ...
+%         && row <= length(h.protocol.MODULES.(get_string(h.module_select)).buffers)
+%         h.protocol.MODULES.(get_string(h.module_select)).buffers(row) = [];
+%     end
+    
 elseif col == 5
     if ~isempty(evnt.Error), data{row,col} = evnt.EditData; end
     if length(str2num(data{row,4})) ~= 2 %#ok<ST2NM>
@@ -264,12 +324,14 @@ elseif col == 5
             'Range is defined by two values such as: ''2 6'''], ...
             'Parameter Table');
     end
-
+    
 elseif col == 6 % wav files
     if data{row,6}
-%         S = get(h.param_table,'UserData');
+        %         S = get(h.param_table,'UserData');
         uiwait(SchedWAVgui(h.ProtocolDesign,[]))
         S = getappdata(h.ProtocolDesign,'SchedWAVgui_DATA');
+        curmod = get_string(h.module_select);
+        h.protocol.MODULES.(curmod).buffers{row} = S;
         if isempty(S)
             data{row,4} = '';
             data{row,5} = false;
@@ -282,11 +344,9 @@ elseif col == 6 % wav files
         end
     else
         data{row,4} = '';
-        S = [];
     end
-    UD = get(hObj,'UserData');
-    UD.WAV{row} = S;
-    set(hObj,'UserData',UD);
+    
+    
     
 elseif col == 7 && ~strcmp(evnt.NewData,'< NONE >')
     % Select calibration file from Calibration directory
@@ -299,17 +359,17 @@ elseif col == 7 && ~strcmp(evnt.NewData,'< NONE >')
     if ~fn, return; end
     % update data cell matrix with filename
     data{row,7} = fn;
-
+    
     setpref('ProtocolData','CALDIR',dd);
     
 end
-
 set(hObj,'Data',data);
 
 % store protocol data
 v = cellstr(get(h.module_select,'String'));
 v = v{get(h.module_select,'Value')};
 h.protocol.MODULES.(v).data = get(hObj,'Data');
+UpdateProtocolDur(h);
 guidata(h.ProtocolDesign,h);
 
 function param_table_CellSelectionCallback(hObj, evnt, h) %#ok<DEFNU>
@@ -398,7 +458,7 @@ CompiledProtocolTrials(h.protocol,'trunc',2000);
 
 
 %% GUI Callbacks
-function opt_num_reps_Callback(hObj, h) %#ok<INUSD,DEFNU>
+function opt_num_reps_Callback(hObj, h) %#ok<DEFNU>
 % Check number of repetitions
 d = get(hObj,'String');
 d = str2num(d); %#ok<ST2NM>
@@ -407,8 +467,9 @@ if length(d) ~= 1
     if isempty(d), d = 5; end
     set(hObj,'String',num2str(d(1)));
 end
+UpdateProtocolDur(h)
 
-function opt_isi_Callback(hObj, h) %#ok<INUSD,DEFNU>
+function opt_isi_Callback(hObj, h) %#ok<DEFNU>
 % Check inter-stimulus interval (ISI)
 d = get(hObj,'String');
 d = str2num(d); %#ok<ST2NM>
@@ -417,26 +478,50 @@ if length(d) < 1 || length(d) > 2
     if isempty(d), d = 300; end
     set(hObj,'String',num2str(d(1)));
 end
+UpdateProtocolDur(h)
+
+function UpdateProtocolDur(h)
+if ~isfield(h,'protocol')
+    set(h.protocol_dur,'String','Protocol Duration:');
+    return
+end
+
+isi   = str2num(get(h.opt_isi,'String')); %#ok<ST2NM>
+
+h.protocol = AffixOptions(h,h.protocol);
+[p,fail] = CompiledProtocolTrials(h.protocol,'showgui',false);
+if fail
+    set(h.protocol_dur,'String','Invalid Value Combinations', ...
+        'backgroundcolor','r');
+else
+    pdur = size(p.trials,1)*isi/1000/60;
+    set(h.protocol_dur,'String',sprintf('Protocol Duration: %0.1f min',pdur), ...
+        'backgroundcolor','g');
+end
+
+
+
 
 function remove_parameter_Callback(h) %#ok<DEFNU>
 % Remove currently selected parameter from table
 if ~isfield(h,'CURRENTCELL') || isempty(h.CURRENTCELL), return; end
-C = h.CURRENTCELL;
+row = h.CURRENTCELL(1);
 
 data = get(h.param_table,'data');
-data(C(1),:) = [];
+data(row,:) = [];
 set(h.param_table,'data',data);
 
-h.CURRENTCELL = [];
-v = get(h.module_select,'String');
-v = v{get(h.module_select,'Value')};
+v = get_string(h.module_select);
 h.protocol.MODULES.(v).data = data;
 
-% **** MUST ALSO REMOVE ANY CALIBRATION AND BUFFER DATA ***
+if isfield(h.protocol.MODULES.(v),'buffers') && row <= length(h.protocol.MODULES.(v).buffers)
+    h.protocol.MODULES.(v).buffers(row) = [];
+end
 
+h.CURRENTCELL = [];
 guidata(h.ProtocolDesign,h);
 
-function module_select_Callback(hObj, h) 
+function module_select_Callback(hObj, h)
 % handles module selection
 if ~isfield(h,'protocol'), h.protocol = []; end
 
@@ -465,7 +550,7 @@ ov(~ismember(1:length(ov),findincell(ov))) = [];
 
 if ~ismember(nv,ov)
     ov{end+1} = char(nv);
-%     ov = sort(ov);
+    %     ov = sort(ov);
 end
 
 h.PA5flag = strfind(char(nv),'PA5'); % PA5 attenuation module
@@ -480,9 +565,9 @@ guidata(h.ProtocolDesign,h);
 set(h.module_select,'String',ov,'Value',find(ismember(ov,nv)));
 set(h.param_table,'Enable','on');
 if isempty(ov)
-    set(h.splash,'Visible','on');
+    splash('on');
 else
-    set(h.splash,'Visible','off');
+    splash('off');
 end
 
 module_select_Callback(h.module_select, h);

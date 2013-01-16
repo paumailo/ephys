@@ -1,5 +1,6 @@
-function trials = CompiledProtocolTrials(protocol,varargin)
-% cp = CompiledProtocolTrials(h)
+function varargout = CompiledProtocolTrials(protocol,varargin)
+% cp = CompiledProtocolTrials(protocol,varargin)
+% [cp,fail] = CompiledProtocolTrials(...)
 % return and/or view compiled protocol trials
 %
 % Parameter ... Value
@@ -19,7 +20,13 @@ if nargin > 1
     end
 end
 
-protocol = CompileProtocol(protocol);
+[protocol,fail] = CompileProtocol(protocol);
+if fail
+    warning('Unable to properly compile protocol.n\nCheck all ''buddy'' variables are balanced.')
+    varargout{1} = [];
+    varargout{2} = fail;
+    return
+end
 C = protocol.COMPILED;
 
 trials = C.trials;
@@ -41,7 +48,8 @@ end
 
 if argin.showgui, ShowGUI(C,trials); end
 
-
+varargout{1} = C;
+varargout{2} = false;
 
 function ShowGUI(C,trials)
 fh = findobj('type','figure','-and','tag','CPfig');

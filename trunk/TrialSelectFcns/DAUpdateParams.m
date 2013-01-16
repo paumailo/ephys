@@ -24,13 +24,7 @@ for j = 1:length(trial)
     
     if isstruct(val)
         % file buffer (usually WAV file)
-        % set buffer size parameter : #buffername
-        e = DA(m).SetTargetVal(strrep(param,'.','.#'),par.nsamps);
-        if ~e
-            fprintf('** WARNING: Parameter: ''%s'' was not updated **\n',param);
-        end
-        v = par.buffer;
-        e = DA(m).WriteTargetV(param,0,v(:)');
+        e = DA(m).WriteTargetV(param,0,par.buffer(:)');
     
     elseif isscalar(val)       
         % set value

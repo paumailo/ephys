@@ -1,5 +1,5 @@
-function P = CompileProtocol(P)
-% P = CompileProtocol(P)
+function [P,fail] = CompileProtocol(P)
+% [P,fail] = CompileProtocol(P)
 %
 % Takes protocol structure created by ProtocolSetup GUI and compiles the
 % date for use by ControlPanel2.
@@ -13,9 +13,22 @@ function P = CompileProtocol(P)
 % manually specifying values for writeparams, readparams, and trials
 % fields in protocol.COMPILED structure.
 %
-% DJS 2011
+% DJS 2013
 
 fldn = fieldnames(P.MODULES);
+
+% look for buffers and replace them into the table as parameters
+for i = 1:length(fldn)
+    if ~isfield(P.MODULES,fldn{i}) || ~isfield(P.MODULES.(fldn{i}),'buffers')
+        continue
+    end
+    bufs = P.MODULES.(fldn{i}).buffers;
+    idx = findincell(bufs);
+    for j = idx
+        P.MODULES.(fldn{i}).data{j,4} = bufs{j};
+    end
+end
+
 
 % trim any undefined parameters
 for i = 1:length(fldn)
@@ -26,11 +39,12 @@ end
 
 
 % RUN THROUGH EACH MODULE AND EXPAND PARAMETERS ACROSS MODULES
-COMPILED = ParamPrep(P);
+[COMPILED,fail] = ParamPrep(P);
+if fail, return; end
 
 n = P.OPTIONS.num_reps;
 if P.OPTIONS.randomize
-    % randomize presentation order
+    % randomized presentation order
     m = size(COMPILED.trials,1);
     for i = 1:n    
         ind = randperm(m);
@@ -38,6 +52,7 @@ if P.OPTIONS.randomize
     end
     COMPILED.trials = t;
 else
+    % serialized presentation orders
     COMPILED.trials = repmat(COMPILED.trials,n,1);
 end
 
@@ -51,7 +66,7 @@ end
 
 
 
-function comp = ParamPrep(P)
+function [comp,fail] = ParamPrep(P)
 comp.writeparams = [];
 comp.readparams  = [];
 
@@ -69,7 +84,11 @@ for i = 1:length(fn)
         for j = 1:length(idx)
             cfn = fullfile('C:\Electrophys\Calibrations\',v{idx(j),end});
             C = load(cfn,'-mat');
-            cb = sprintf('CalBuddy%d',m);
+            if isempty(v{idx(j)},4)
+                cb = sprintf('CalBuddy%d',m);
+            else
+                cb = v{idx(j),3};
+            end
             try
                 vals = eval(v{idx(j),4});
             catch %#ok<CTCH>
@@ -82,7 +101,24 @@ for i = 1:length(fn)
             m = m + 1;
         end
     end
-
+    
+    % buffer
+    idx = find(cell2mat(v(:,6)));
+    for j = 1:length(idx)
+        buflengths = zeros(size(v{idx(j),4}));
+        for b = 1:length(v{idx(j),4})
+            buflengths(b) = v{idx(j),4}{b}.nsamps;
+        end
+        if isempty(v{idx(j),3})
+            bb = sprintf('BufBuddy%d',m);
+        else
+            bb = v{idx(j),3};
+        end
+        v(end+1,:) = {sprintf('~%s',v{idx(j),1}), ...
+            'Write', bb, num2str(buflengths), 0, 0, '< NONE >'}; %#ok<AGROW>
+    end
+    
+    
     kl = size(v,1);
     mod(k:k+kl-1,1)  = repmat(fn(i),kl,1);
     data(k:k+kl-1,:) = v;
@@ -120,10 +156,10 @@ for i = 1:size(data,1)
         v = str2num(data{i,4}); %#ok<ST2NM>
     
     elseif data{i,6} % WAV files
-        t = findobj('type','uitable','-and','tag','param_table');
-        S = get(t,'UserData');
-        v = S.WAV{i}';
-    
+%         t = findobj('type','uitable','-and','tag','param_table');
+%         S = get(t,'UserData');
+%         v = S.WAV{i}';
+        v = data{i,4};
     else
         v = str2num(data{i,4}); %#ok<ST2NM>
     end
@@ -144,7 +180,7 @@ for i = 1:size(data,1)
     end
 end
 
-comp = AddTrial(comp,d);
+[comp,fail] = AddTrial(comp,d);
 
 end
 
