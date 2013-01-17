@@ -212,6 +212,7 @@ for bidx = 1:length(cfg.blocks)
     
     % look on db_util.protocol_types table
     if ~myisopen, DB_Connect; end
+    DO.protocol = protocol;
     DO.protocolname = char(myms(sprintf('SELECT alias FROM db_util.protocol_types WHERE pid = %d',protocol)));
     if isempty(DO.protocolname)
         while 1
@@ -264,7 +265,7 @@ for bidx = 1:length(cfg.blocks)
     %     mym('SELECT * FROM db_util.param_types')
     
     % generalized for any protocol
-    DO.paramspec = DO.events(~ismember(DO.events,{'Tick','Tock','PROT'}));
+    DO.paramspec = DO.events(~ismember(DO.events,{'Tick','Tock','Swep','PROT'}));
     if isempty(DO.paramspec)
         dataout(bidx) = DO; %#ok<AGROW>
         clear DO;
