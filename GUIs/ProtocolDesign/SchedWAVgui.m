@@ -86,7 +86,7 @@ for i = 1:length(fn)
     [Y,Fs,nbits] = wavread(pfn,'double');
     
     % store WAV data in structure
-    s.buffer = Y;
+    s.buffer = Y';
     s.dur    = length(Y)/Fs*1000;
     s.nsamps = length(Y);
     s.Fs     = Fs;
