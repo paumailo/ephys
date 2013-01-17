@@ -8,27 +8,24 @@ function e = DAUpdateParams(DA,C)
 % 
 % See also, ProtocolDesign, EPhysController
 %
-% DJS 2012
+% DJS 2013
 
 trial = C.trials(C.tidx,:);
 
 for j = 1:length(trial)
-    e = 0;
     param = C.writeparams{j};
 
     % '*' serves as ignore flag.  This is useful if you want something to
     % be updated by a custom trial-select function after being modified
-    if ~isempty(strfind(param,'*')), continue; end 
+    if any(param=='*'), continue; end 
     
-    val = trial{j};
+    par = trial{j};
     
-    if isstruct(val)
-        % file buffer (usually WAV file)
-        e = DA(m).WriteTargetV(param,0,par.buffer(:)');
+    if isstruct(par) % file buffer (usually WAV file)
+        e = DA(m).WriteTargetV(param,0,par.buffer);
     
-    elseif isscalar(val)       
-        % set value
-        e = DA.SetTargetVal(param,val);
+    elseif isscalar(par) % set value
+        e = DA.SetTargetVal(param,par);
     end
     
     if ~e

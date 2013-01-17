@@ -285,11 +285,22 @@ set(ph,'Enable','off');
 % load selected protocol file
 load(fullfile(pinfo.dir,[pinfo.name{ind} '.prot']),'-mat')
 
-% Copy COMPILED protocol to global variable (G_COMPILED)
-if ~isfield(protocol,'COMPILED') %#ok<NODEF> % Compile Now 
-    protocol = CompileProtocol(protocol);
+% Check if protocol needs to be compiled before running
+if protocol.OPTIONS.compile_at_runtime && ~isempty(protocol.OPTIONS.trialfunc) %#ok<NODEF>
+    protocol.COMPILED = feval(protocol.OPTIONS.trialfunc,G_DA,protocol,true);
+elseif protocol.OPTIONS.compile_at_runtime
+    [protocol,fail] = CompileProtocol(protocol);
+    if fail
+        errordlg(sprintf('Unable to compile protocol: %s',pinfo.name{ind}), ...
+            'Can''t Compile Protocol','modal');
+        return
+    end
 end
 
+% Copy COMPILED protocol to global variable (G_COMPILED)
+G_COMPILED = protocol.COMPILED;
+
+% update progress bar
 trem = mean(protocol.COMPILED.OPTIONS.ISI)/1000 * size(protocol.COMPILED.trials,1);
 UpdateProgress(h,0,trem);
 
@@ -298,28 +309,16 @@ if ~isa(G_DA,'COM.TDevAcc_X'), G_DA = TDT_SetupDA; end
 G_DA.SetTankName(h.ActTank);
 
 % Prepare OpenWorkbench
-G_DA.SetSysMode(0); % Idle
-pause(0.5);
-G_DA.SetSysMode(1); % Standby
-pause(0.5);
-G_DA.SetSysMode(2); % Preview
-pause(0.5);
+G_DA.SetSysMode(0); pause(0.5); % Idle
+G_DA.SetSysMode(1); pause(0.5); % Standby
+G_DA.SetSysMode(2); pause(0.5); % Preview
 
-% Load and set thresholds
+% Load and set thresholds (and filters)
 SetThresholds(G_DA);
-
-% Check if protocol needs to be compiled before running
-if protocol.OPTIONS.compile_at_runtime && ~isempty(protocol.OPTIONS.trialfunc)
-    protocol.COMPILED = feval(protocol.OPTIONS.trialfunc,G_DA,protocol,true);
-elseif protocol.OPTIONS.compile_at_runtime
-    protocol = CompileProtocol(protocol);
-end
-G_COMPILED = protocol.COMPILED;
 
 % If custom trial selection function is not specified, set to empty and use
 % default trial selection function
 if ~isfield(G_COMPILED,'trialfunc'), G_COMPILED.OPTIONS.trialfunc = []; end
-
 
 % Set first trial parameters
 G_COMPILED.tidx = 1;
@@ -335,23 +334,22 @@ G_FLAGS.update = G_DA.GetTargetType('Stim.~Updated');
 t = hat;
 per = t + ITI(G_COMPILED.OPTIONS);
 
-% Create new timer for RPvds control of experiment
+% Create new timer to control experiment
 delete(timerfind('Name','EPhysTimer'));
 T = timer(                                   ...
     'BusyMode',     'queue',                 ...
     'ExecutionMode','fixedRate',             ...
     'TasksToExecute',inf,                    ...
-    'Period',        0.01,                  ...
+    'Period',        0.01,                   ...
     'Name',         'EPhysTimer',            ...
-    'TimerFcn',     {@RuntimeTimer,  G_DA},  ...
+    'TimerFcn',     {@RuntimeTimer},  ...
     'StartDelay',   1,                       ...
     'UserData',     {h.EPhysController t per});
-
 % 'ErrorFcn',{@StartTrialError,G_DA}, ...
 
 % Begin recording
 G_DA.SetSysMode(3); % Record
-pause(1);
+pause(0.05);
 
 % Start timer
 start(T);
@@ -504,7 +502,7 @@ DA.SetTargetVal('Stim.ZBUSB_OFF',1);
 
 
 %% Timer
-function RuntimeTimer(hObj,evnt,DA) %#ok<INUSL>
+function RuntimeTimer(hObj,evnt)  %#ok<INUSD>
 global G_COMPILED G_DA G_FLAGS G_PAUSE
 
 if G_PAUSE, return; end
@@ -514,11 +512,8 @@ ud = get(hObj,'UserData');
 if hat < ud{3} - 0.025, return; end
 
 % hold computer hostage for a few milliseconds until the next trigger time
-if G_FLAGS.update
-    while hat < ud{3} && DA.GeTargetVal('Stim.~Updated'); end
-else
-    while hat < ud{3}; end
-end
+while hat < ud{3}; end
+
 
 % Trigger on Stim module
 ud{2} = DAZBUSBtrig(G_DA);
@@ -527,15 +522,13 @@ ud{2} = DAZBUSBtrig(G_DA);
 % Figure out time of next trigger
 ud{3} = ud{2}+ITI(G_COMPILED.OPTIONS);
 
-% make sure trigger is finished before updating parameters for next trial
-while G_DA.GetTargetVal('Stim.~TrigState')
-    pause(0.005);
-end
-
 set(hObj,'UserData',ud);
 
 % retrieve up-to-date GUI object handles
 h = guidata(ud{1});
+
+% make sure trigger is finished before updating parameters for next trial
+while G_DA.GetTargetVal('Stim.~TrigState'), pause(0.005); end
 
 % Check if session has been completed (or user has manually halted session)
 G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
@@ -570,13 +563,12 @@ if G_FLAGS.update
     DATrigger(G_DA,'Stim.~Update');
 end
 
-% Increment trial index
-G_COMPILED.tidx = G_COMPILED.tidx + 1;
-
 % Update progress bar
-
 trem = mean(G_COMPILED.OPTIONS.ISI)/1000 * (size(G_COMPILED.trials,1)-G_COMPILED.tidx);
 UpdateProgress(h,G_COMPILED.tidx/size(G_COMPILED.trials,1),trem);
+
+% Increment trial index
+G_COMPILED.tidx = G_COMPILED.tidx + 1;
 
 
 function i = ITI(Opts)
@@ -620,12 +612,16 @@ i = fix(i) / 1000; % round to nearest millisecond
 
 %% GUI Functions
 function UpdateProgress(h,v,trem)
+persistent progbar
 % Update progress bar
 set(h.progress_status,'String', ...
     sprintf('Progress: %0.1f%% | Time Remaining: %0.0f sec',v*100,trem));
-plot(h.progress_bar,[0 v],[0 0],'-r','linewidth',15);
-set(h.progress_bar,'xlim',[0 1],'ylim',[-0.9 1],'xtick',[],'ytick',[]);
-
+if isempty(progbar)
+    progbar = plot(h.progress_bar,[0 v],[0 0],'-r','linewidth',15);
+    set(h.progress_bar,'xlim',[0 1],'ylim',[-0.9 1],'xtick',[],'ytick',[]);
+else
+    set(progbar,'xdata',[0 v]);
+end
 
 
 
