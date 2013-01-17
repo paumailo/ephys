@@ -602,12 +602,14 @@ module_select_Callback(h.module_select, h);
 function rpvds_tags_Callback(h) %#ok<DEFNU>
 if strcmp(get(h.param_table,'Enable'),'off'), return; end
 
+GUISTATE(h.ProtocolDesign,'off');
+
 % Grab parameter tags from an existing RPvds file
 fh = findobj('Type','figure','-and','Name','RPfig');
 if isempty(fh), fh = figure('Visible','off','Name','RPfig'); end
 
 [fn,pn] = uigetfile({'*.rcx', 'RPvds File (*.rcx)'},'Select RPvds File');
-if ~fn, return; end
+if ~fn, GUISTATE(h.ProtocolDesign,'on'); return; end
 
 RP = actxcontrol('RPco.x','parent',fh);
 RP.ReadCOF(fullfile(pn,fn));
@@ -637,6 +639,6 @@ v = cellstr(get(h.module_select,'String'));
 v = v{get(h.module_select,'Value')};
 h.protocol.MODULES.(v).data = data;
 guidata(h.ProtocolDesign,h);
-
+GUISTATE(h.ProtocolDesgin,'on');
 
 
