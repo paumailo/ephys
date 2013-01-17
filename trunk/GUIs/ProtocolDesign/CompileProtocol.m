@@ -84,7 +84,7 @@ for i = 1:length(fn)
         for j = 1:length(idx)
             cfn = fullfile('C:\Electrophys\Calibrations\',v{idx(j),end});
             C = load(cfn,'-mat');
-            if isempty(v{idx(j)},4)
+            if isempty(v{idx(j)},3)
                 cb = sprintf('CalBuddy%d',m);
             else
                 cb = v{idx(j),3};
