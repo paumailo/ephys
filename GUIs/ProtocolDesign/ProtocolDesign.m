@@ -356,12 +356,14 @@ elseif col == 7 && ~strcmp(evnt.NewData,'< NONE >')
     [fn,dd] = uigetfile({'*.cal','Calibration (*.cal)'}, ...
         'Select a Calibration',dd);
     
-    if ~fn, return; end
-    % update data cell matrix with filename
-    data{row,7} = fn;
-    
-    setpref('ProtocolData','CALDIR',dd);
-    
+    if ~fn
+        data{row,7} = '< NONE >';
+    else
+        % update data cell matrix with filename
+        data{row,7} = fn;
+        
+        setpref('ProtocolData','CALDIR',dd);
+    end
 end
 set(hObj,'Data',data);
 
