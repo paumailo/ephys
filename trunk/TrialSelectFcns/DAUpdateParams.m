@@ -22,7 +22,7 @@ for j = 1:length(trial)
     par = trial{j};
     
     if isstruct(par) % file buffer (usually WAV file)
-        e = DA(m).WriteTargetV(param,0,par.buffer);
+        e = DA.WriteTargetV(param,0,par.buffer);
     
     elseif isscalar(par) % set value
         e = DA.SetTargetVal(param,par);

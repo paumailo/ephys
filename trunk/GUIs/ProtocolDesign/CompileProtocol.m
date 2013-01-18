@@ -83,18 +83,39 @@ for i = 1:length(fn)
         idx = find(cind);
         for j = 1:length(idx)
             cfn = fullfile('C:\Electrophys\Calibrations\',v{idx(j),end});
-            C = load(cfn,'-mat');
-            if isempty(v{idx(j)},3)
-                cb = sprintf('CalBuddy%d',m);
-            else
-                cb = v{idx(j),3};
+            if ~exist(cfn,'file')
+                r = questdlg(sprintf([ ...
+                    'Can''t locate the calibration file which was part of this protocol: ', ...
+                    '"%s"\n\n', ...
+                    'Would you like to locate it manually?'],cfn), ...
+                    'Missing Calibration','Yes','No','Yes');
+                if isequal(r,'Yes')
+                    cfn = uigetfile({'Calibration File (*.cal)','*.cal'}, ...
+                        'Locate Calibration file');
+                    if ~cfn
+                        fprintf('** Missing Calibration file: "%s"\n',cfn)
+                        continue
+                    end
+                else
+                    fprintf('** Missing Calibration file: "%s"\n',cfn)
+                    continue
+                end
             end
+            C = load(cfn,'-mat');
+            cvals = Calibrate(vals,C);
+            
             try
                 vals = eval(v{idx(j),4});
             catch %#ok<CTCH>
                 vals = str2num(v{idx(j),4}); %#ok<ST2NM>
             end
-            cvals = Calibrate(vals,C);
+            
+            if isempty(v{idx(j)},3)
+                cb = sprintf('CalBuddy%d',m);
+            else
+                cb = v{idx(j),3};
+            end
+    
             v{idx(j),3} = cb;
             v(end+1,:) = {sprintf('~%s',v{idx(j),1}), ...
                 'Write', cb,  cvals, 0, 0, '< NONE >'}; %#ok<AGROW>
