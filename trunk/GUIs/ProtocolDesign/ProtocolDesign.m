@@ -286,7 +286,10 @@ I = evnt.Indices;
 row = I(1);
 col = I(2);
 
+curmod = get_string(h.module_select);
+
 data = get(hObj,'data');
+
 
 if col == 3 && strcmp(evnt.NewData,'< ADD >')
     % Add new Buddy variable
@@ -330,7 +333,6 @@ elseif col == 6 % wav files
         %         S = get(h.param_table,'UserData');
         uiwait(SchedWAVgui(h.ProtocolDesign,[]))
         S = getappdata(h.ProtocolDesign,'SchedWAVgui_DATA');
-        curmod = get_string(h.module_select);
         h.protocol.MODULES.(curmod).buffers{row} = S;
         if isempty(S)
             data{row,4} = '';
@@ -358,10 +360,11 @@ elseif col == 7 && ~strcmp(evnt.NewData,'< NONE >')
     
     if ~fn
         data{row,7} = '< NONE >';
+        h.protocol.MODULES.(curmod).calibrations{row} = [];
     else
         % update data cell matrix with filename
         data{row,7} = fn;
-        
+        h.protocol.MODULES.(curmod).calibrations{row} = load(fullfile(dd,fn),'-mat');
         setpref('ProtocolData','CALDIR',dd);
     end
 end

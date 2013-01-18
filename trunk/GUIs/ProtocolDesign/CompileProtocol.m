@@ -82,7 +82,14 @@ for i = 1:length(fn)
     if any(cind)
         idx = find(cind);
         for j = 1:length(idx)
-            cfn = fullfile('C:\Electrophys\Calibrations\',v{idx(j),end});
+            if ~isfield(P.MODULES.(fn{i}),'calibrations') % backwards compatability
+                dd = getappdata('ProtocolData','CALDIR',cd);
+                if isnumeric(dd), dd = cd; end
+                cfn = fullfile(dd,v{idx(j),end});
+            else
+                cfn = P.MODULES.(fn{i}).calibrations{row};
+            end
+            
             if ~exist(cfn,'file')
                 r = questdlg(sprintf([ ...
                     'Can''t locate the calibration file which was part of this protocol: ', ...
