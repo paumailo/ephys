@@ -639,6 +639,6 @@ v = cellstr(get(h.module_select,'String'));
 v = v{get(h.module_select,'Value')};
 h.protocol.MODULES.(v).data = data;
 guidata(h.ProtocolDesign,h);
-GUISTATE(h.ProtocolDesgin,'on');
+GUISTATE(h.ProtocolDesign,'on');
 
 
