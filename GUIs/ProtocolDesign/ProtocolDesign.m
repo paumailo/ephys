@@ -523,6 +523,10 @@ if isfield(h.protocol.MODULES.(v),'buffers') && row <= length(h.protocol.MODULES
     h.protocol.MODULES.(v).buffers(row) = [];
 end
 
+if isfield(h.protocol.MODULES.(v),'calibrations') && row <= length(h.protocol.MODULES.(v).calibrations)
+    h.protocol.MODULES.(v).calibrations(row) = [];
+end
+
 h.CURRENTCELL = [];
 guidata(h.ProtocolDesign,h);
 
