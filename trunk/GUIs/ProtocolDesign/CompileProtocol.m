@@ -83,7 +83,7 @@ for i = 1:length(fn)
         idx = find(cind);
         for j = 1:length(idx)
             if ~isfield(P.MODULES.(fn{i}),'calibrations') % backwards compatability
-                dd = getappdata('ProtocolData','CALDIR',cd);
+                dd = getpref('ProtocolDesign','CALDIR',cd);
                 if isnumeric(dd), dd = cd; end
                 cfn = fullfile(dd,v{idx(j),end});
             else
@@ -101,10 +101,12 @@ for i = 1:length(fn)
                         'Locate Calibration file');
                     if ~cfn
                         fprintf('** Missing Calibration file: "%s"\n',cfn)
+                        v{idx(j),end} = '< NONE >';
                         continue
                     end
                 else
                     fprintf('** Missing Calibration file: "%s"\n',cfn)
+                    v{idx(j),end} = '< NONE >';
                     continue
                 end
             end
