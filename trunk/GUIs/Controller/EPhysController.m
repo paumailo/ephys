@@ -616,7 +616,7 @@ function UpdateProgress(h,v,trem)
 set(h.progress_status,'String', ...
     sprintf('Progress: %0.1f%% | Time Remaining: %0.0f sec',v*100,trem));
 
-if ~isfield(h,'progbar') && ~isequal(get(h.progbar,'type'),'line')
+if ~isfield(h,'progbar') && ~ishandle(h.progbar)
     % set handle to progress bar line object
     h.progbar = plot(h.progress_bar,[0 v],[0 0],'-r','linewidth',15);
     set(h.progress_bar,'xlim',[0 1],'ylim',[-0.9 1],'xtick',[],'ytick',[]);
