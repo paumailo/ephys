@@ -347,9 +347,9 @@ T = timer(                                   ...
     'UserData',     {h.EPhysController t per});
 % 'ErrorFcn',{@StartTrialError,G_DA}, ...
 
-% Begin recording
+% Begin recording    
 G_DA.SetSysMode(3); % Record
-pause(0.05);
+pause(0.5);
 
 % Start timer
 start(T);
@@ -612,17 +612,18 @@ i = fix(i) / 1000; % round to nearest millisecond
 
 %% GUI Functions
 function UpdateProgress(h,v,trem)
-persistent progbar
 % Update progress bar
 set(h.progress_status,'String', ...
     sprintf('Progress: %0.1f%% | Time Remaining: %0.0f sec',v*100,trem));
-if isempty(progbar)
-    progbar = plot(h.progress_bar,[0 v],[0 0],'-r','linewidth',15);
+
+if ~isfield(h,'progbar') && ~isequal(get(h.progbar,'type'),'line')
+    % set handle to progress bar line object
+    h.progbar = plot(h.progress_bar,[0 v],[0 0],'-r','linewidth',15);
     set(h.progress_bar,'xlim',[0 1],'ylim',[-0.9 1],'xtick',[],'ytick',[]);
-else
-    set(progbar,'xdata',[0 v]);
+    guidata(h.EPhysController,h);
 end
 
+set(h.progbar,'xdata',[0 v]);
 
 
 
