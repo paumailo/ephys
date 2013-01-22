@@ -126,6 +126,7 @@ set(h.ProtocolDesign,'Name','Protocol Design');
 fprintf(' done\nFile Location: ''%s''\n',fn);
 
 function GUISTATE(fh,onoff)
+% Disable/Enable GUI components and set pointer state
 pdchildren = findobj(fh,'-property','Enable');
 set(pdchildren,'Enable',onoff);
 if strcmpi(onoff,'on')
@@ -282,6 +283,8 @@ p.INFO                       = get(h.protocol_info,         'String');
 
 %% Table
 function param_table_CellEditCallback(hObj, evnt, h) %#ok<DEFNU>
+GUISTATE(h.ProtocolDesign,'off');
+
 I = evnt.Indices;
 row = I(1);
 col = I(2);
@@ -297,6 +300,7 @@ if col == 3 && strcmp(evnt.NewData,'< ADD >')
     if isempty(nd)
         data{row,col} = '< NONE >';
         set(hObj,'data',data);
+        GUISTATE(h.ProtocolDesign,'on');
         return
     end
     cf = get(hObj,'ColumnFormat');
@@ -364,7 +368,9 @@ elseif col == 7 && ~strcmp(evnt.NewData,'< NONE >')
     else
         % update data cell matrix with filename
         data{row,7} = fn;
-        h.protocol.MODULES.(curmod).calibrations{row} = load(fullfile(dd,fn),'-mat');
+        calfn = fullfile(dd,fn);
+        h.protocol.MODULES.(curmod).calibrations{row} = load(calfn,'-mat');
+        h.protocol.MODULES.(curmod).calibrations{row}.filename = calfn;
         setpref('ProtocolData','CALDIR',dd);
     end
 end
@@ -376,6 +382,8 @@ v = v{get(h.module_select,'Value')};
 h.protocol.MODULES.(v).data = get(hObj,'Data');
 UpdateProtocolDur(h);
 guidata(h.ProtocolDesign,h);
+GUISTATE(h.ProtocolDesign,'on');
+
 
 function param_table_CellSelectionCallback(hObj, evnt, h) %#ok<DEFNU>
 h.CURRENTCELL = evnt.Indices;
@@ -433,8 +441,10 @@ d = {'' 'Write/Read' '< NONE >' '' false false '< NONE >'};
 
 function view_compiled_Callback(h) %#ok<DEFNU>
 if ~isfield(h,'protocol'), return; end
+GUISTATE(h.ProtocolDesign,'off');
 h.protocol = AffixOptions(h,h.protocol);
 CompiledProtocolTrials(h.protocol,'trunc',2000);
+GUISTATE(h.ProtocolDesign,'on');
 
 
 

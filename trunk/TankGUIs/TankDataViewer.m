@@ -112,7 +112,7 @@ blockinfo = blockinfo(blockidx);
 
 pspec = blockinfo.paramspec;
 
-if isempty(pspec{1})
+if isempty(pspec) || isempty(pspec{1})
     set(h.list_event1,'Value',1,'String','<NO EVENTS FOUND>','UserData',[]);
     set(h.list_event2,'Value',1,'String','<NO EVENTS FOUND>','UserData',[]);
     set(findobj('type','figure'),'Pointer','arrow');
