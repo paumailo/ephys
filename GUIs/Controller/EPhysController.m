@@ -95,7 +95,9 @@ if ~isa(G_TT,'COM.TTank_X'), G_TT = TDT_SetupTT; end
 cfg.server = evnt.ActServer;
 cfg.tank   = evnt.ActTank;
 cfg.TT     = G_TT;
-set(gcf,'Pointer','watch'); drawnow
+set(gcf,'Pointer','watch'); 
+fprintf('\nCollecting tank information, please wait ...\n')
+drawnow
 blkdata = getTankData(cfg); fprintf('\n');
 
 if isempty(blkdata)
@@ -278,11 +280,14 @@ end
 % Update control panel GUI
 set(hObj,'Enable','off');
 set(h.control_pause,'Enable','off');
+set(h.get_thresholds,'Enable','off');
 set(h.control_halt,'Enable','on');
 ph = findobj(h.EPhysController,'-regexp','tag','protocol\w');
 set(ph,'Enable','off');
+set(h.EPhysController,'Pointer','watch'); drawnow
 
 % load selected protocol file
+fprintf('Loading Protocol file: %s\n',pinfo.name{ind})
 load(fullfile(pinfo.dir,[pinfo.name{ind} '.prot']),'-mat')
 
 % Check if protocol needs to be compiled before running
@@ -355,6 +360,7 @@ pause(0.5);
 start(T);
 
 set(h.control_pause,'Enable','on');
+set(h.EPhysController,'Pointer','arrow'); drawnow
 
 function control_pause_Callback(hObj, ~, h) %#ok<INUSD,DEFNU>
 global G_PAUSE
@@ -439,11 +445,14 @@ end
 %% DA Open Developer Functions
 function DAHalt(h,DA)
 % Stop recording and update GUI
+set(h.get_thresholds,'Enable','on');
 set(h.control_record,'Enable','on');
 set(h.control_pause, 'Enable','off');
 set(h.control_halt,  'Enable','off');
 ph = findobj(h.EPhysController,'-regexp','tag','protocol\w');
 set(ph,'Enable','on');
+
+if ~isa(DA,'COM.TDevAcc_X'), DA = TDT_SetupDA; end
 
 DA.SetSysMode(0); % Halt system
 
@@ -616,7 +625,7 @@ function UpdateProgress(h,v,trem)
 set(h.progress_status,'String', ...
     sprintf('Progress: %0.1f%% | Time Remaining: %0.0f sec',v*100,trem));
 
-if ~isfield(h,'progbar') && ~ishandle(h.progbar)
+if ~isfield(h,'progbar') || ~ishandle(h.progbar)
     % set handle to progress bar line object
     h.progbar = plot(h.progress_bar,[0 v],[0 0],'-r','linewidth',15);
     set(h.progress_bar,'xlim',[0 1],'ylim',[-0.9 1],'xtick',[],'ytick',[]);

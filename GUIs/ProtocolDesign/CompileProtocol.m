@@ -87,7 +87,7 @@ for i = 1:length(fn)
                 if isnumeric(dd), dd = cd; end
                 cfn = fullfile(dd,v{idx(j),end});
             else
-                cfn = P.MODULES.(fn{i}).calibrations{row};
+                cfn = P.MODULES.(fn{i}).calibrations{idx(j)}.filename;
             end
             
             if ~exist(cfn,'file')
@@ -110,30 +110,31 @@ for i = 1:length(fn)
                     continue
                 end
             end
-            C = load(cfn,'-mat');
-            cvals = Calibrate(vals,C);
-            
+
             try
                 vals = eval(v{idx(j),4});
             catch %#ok<CTCH>
                 vals = str2num(v{idx(j),4}); %#ok<ST2NM>
             end
             
-            if isempty(v{idx(j)},3)
+            C = load(cfn,'-mat');
+            cvals = Calibrate(vals,C);
+            
+            if isequal(v{idx(j),3},'< NONE >')
                 cb = sprintf('CalBuddy%d',m);
             else
                 cb = v{idx(j),3};
             end
     
             v{idx(j),3} = cb;
-            v(end+1,:) = {sprintf('~%s',v{idx(j),1}), ...
+            v(end+1,:)  = {sprintf('~%s',v{idx(j),1}), ...
                 'Write', cb,  cvals, 0, 0, '< NONE >'}; %#ok<AGROW>
             m = m + 1;
         end
     end
     
     % buffer
-    idx = find(cell2mat(v(:,6)));
+    idx = find([v{:,6}]);
     for j = 1:length(idx)
         buflengths = zeros(size(v{idx(j),4}));
         for b = 1:length(v{idx(j),4})
