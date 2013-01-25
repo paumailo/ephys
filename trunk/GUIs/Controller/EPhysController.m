@@ -389,7 +389,7 @@ state = G_DA.GetSysMode;
 if state < 2, return; end
 
 ch = str2num(get(hObj,'String')); %#ok<ST2NM>
-G_DA.SetTargetVal('monitor_ch',ch);
+G_DA.SetTargetVal('Acq.monitor_ch',ch);
 
 function get_thresholds_Callback(hObj, ~, h) %#ok<DEFNU>
 global G_DA
