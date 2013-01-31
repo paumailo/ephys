@@ -206,12 +206,15 @@ fprintf('done\n')
 
 ev1ind = ismember(blockinfo.paramspec,event1);
 ev1p   = blockinfo.epochs(:,ev1ind);
-uev1p  = str2double(get_string(h.list_param1));
+uev1p  = unique(ev1p);
+ind = get(h.list_param1,'Value');
+uev1p  = uev1p(ind);
 
 ev2ind = ismember(blockinfo.paramspec,event2);
 ev2p   = blockinfo.epochs(:,ev2ind);
-uev2p  = str2double(get_string(h.list_param2));
-
+uev2p  = unique(ev2p);
+ind = get(h.list_param2,'Value');
+uev2p  = uev2p(ind);
 
 fprintf('Plotting')
 clf(f); figure(f);
@@ -248,7 +251,7 @@ end
 
 
 
-function ax = PlotData(ax,h,psth,channelid,binvec,event1,event2,ev1p,ev2p,uev1p,uev2p)
+function ax = PlotData(ax,h,datain,channelid,binvec,event1,event2,ev1p,ev2p,uev1p,uev2p)
 
 if ~nargin
     datas = get(gca,'UserData');
@@ -271,7 +274,7 @@ else
             else
                 ind = ev2p == uev2p(j) & ev1p == uev1p;
             end
-            data(j,:) = mean(psth(:,ind),2);
+            data(j,:) = mean(datain(:,ind),2);
         end
         event1 = 'time';
         uev1p  = binvec;
@@ -284,13 +287,13 @@ else
             else
                 ind = ev1p == uev1p(j) & ev2p == uev2p;
             end
-            data(:,j) = mean(psth(:,ind),2);
+            data(:,j) = mean(datain(:,ind),2);
         end
         event2 = 'time';
         uev2p  = binvec;
     else
         % Plot receptive field according to summed response to selected parameters
-        sumr = squeeze(sum(psth)); % summed response
+        sumr = squeeze(sum(datain)); % summed response
         data = zeros(length(uev2p),length(uev1p));
         for j = 1:length(uev1p)
             for k = 1:length(uev2p)
