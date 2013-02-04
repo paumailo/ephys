@@ -85,7 +85,7 @@ set(h.db_list,'String',dbs,'Value',length(dbs));
 
 mym('use',char(newdb));
 
-set(h.expt_expt_subject_list,'Value',1,'String',' ');
+set(h.expt_subject_list,'Value',1,'String',' ');
 
 PopulateDBs(h);
 PopulateExperiments(h);
