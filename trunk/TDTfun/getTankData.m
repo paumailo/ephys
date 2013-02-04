@@ -25,6 +25,9 @@ function varargout = getTankData(cfg)
 %                               spike waveforms
 %                               'Waves'     - returns continuously sampled
 %                               wave data
+%                       usemym (true)
+%                           - indicates whether or not to use mym to look
+%                           for protocol info on the database
 %                       silently (false)
 %                           - if true then data wil be retrieved without
 %                           printing information to the command window
@@ -58,6 +61,7 @@ if ~isfield(cfg,'blocks'),      cfg.blocks    = 'all';          end
 if ~isfield(cfg,'channel'),     cfg.channel   = 'all';          end
 if ~isfield(cfg,'datatype'),    cfg.datatype  = 'BlockInfo';    end
 if ~isfield(cfg,'silently'),    cfg.silently  = false;          end
+if ~isfield(cfg,'usemym'),      cfg.usemym    = true;           end
 
 if ~any(strcmpi(cfg.datatype,{'Spikes','BlockInfo','Waves','Stream'}))
     error('''%s'' is an invalid datatype.',cfg.datatype);
@@ -198,6 +202,7 @@ for bidx = 1:length(cfg.blocks)
     DO.duration  = TT.FancyTime(t2-t1,'H:M:S');
     
     % retrieve protocol ID #
+    protocol = -1;
     n = TT.ReadEventsV(1,'PROT',0,0,0,0,'NODATA');
     if n
         protocol = TT.ParseEvV(0,1);
@@ -208,41 +213,41 @@ for bidx = 1:length(cfg.blocks)
         end
     end
     
-
     
-    % look on db_util.protocol_types table
-    if ~myisopen, DB_Connect; end
+   
     DO.protocol = protocol;
-    DO.protocolname = char(myms(sprintf('SELECT alias FROM db_util.protocol_types WHERE pid = %d',protocol)));
-    if isempty(DO.protocolname)
-        while 1
-            pstr = inputdlg({sprintf([ ...
-                'Protocol ID %d was not found on the database (db_util.protocol_types).\n\n', ...
-                'Enter an alias for the protocol (between 3 and 5 characters; eg. eFRA; required):'], protocol), ...
-                'Enter a more descriptive name (up to 50 characters; optional):', ...
-                'Enter a longer description if desired (up to 200 characters; optional):'}, ...
-                sprintf('Tank: %s, %s',DO.tank,DO.name), ...
-                [1 50; 1 50; 3 50]);
-            
-            if ~isempty(pstr) && (length(pstr{1}) < 3 || length(pstr{1}) > 5)
-                uiwait(errordlg('Protocol alias must be between 3 and 5 characters.  Try again, bozo!','getTankData','modal'));
-
-            elseif ~isempty(pstr) && length(pstr{1}) <= 5
-                mym(['INSERT db_util.protocol_types (pid,alias,name,description) ', ...
-                    'VALUES ({Si},"{S}","{S}","{S}")'],protocol,pstr{1},pstr{2},pstr{3})
-                fprintf('Added Protocol ID %d %s to the database (db_util.protocol_types)\n',protocol,pstr{1})
-                DO.protocolname = char(pstr{1});
-                break
+    DO.protocolname = 'UNKNOWN';
+    if cfg.usemym
+        % look on db_util.protocol_types table
+        if ~myisopen, DB_Connect; end
+        DO.protocolname = char(myms(sprintf('SELECT alias FROM db_util.protocol_types WHERE pid = %d',protocol)));
+        if isempty(DO.protocolname)
+            while 1
+                pstr = inputdlg({sprintf([ ...
+                    'Protocol ID %d was not found on the database (db_util.protocol_types).\n\n', ...
+                    'Enter an alias for the protocol (between 3 and 5 characters; eg. eFRA; required):'], protocol), ...
+                    'Enter a more descriptive name (up to 50 characters; optional):', ...
+                    'Enter a longer description if desired (up to 200 characters; optional):'}, ...
+                    sprintf('Tank: %s, %s',DO.tank,DO.name), ...
+                    [1 50; 1 50; 3 50]);
                 
-            elseif isempty(pstr)
-                DO.protocolname = 'UNKNOWN';
-                break
+                if ~isempty(pstr) && (length(pstr{1}) < 3 || length(pstr{1}) > 5)
+                    uiwait(errordlg('Protocol alias must be between 3 and 5 characters.  Try again, bozo!','getTankData','modal'));
+                    
+                elseif ~isempty(pstr) && length(pstr{1}) <= 5
+                    mym(['INSERT db_util.protocol_types (pid,alias,name,description) ', ...
+                        'VALUES ({Si},"{S}","{S}","{S}")'],protocol,pstr{1},pstr{2},pstr{3})
+                    fprintf('Added Protocol ID %d %s to the database (db_util.protocol_types)\n',protocol,pstr{1})
+                    DO.protocolname = char(pstr{1});
+                    break
+                    
+                elseif isempty(pstr)
+                    break
+                end
             end
         end
-        
-
     end
-
+    
     
     
     TT.ResetFilters;
