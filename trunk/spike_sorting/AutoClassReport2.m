@@ -34,10 +34,9 @@ if exist(acfn,'file')
 end
 
 disp('Launching AutoClass Reporting Utility')
-% doesn't seem to work without using psexec(?)
-dosSTR = sprintf('psexec -d Autoclass.exe -reports "%s" "%s" "%s"', ...
+dosSTR = sprintf('Autoclass.exe -reports "%s" "%s" "%s"', ...
     AC.results_bin,AC.search,AC.r_params);
-[~,~] = dos(dosSTR);
+dos(dosSTR)
 
 while 1 % give AutoClass some time to process report
     if exist(AC.case_data_1,'file'), break; end
