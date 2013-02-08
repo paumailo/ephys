@@ -98,7 +98,7 @@ copyfile([AC.exelocale 'SNIP.model'],   AC.model);
 copyfile([AC.exelocale 'SNIP.s-params'],AC.s_params);
 copyfile([AC.exelocale 'SNIP.r-params'],AC.r_params);
 
-dosSTR = sprintf('psexec -d Autoclass.exe -search "%s" "%s" "%s" "%s"', ...
+dosSTR = sprintf('Autoclass.exe -search "%s" "%s" "%s" "%s" &', ...
     AC.hd2,AC.db2,AC.model,AC.s_params);
 
 fprintf('\t> Launching AutoClass\n')
