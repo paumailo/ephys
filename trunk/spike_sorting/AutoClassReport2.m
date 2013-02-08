@@ -26,7 +26,7 @@ AC = cfg.AutoClass;
 [acroot,acfn,~] = fileparts(AC.db2);
 acfn = fullfile(acroot,[acfn,'_CLASSES.mat']);
 
-if exist('acfn','file')
+if exist(acfn,'file')
     b = questdlg(sprintf(['Spike Classes File ("%s") already exists. ', ...
         'Would you like to run the reporting utility again?'],acfn), ...
         'Class file found','Yes','No','No');
