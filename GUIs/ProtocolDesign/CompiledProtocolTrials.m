@@ -29,24 +29,25 @@ if fail
 end
 C = protocol.COMPILED;
 
-trials = C.trials;
-if argin.trunc && size(trials,1) > argin.trunc
-    trials = trials(1:argin.trunc,:);
-end
-
-% adjust values for table
-% trials = cell(size(C.trials));
-for i = 1:numel(trials)
-    if isnumeric(trials{i})
-        trials{i} = num2str(trials{i});
-    elseif isstruct(trials{i})
-        trials{i} = trials{i}.file;
-    else
-        trials{i} = trials{i};
+if argin.showgui
+    trials = C.trials;
+    if argin.trunc && size(trials,1) > argin.trunc
+        trials = trials(1:argin.trunc,:);
     end
+    
+    % adjust values for table
+    fisn = find(cell2mat(cellfun(@isnumeric, trials, 'UniformOutput', false)));
+    for i = 1:length(fisn)
+        trials{fisn(i)} = num2str(trials{fisn(i)});
+    end
+    
+    fiss = find(cell2mat(cellfun(@isstruct, trials, 'UniformOutput',false)));
+    for i = 1:length(fiss)
+        trials{fiss(i)} = trials{fiss(i)}.file;
+    end
+    
+    ShowGUI(C,trials);
 end
-
-if argin.showgui, ShowGUI(C,trials); end
 
 varargout{1} = C;
 varargout{2} = false;
@@ -59,7 +60,7 @@ end
 figure(fh); % bring to front
 sc = size(C.trials,1);
 set(fh, ...
-    'Name',sprintf('Compiled Protocol: # trials = %d',sc), ...
+    'Name',sprintf('Compiled Protocol: # trials = %d (displaying first %d)',sc,length(trials)), ...
     'NumberTitle','off');
 
 uitable(fh, ...
