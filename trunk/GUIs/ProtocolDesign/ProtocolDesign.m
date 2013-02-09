@@ -501,7 +501,7 @@ if ~isfield(h,'protocol')
     return
 end
 
-isi   = str2num(get(h.opt_isi,'String')); %#ok<ST2NM>
+isi = str2num(get(h.opt_isi,'String')); %#ok<ST2NM>
 
 h.protocol = AffixOptions(h,h.protocol);
 [p,fail] = CompiledProtocolTrials(h.protocol,'showgui',false);
