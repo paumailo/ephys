@@ -1,11 +1,15 @@
-%  MCA-Suite (c) DJS 2009
-
 function TTX = TankSelect(varargin)
+%   TankSelect
+%   TTX = TankSelect
+%
+%
 %   parameters:
 %   'TTX',TTX,'Tank',Tank_Name,'Block',Block_Name,'Server',Server_Name
+%
+%
+% DJS 2009
 
-
-TTX = []; Tank = []; Block = [];
+TTX = []; Tank = []; Block = []; Server = [];
 for idx = 1:2:length(varargin)
     switch lower(varargin{idx})
         case 'ttx'

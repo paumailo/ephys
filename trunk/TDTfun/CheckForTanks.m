@@ -9,7 +9,7 @@ function [tanks,islegacy] = CheckForTanks(parentdir)
 %
 % DJS 2013
 
-tanks = [];
+tanks = []; islegacy = [];
 posstanks = dir(parentdir);
 
 posstanks(ismember({posstanks.name},{'.','..'})) = [];
