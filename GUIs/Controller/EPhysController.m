@@ -346,11 +346,11 @@ for i = 1:length(mods)
     if G_DA.GetTargetType(sprintf('%s.~Update',mods{i}))
         G_FLAGS.update = sprintf('%s.~Update',mods{i});
     end
-    if G_DA.GetTargetType(sprintf('%s.~ZBUSB_ON',mods{i}))
-        G_FLAGS.ZBUSB_ON = sprintf('%s.~ZBUSB_ON',mods{i});
+    if G_DA.GetTargetType(sprintf('%s.ZBUSB_ON',mods{i}))
+        G_FLAGS.ZBUSB_ON = sprintf('%s.ZBUSB_ON',mods{i});
     end
-    if G_DA.GetTargetType(sprintf('%s.~ZBUSB_OFF',mods{i}))
-        G_FLAGS.ZBUSB_OFF = sprintf('%s.~ZBUSB_OFF',mods{i});
+    if G_DA.GetTargetType(sprintf('%s.ZBUSB_OFF',mods{i}))
+        G_FLAGS.ZBUSB_OFF = sprintf('%s.ZBUSB_OFF',mods{i});
     end 
 end
 
@@ -515,7 +515,7 @@ function t = DAZBUSBtrig(DA,flags)
 %               TDT.ZTrgOff(Asc("B"))
 %           End Sub
 
-
+if ~isfield(flags,'ZBUSB_ON'), t = hat; return; end
 DA.SetTargetVal(flags.ZBUSB_ON,1);
 t = hat; % start timer for next trial
 DA.SetTargetVal(flags.ZBUSB_OFF,1);
