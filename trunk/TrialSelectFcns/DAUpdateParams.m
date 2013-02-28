@@ -17,7 +17,7 @@ for j = 1:length(trial)
 
     % '*' serves as ignore flag.  This is useful if you want something to
     % be updated by a custom trial-select function after being modified
-    if any(param=='*'), continue; end 
+    if param(1) == '*', continue; end 
     
     par = trial{j};
     
