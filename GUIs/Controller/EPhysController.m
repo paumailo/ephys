@@ -335,6 +335,7 @@ if ~isfield(G_COMPILED,'trialfunc'), G_COMPILED.OPTIONS.trialfunc = []; end
 
 % Find modules with requisite parameters
 mods = fieldnames(protocol.MODULES);
+G_FLAGS = struct('updated',[],'trigstate',[],'update',[],'ZBUSB_ON',[],'ZBUSB_OFF',[]);
 for i = 1:length(mods)
     if strcmp(mods{i}(1:3),'PA5'), continue; end
     if G_DA.GetTargetType(sprintf('%s.~Updated',mods{i}))
@@ -515,7 +516,7 @@ function t = DAZBUSBtrig(DA,flags)
 %               TDT.ZTrgOff(Asc("B"))
 %           End Sub
 
-if ~isfield(flags,'ZBUSB_ON'), t = hat; return; end
+if ~isempty(flags.ZBUSB_ON), t = hat; return; end
 DA.SetTargetVal(flags.ZBUSB_ON,1);
 t = hat; % start timer for next trial
 DA.SetTargetVal(flags.ZBUSB_OFF,1);
@@ -593,7 +594,9 @@ set(hObj,'UserData',ud);
 h = guidata(ud{1});
 
 % make sure trigger is finished before updating parameters for next trial
-while G_DA.GetTargetVal(G_FLAGS.trigstate), pause(0.005); end
+if ~isempty(G_FLAGS.trigstate)
+    while G_DA.GetTargetVal(G_FLAGS.trigstate), pause(0.005); end
+end
 
 % Check if session has been completed (or user has manually halted session)
 G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
