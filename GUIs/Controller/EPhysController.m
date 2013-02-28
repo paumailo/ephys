@@ -279,9 +279,9 @@ end
 
 % Update control panel GUI
 set(hObj,'Enable','off');
-set(h.control_pause,'Enable','off');
+set(h.control_pause, 'Enable','off');
 set(h.get_thresholds,'Enable','off');
-set(h.control_halt,'Enable','on');
+set(h.control_halt,  'Enable','on');
 ph = findobj(h.EPhysController,'-regexp','tag','protocol\w');
 set(ph,'Enable','off');
 set(h.EPhysController,'Pointer','watch'); drawnow
@@ -294,6 +294,14 @@ load(fullfile(pinfo.dir,[pinfo.name{ind} '.prot']),'-mat')
 if protocol.OPTIONS.compile_at_runtime && ~isempty(protocol.OPTIONS.trialfunc) %#ok<NODEF>
     protocol.COMPILED = feval(protocol.OPTIONS.trialfunc,G_DA,protocol,true);
 elseif protocol.OPTIONS.compile_at_runtime
+    % Initialize parameters
+    try
+        protocol = InitParams(protocol);
+    catch ME
+        set(h.get_thresholds,'Enable','on');
+        set(h.control_halt,  'Enable','off');
+        rethrow(ME)
+    end
     [protocol,fail] = CompileProtocol(protocol);
     if fail
         errordlg(sprintf('Unable to compile protocol: %s',pinfo.name{ind}), ...
@@ -325,6 +333,28 @@ SetThresholds(G_DA);
 % default trial selection function
 if ~isfield(G_COMPILED,'trialfunc'), G_COMPILED.OPTIONS.trialfunc = []; end
 
+% Find modules with requisite parameters
+mods = fieldnames(protocol.MODULES);
+for i = 1:length(mods)
+    if strcmp(mods{i}(1:3),'PA5'), continue; end
+    if G_DA.GetTargetType(sprintf('%s.~Updated',mods{i}))
+        G_FLAGS.updated = sprintf('%s.~Updated',mods{i});
+    end
+    if G_DA.GetTargetType(sprintf('%s.~TrigState',mods{i}))
+        G_FLAGS.trigstate = sprintf('%s.~TrigState',mods{i});
+    end
+    if G_DA.GetTargetType(sprintf('%s.~Update',mods{i}))
+        G_FLAGS.update = sprintf('%s.~Update',mods{i});
+    end
+    if G_DA.GetTargetType(sprintf('%s.~ZBUSB_ON',mods{i}))
+        G_FLAGS.ZBUSB_ON = sprintf('%s.~ZBUSB_ON',mods{i});
+    end
+    if G_DA.GetTargetType(sprintf('%s.~ZBUSB_OFF',mods{i}))
+        G_FLAGS.ZBUSB_OFF = sprintf('%s.~ZBUSB_OFF',mods{i});
+    end 
+end
+
+
 % Set first trial parameters
 G_COMPILED.tidx = 1;
 DAUpdateParams(G_DA,G_COMPILED);
@@ -332,8 +362,6 @@ DAUpdateParams(G_DA,G_COMPILED);
 % Set monitor channel
 monitor_channel_Callback(h.monitor_channel, [], h);
 
-% Set ~Update flag
-G_FLAGS.update = G_DA.GetTargetType('Stim.~Updated');
 
 % figure out first timer period
 t = hat;
@@ -473,7 +501,7 @@ DA.SetTargetVal(trig_str,1);
 t = hat; % start timer for next trial
 DA.SetTargetVal(trig_str,0);
 
-function t = DAZBUSBtrig(DA)
+function t = DAZBUSBtrig(DA,flags)
 % This will trigger zBusB synchronously across modules
 %   Note: Two ScriptTag components must be included in one of the RPvds
 %   circuits.  
@@ -488,17 +516,46 @@ function t = DAZBUSBtrig(DA)
 %           End Sub
 
 
-DA.SetTargetVal('Stim.ZBUSB_ON',1);
+DA.SetTargetVal(flags.ZBUSB_ON,1);
 t = hat; % start timer for next trial
-DA.SetTargetVal('Stim.ZBUSB_OFF',1);
+DA.SetTargetVal(flags.ZBUSB_OFF,1);
 
 
+function protocol = InitParams(protocol)
+% look for parameters starting with the $ flag.  These will be used at
+% startup to launch an input dialog (inputdlg)
+%
+% Modify protocol values based on user-defined input
 
+mods = protocol.MODULES;
+fldn = fieldnames(mods);
 
+prompt = []; dftval = [];
+for i = 1:length(fldn)
+    dt = mods.(fldn{i}).data;
+    mtmp.(fldn{i}) = find(cell2mat(cellfun(@(x) x(1)=='$', dt(:,1), 'UniformOutput',false)));
+    for j = 1:length(mtmp.(fldn{i}))
+        prompt{end+1} = sprintf('%s.%s',fldn{i},dt{mtmp.(fldn{i})(j),1}); %#ok<AGROW>
+        dftval{end+1} = dt{mtmp.(fldn{i})(j),4}; %#ok<AGROW>
+    end
+end
+if isempty(prompt), return; end
 
+options.Resize = 'on';
+options.WindowStyle = 'modal';
+options.Interpreter = 'none';
 
+resp = inputdlg(prompt,'Enter Values',1,dftval,options);
+if isempty(resp)
+    error('Must specify value!')
+end
 
-
+for i = 1:length(resp)
+    tk = tokenize(prompt{i},'.');
+    ind = strcmp(tk{2},mods.(tk{1}).data(:,1));
+    mods.(tk{1}).data(ind,4) = resp(i);
+end
+protocol.MODULES = mods;
 
 
 
@@ -523,9 +580,8 @@ if hat < ud{3} - 0.025, return; end
 % hold computer hostage for a few milliseconds until the next trigger time
 while hat < ud{3}; end
 
-
-% Trigger on Stim module
-ud{2} = DAZBUSBtrig(G_DA);
+% ZBus Trigger on modules
+ud{2} = DAZBUSBtrig(G_DA,G_FLAGS);
 % fprintf('Trig Time Discrepancy = %0.5f\n',ud{2}-ud{3})
 
 % Figure out time of next trigger
@@ -537,7 +593,7 @@ set(hObj,'UserData',ud);
 h = guidata(ud{1});
 
 % make sure trigger is finished before updating parameters for next trial
-while G_DA.GetTargetVal('Stim.~TrigState'), pause(0.005); end
+while G_DA.GetTargetVal(G_FLAGS.trigstate), pause(0.005); end
 
 % Check if session has been completed (or user has manually halted session)
 G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
@@ -566,11 +622,9 @@ end
 % Update parameters
 DAUpdateParams(G_DA,G_COMPILED);
 
-% Optional: Trigger '~Update' tag on Stim module following DAUpdateParams
+% Optional: Trigger '~Update' tag on module following DAUpdateParams
 %     > confirms to Stim module that parameters have been updated
-if G_FLAGS.update
-    DATrigger(G_DA,'Stim.~Update');
-end
+if G_FLAGS.update, DATrigger(G_DA,G_FLAGS.update); end
 
 % Update progress bar
 trem = mean(G_COMPILED.OPTIONS.ISI)/1000 * (size(G_COMPILED.trials,1)-G_COMPILED.tidx);

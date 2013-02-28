@@ -293,8 +293,10 @@ curmod = get_string(h.module_select);
 
 data = get(hObj,'data');
 
-
-if col == 3 && strcmp(evnt.NewData,'< ADD >')
+if col == 1 && evnt.NewData(1) == '$'
+    set(h.opt_compile_at_runtime,'Value',1);
+    
+elseif col == 3 && strcmp(evnt.NewData,'< ADD >')
     % Add new Buddy variable
     nd = inputdlg('Enter new Buddy:','Buddy Variable');
     if isempty(nd)

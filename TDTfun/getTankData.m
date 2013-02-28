@@ -118,7 +118,10 @@ for i = 1:nargout
     varargout{i} = []; %#ok<AGROW>
 end
 
-if isempty(blocklist), return; end
+if isempty(blocklist)
+    fprintf('  NO BLOCKS FOUND **\n');
+    return
+end
 cfg.blocklist = blocklist;
 
 
