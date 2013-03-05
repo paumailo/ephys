@@ -578,6 +578,10 @@ ud = get(hObj,'UserData');
 % ud{1} = figure handle; ud{2} = last trigger ; ud{3} = next trigger
 if hat < ud{3} - 0.025, return; end
 
+% ** The WaitSecs() function from the PsychToolbox seems to be extremely
+% accurate.  It may be worthwhile to use it to improve trigger accurracy **
+% DJS 2/26/13
+
 % hold computer hostage for a few milliseconds until the next trigger time
 while hat < ud{3}; end
 
