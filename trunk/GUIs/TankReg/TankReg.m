@@ -71,7 +71,8 @@ set(h.registered_tanks,'String',tanks);
 
 function PopulateTanks(h,path)
 if nargin == 1
-    path = uigetdir('','Locate Tank Directory');
+    regDir = getpref('TankReg','regDir',cd);
+    path = uigetdir(regDir,'Locate Tank Directory');
     if ~path, return; end
 end
 

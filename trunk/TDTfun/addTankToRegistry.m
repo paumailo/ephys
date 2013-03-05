@@ -7,15 +7,19 @@ function result = addTankToRegistry (tank, directory)
 %    function adds the given pair to the directory. Returns true on
 %    success, false on failure.
 %
+% Windows 64-bit versions 7 and higher only DJS 2/25/2013
+% 
+% See also, TankReg, remTankFromRegistry
+% 
 % DJS 2012
 
 % Windows Vista and 7 places keys in a different place DJS 4/10
 
-persistent b
-
-if isempty(b)
-    [~,b] = system('systeminfo');
-end
+% persistent b
+% 
+% if isempty(b)
+%     [~,b] = system('systeminfo');
+% end
 
 % a = strfind(b,'Windows 7');
 % if isempty(a), a = strfind(b,'Vista'); end
