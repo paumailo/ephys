@@ -516,7 +516,7 @@ function t = DAZBUSBtrig(DA,flags)
 %               TDT.ZTrgOff(Asc("B"))
 %           End Sub
 
-if ~isempty(flags.ZBUSB_ON), t = hat; return; end
+if isempty(flags.ZBUSB_ON), t = hat; return; end
 DA.SetTargetVal(flags.ZBUSB_ON,1);
 t = hat; % start timer for next trial
 DA.SetTargetVal(flags.ZBUSB_OFF,1);
