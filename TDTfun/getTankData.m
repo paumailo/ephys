@@ -173,7 +173,7 @@ for bidx = 1:length(cfg.blocks)
     
     TT.CreateEpocIndexing;
     
-    events = {'Wave','Strm','STRM','Snip','Spik'};
+    events = {'Wave','Strm','STRM','Snip','Spik','eNeu'};
     for i = 1:length(events)
         ev = events{i};
         n = TT.ReadEventsV(256,ev,0,0,0,0,'NODATA');
@@ -315,6 +315,9 @@ for bidx = 1:nblocks
         if ~n
             n = TT.ReadEventsV(10^6,'Spik',0,0,0,0,'NODATA');
         end
+        if ~n
+            n = TT.ReadEventsV(10^6,'eNeu',0,0,0,0,'NODATA');
+        end
         cfg.channel = unique(TT.ParseEvInfoV(0,n,4));
     end
     
@@ -324,6 +327,9 @@ for bidx = 1:nblocks
         nSnips = TT.ReadEventsV(10^6,'Snip',cfg.channel(cidx),0,0,0,'ALL');
         if ~nSnips
             nSnips = TT.ReadEventsV(10^6,'Spik',cfg.channel(cidx),0,0,0,'ALL');
+        end
+        if ~nSnips
+            nSnips = TT.ReadEventsV(10^6,'eNeu',cfg.channel(cidx),0,0,0,'ALL');
         end
         
         dataout(cidx).totalspikes = 0; %#ok<AGROW>
