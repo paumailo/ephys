@@ -8,7 +8,7 @@ function varargout = EPhysController(varargin)
 %
 % DJS 2013
 
-% Last Modified by GUIDE v2.5 13-Jan-2013 07:16:06
+% Last Modified by GUIDE v2.5 15-Mar-2013 12:29:17
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -279,9 +279,10 @@ end
 
 % Update control panel GUI
 set(hObj,'Enable','off');
-set(h.control_pause, 'Enable','off');
-set(h.get_thresholds,'Enable','off');
-set(h.control_halt,  'Enable','on');
+set(h.control_pause,  'Enable','off');
+set(h.control_preview,'Enable','off');
+set(h.get_thresholds, 'Enable','off');
+set(h.control_halt,   'Enable','on');
 ph = findobj(h.EPhysController,'-regexp','tag','protocol\w');
 set(ph,'Enable','off');
 set(h.EPhysController,'Pointer','watch'); drawnow
@@ -381,15 +382,20 @@ T = timer(                                   ...
     'UserData',     {h.EPhysController t per});
 % 'ErrorFcn',{@StartTrialError,G_DA}, ...
 
-% Begin recording    
-G_DA.SetSysMode(3); % Record
-pause(0.5);
+
+if strcmp(get(hObj,'String'),'Record') % otherwise, stay in preview mode
+    % Begin recording
+    G_DA.SetSysMode(3); % Record
+    pause(0.5);
+end
+    
 
 % Start timer
 start(T);
 
-set(h.control_pause,'Enable','on');
+set(h.control_pause,  'Enable','on');
 set(h.EPhysController,'Pointer','arrow'); drawnow
+
 
 function control_pause_Callback(hObj, ~, h) %#ok<INUSD,DEFNU>
 global G_PAUSE
@@ -443,9 +449,11 @@ ChkReady(h);
 function ChkReady(h)
 % Check if protocol is set and tank is selected
 if isfield(h,'PROTOCOL') && isfield(h,'ActTank')
-    set(h.control_record,'Enable','on');
+    set(h.control_record, 'Enable','on');
+    set(h.control_preview,'Enable','on');
 else
-    set(h.control_record,'Enable','off');
+    set(h.control_record, 'Enable','off');
+    set(h.control_preview,'Enable','off');
 end
     
 
@@ -474,14 +482,17 @@ end
 %% DA Open Developer Functions
 function DAHalt(h,DA)
 % Stop recording and update GUI
-set(h.get_thresholds,'Enable','on');
-set(h.control_record,'Enable','on');
-set(h.control_pause, 'Enable','off');
-set(h.control_halt,  'Enable','off');
+set(h.get_thresholds, 'Enable','on');
+set(h.control_record, 'Enable','on');
+set(h.control_preview,'Enable','on');
+set(h.control_pause,  'Enable','off');
+set(h.control_halt,   'Enable','off');
 ph = findobj(h.EPhysController,'-regexp','tag','protocol\w');
 set(ph,'Enable','on');
 
 if ~isa(DA,'COM.TDevAcc_X'), DA = TDT_SetupDA; end
+
+pause(2); % give some time before halting system
 
 DA.SetSysMode(0); % Halt system
 
@@ -694,24 +705,3 @@ if ~isfield(h,'progbar') || ~ishandle(h.progbar)
 end
 
 set(h.progbar,'xdata',[0 v]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
