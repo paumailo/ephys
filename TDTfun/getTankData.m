@@ -25,6 +25,15 @@ function varargout = getTankData(cfg)
 %                               spike waveforms
 %                               'Waves'     - returns continuously sampled
 %                               wave data
+%                       event    ('Snip' if datatype is 'Spikes' or 'Wave'
+%                                   if datatype is 'Waves')
+%                           - char string of the event name
+%                       sortname    (no default)
+%                           - char string naming the sortname if using
+%                           TDT OpenSorter.
+%                       protocol    ('PROT')
+%                           - parameter name from RPvds with an ID of the
+%                           protocol or experiment type.
 %                       usemym (true)
 %                           - indicates whether or not to use mym to look
 %                           for protocol info on the database
@@ -60,10 +69,19 @@ if ~isfield(cfg,'blockroot'),   cfg.blockroot = 'Block-';       end
 if ~isfield(cfg,'blocks'),      cfg.blocks    = 'all';          end
 if ~isfield(cfg,'channel'),     cfg.channel   = 'all';          end
 if ~isfield(cfg,'datatype'),    cfg.datatype  = 'BlockInfo';    end
+if ~isfield(cfg,'sortname'),    cfg.sortname  = [];             end
 if ~isfield(cfg,'silently'),    cfg.silently  = false;          end
 if ~isfield(cfg,'usemym'),      cfg.usemym    = true;           end
+if ~isfield(cfg,'protocol'),    cfg.protocol  = 'PROT';         end
+if ~isfield(cfg,'event')
+    if strcmpi(cfg.datatype,'Waves')
+        cfg.event = 'Wave';
+    else
+        cfg.event = 'Snip';
+    end
+end
 
-if ~any(strcmpi(cfg.datatype,{'Spikes','BlockInfo','Waves','Stream'}))
+if ~any(strcmpi(cfg.datatype,{'Spikes','BlockInfo','Waves'}))
     error('''%s'' is an invalid datatype.',cfg.datatype);
 end
 
@@ -137,7 +155,19 @@ tankpath = TT.GetTankItem(cfg.tank,'PT');
 for i = 1:length(dataout)
     dataout(i).legacy   = legacy;
     dataout(i).tankpath = tankpath;
+    
+    % it's also usefull to send out all sampling rates from across data types
+    fn = fieldnames(dataout);
+    fsamples = [];
+    for j = 1:length(fn)
+        if isfield(dataout(i).(fn{j}),'fsample')
+            fsamples(end+1) = dataout(i).(fn{j}).fsample; %#ok<AGROW>
+        end
+    end
+    dataout(i).allfsamples = unique(fsamples);
 end
+
+
 
 
 %% Close Connection
@@ -173,12 +203,13 @@ for bidx = 1:length(cfg.blocks)
     
     TT.CreateEpocIndexing;
     
+    % TODO: This next line should be updated to be compatible without prior
+    % knowledge of event names.
     events = {'Wave','Strm','STRM','Snip','Spik','eNeu'};
     for i = 1:length(events)
         ev = events{i};
         n = TT.ReadEventsV(256,ev,0,0,0,0,'NODATA');
         if ~n,  continue;   end
-        if strcmp(events{i},'STRM'), ev = 'Strm'; end % ad hoc
         DO.(ev).fsample = TT.ParseEvInfoV(0,1,9);
         
         % make sure there is actually data on the channel
@@ -206,19 +237,10 @@ for bidx = 1:length(cfg.blocks)
     
     % retrieve protocol ID #
     protocol = -1;
-    n = TT.ReadEventsV(1,'PROT',0,0,0,0,'NODATA');
-    if n
-        protocol = TT.ParseEvV(0,1);
-    else
-        n = TT.ReadEventsV(1,'Etyp',0,0,0,0,'NODATA');
-        if n
-            protocol = TT.ParseEvV(0,1);
-        end
-    end
-    
-    
-   
+    n = TT.ReadEventsV(1,cfg.protocol,0,0,0,0,'NODATA');
+    if n, protocol = TT.ParseEvV(0,1); end
     DO.protocol = protocol;
+    
     DO.protocolname = 'UNKNOWN';
     if cfg.usemym
         % look on db_util.protocol_types table
@@ -287,9 +309,6 @@ for bidx = 1:length(cfg.blocks)
     DO.paramspec{end+1} = 'onset';
     DO.epochs(:,end+1)  = t(:,2); % append onset times
     
-    
-    
-    
     dataout(bidx) = DO; %#ok<AGROW>
     clear DO
     
@@ -302,7 +321,8 @@ TT.SetGlobalV('WavesMemLimit',10^8);
 nblocks = length(blocklist);
 for bidx = 1:nblocks
     TT.ResetFilters;
-    if ~cfg.silently, fprintf('\nGrabbing Spikes from %s...',blocklist{bidx}); end
+    if ~cfg.silently, fprintf('\nGrabbing %s from %s...', ...
+            cfg.event,blocklist{bidx}); end
     
     if ~TT.SelectBlock(blocklist{bidx})
         error(['Unable to select block: ', blocklist{bidx}]);
@@ -311,35 +331,25 @@ for bidx = 1:nblocks
     TT.CreateEpocIndexing;
     
     if ~isfield(cfg,'channel') || isempty(cfg.channel) || strcmpi(cfg.channel,'all')
-        n = TT.ReadEventsV(10^6,'Snip',0,0,0,0,'NODATA');
-        if ~n
-            n = TT.ReadEventsV(10^6,'Spik',0,0,0,0,'NODATA');
-        end
-        if ~n
-            n = TT.ReadEventsV(10^6,'eNeu',0,0,0,0,'NODATA');
-        end
+        n = TT.ReadEventsV(10^6,cfg.event,0,0,0,0,'NODATA');
         cfg.channel = unique(TT.ParseEvInfoV(0,n,4));
     end
     
     for cidx = 1:length(cfg.channel)
         if ~cfg.silently, fprintf('\n\tChannel: %d\t(%d of %d) ',cfg.channel(cidx),cidx,length(cfg.channel)); end
         
-        nSnips = TT.ReadEventsV(10^6,'Snip',cfg.channel(cidx),0,0,0,'ALL');
-        if ~nSnips
-            nSnips = TT.ReadEventsV(10^6,'Spik',cfg.channel(cidx),0,0,0,'ALL');
-        end
-        if ~nSnips
-            nSnips = TT.ReadEventsV(10^6,'eNeu',cfg.channel(cidx),0,0,0,'ALL');
-        end
+        nSnips = TT.ReadEventsV(10^6,cfg.event,cfg.channel(cidx),0,0,0,'ALL');
+        if ~cfg.silently, fprintf('# snippets = %d',nSnips); end
         
         dataout(cidx).totalspikes = 0; %#ok<AGROW>
-        
         dataout(cidx).blockspikes(bidx) = nSnips; %#ok<AGROW>
         dataout(cidx).channel = cfg.channel(cidx); %#ok<AGROW>
         
         % GRAB SPIKES FROM BLOCKS
-        
-        if ~cfg.silently, fprintf('# spikes = %d',nSnips); end
+%  Need to add functionality for spike sorting
+%         if ~isempty(cfg.sortname)
+%             TT.SetUseSortName(cfg.sortname);
+%         end
         
         if nSnips > 1
             dataout(cidx).timestamps{bidx} = TT.ParseEvInfoV(0,nSnips,6)'; %#ok<AGROW>
@@ -356,21 +366,18 @@ for bidx = 1:nblocks
     end % cidx
     
     cfg.fsample(bidx) = TT.ParseEvInfoV(0,1,9);
+    DO.fsample = cfg.fsample(bidx);
 end % bidx
 cfg.tankcreation = TT.FancyTime(TT.CurBlockStartTime,'Y-O-D');
 
 if ~cfg.silently, fprintf('\n'); end
 
-function [dataout,cfg] = get_waves(TT,cfg,blocklist)
+function [dataout,cfg] = get_waves(TT,cfg,blocklist) %#ok<DEFNU>
 TT.SetGlobalV('WavesMemLimit',10^9);
-
-if ~isfield(cfg,'event') || isempty(cfg.event)
-    cfg.event = 'Wave';
-end
 
 for bidx = 1:length(blocklist)
     TT.ResetFilters;
-    if ~cfg.silently, fprintf('\nGrabbing Data from %s...',blocklist{bidx}); end
+    if ~cfg.silently, fprintf('\nGrabbing %s from %s...',cfg.event,blocklist{bidx}); end
     
     if ~TT.SelectBlock(blocklist{bidx})
         error(['Unable to select block: ', blocklist{bidx}]);
@@ -402,6 +409,7 @@ for bidx = 1:length(blocklist)
     end
     
     cfg.fsample(bidx) = TT.ParseEvInfoV(0,1,9);
+    DO.fsample = cfg.fsample(bidx);
     
     dataout(bidx) = DO; %#ok<AGROW>
     clear DO
@@ -410,13 +418,6 @@ end % bidx
 cfg.tankcreation = TT.FancyTime(TT.CurBlockStartTime,'Y-O-D');
 
 if ~cfg.silently, fprintf('\n'); end
-
-function [dataout,cfg] = get_stream(TT,cfg,blocklist) %#ok<DEFNU>
-% cfg.event = 'Strm';
-cfg.event = 'STRM'; % ad hoc
-[dataout,cfg] = get_waves(TT,cfg,blocklist);
-
-
 
 
 
