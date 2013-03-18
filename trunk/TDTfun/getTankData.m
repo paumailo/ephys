@@ -153,7 +153,17 @@ cfg.blocklist = blocklist;
 TT.ResetGlobals;
 TT.SetGlobalV('MaxReturn',5*10^8);
 
-[dataout,cfg] = feval(sprintf('get_%s',lower(cfg.datatype)),TT,cfg,blocklist);
+try
+    [dataout,cfg] = feval(sprintf('get_%s',lower(cfg.datatype)),TT,cfg,blocklist);
+catch %#ok<CTCH>
+    % well that didn't work.  maybe we can try using the tank name as the
+    % block root.
+    blocklist = cell(size(cfg.blocks));
+    for i = 1:length(cfg.blocks)
+        blocklist{i} = [cfg.tank '-' num2str(cfg.blocks(i))];
+    end
+    [dataout,cfg] = feval(sprintf('get_%s',lower(cfg.datatype)),TT,cfg,blocklist);
+end
 
 
 legacy   = str2num(TT.GetTankItem(cfg.tank,'VERSION')) == 10; %#ok<ST2NM>;
@@ -423,8 +433,8 @@ for bidx = 1:length(blocklist)
         sstep = round(DO.fsample/cfg.downfs);
         if sstep > 1
             % convert sampling rate
-            DO.fsample        = DO.fsample/sstep;
-            fprintf('\nDownsampling from %0.2f Hz to %0.2f Hz ', ...
+            DO.fsample = DO.fsample/sstep;
+            fprintf('\nDownsampling from %0.2f Hz to %0.2f Hz ...', ...
                 cfg.fsample(bidx),DO.fsample)
             cfg.fsample(bidx) = DO.fsample;
             

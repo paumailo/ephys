@@ -1,7 +1,6 @@
 %% Set some variables
 tank        = 'SLYTHERIN_VTA_INTEGRATED';
 block       = 5;
-blockroot   = [tank '-'];
 
 
 %% Read SPIKEs from Plexon file
@@ -14,7 +13,6 @@ SPIKE = ft_read_spike(fullfile(path2plx,plxfile));
 cfg = [];
 cfg.tank        = tank;
 cfg.blocks      = block;
-cfg.blockroot   = blockroot;
 cfg.trialfun            = 'trialfun_tdt';
 cfg.trialdef.prestim    = 0.25; % <-- positive value means trial begins before trigger
 cfg.trialdef.poststim   = 1;
@@ -38,6 +36,7 @@ cfg             = [];
 cfg.fsample     = SPIKE.hdr.ADFrequency;
 cfg.interpolate = 1; % keep the density of samples as is
 cfg.align       = 'no';
-[wave, SPIKECleaned] = ft_SPIKE_waveform(cfg,SPIKE);
+cfg.rejectclippedspieks = 'yes';
+[wave, SPIKECleaned] = ft_spike_waveform(cfg,SPIKE);
 
 
