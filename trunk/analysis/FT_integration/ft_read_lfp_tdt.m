@@ -24,21 +24,17 @@ cfg.blocks      = block;
 cfg.blockroot   = blockroot;
 cfg.usemym      = false;
 cfg.datatype    = 'Waves';
+cfg.downfs      = 600; % if real sampling rate is lower, this field will be ignored
+                       % Note: final sampling rate will be the one in the
+                       % structure returned from the call to getTankData
 W = getTankData(cfg);
-
 
 for i = 1:length(W.channels)
     data.label{i,1} = num2str(W.channels(i));
 end
 
-% downsample continuous data (make a user defined parameter)
-sstep = 1;
-if W.fsample > 1500
-    sstep     = round(W.fsample/1000);
-    W.fsample = W.fsample/sstep;
-end
 data.fsample    = W.fsample;
-data.trial      = {W.waves(1:sstep:end,:)'};
+data.trial      = {W.waves'};
 L               = size(data.trial{1},2);
 data.time       = {linspace(0,(L-1)/data.fsample,L)};
 data.sampleinfo = [1 L];

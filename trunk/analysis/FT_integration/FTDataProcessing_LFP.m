@@ -17,24 +17,17 @@ cfg.tank      = tank;
 cfg.blocks    = block;
 cfg.blockroot = blockroot;
 cfg.trialfun  = 'trialfun_tdt';
-cfg.trialdef.prestim    = 0.5;
+cfg.trialdef.prestim    = 0.25; % <-- positive value means trial begins before trigger
 cfg.trialdef.poststim   = 1;
 cfg.trialdef.eventtype  = 'BitM';
 cfg.trialdef.eventvalue = 16;     % <-- set event value 
-cfg = ft_definetrial(cfg);
-visLFP = ft_redefinetrial(cfg,fullLFP);
+cfg.trialdef.fsample    = fullLFP.fsample; % <-- must specify appropriate sampling rate in trial definition
+tcfg = ft_definetrial(cfg);
+visLFP = ft_redefinetrial(tcfg,fullLFP);
 
-cfg = [];
-cfg.tank      = tank;
-cfg.blocks    = block;
-cfg.blockroot = blockroot;
-cfg.trialfun  = 'trialfun_tdt';
-cfg.trialdef.prestim    = 0.5;
-cfg.trialdef.poststim   = 1;
-cfg.trialdef.eventtype  = 'BitM';
 cfg.trialdef.eventvalue = 32;    % <-- set event value 
-cfg = ft_definetrial(cfg);
-audLFP = ft_redefinetrial(cfg,fullLFP);
+tcfg = ft_definetrial(cfg);
+audLFP = ft_redefinetrial(tcfg,fullLFP);
 
-clear fullLFP
+% clear fullLFP
 

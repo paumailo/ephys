@@ -1,7 +1,7 @@
-function trl = trialfun_tdt(cfg)
-% trl = trialfun_tdt(cfg)
+function [trl,event] = trialfun_tdt(cfg)
+% [trl,event] = trialfun_tdt(cfg)
 % 
-% Returns trl structure for use with FieldTrip
+% Returns trl and event structures for use with FieldTrip
 %
 % cfg.tank          ...     registered tank name (or full path to tank)
 %    .block         ...     scalar integer of a single tank block to process
@@ -13,6 +13,8 @@ function trl = trialfun_tdt(cfg)
 %                             event trigger (value > 0 means before
 %                             trigger)
 %    .trialdef.poststim   ... offset time (seconds) of window relative to event trigger
+%    .trialdef.fsample    ... sampling rate to calculate event and trigger
+%                             samples
 %
 % DJS 2013
 
@@ -24,32 +26,32 @@ if ~isfield(cfg.trialdef,'eventtype'),  cfg.eventtype = [];         end
 if ~isfield(cfg.trialdef,'eventvalue'), cfg.eventvalue = [];        end
 if ~isfield(cfg.trialdef,'prestim'),    cfg.prestim  = 0;           end
 if ~isfield(cfg.trialdef,'poststim'),   cfg.poststim = 1;           end
+if ~isfield(cfg.trialdef,'fsample'),    
+    error('trialfun_tdt needs the sampling rate to be specified in cfg.trialdef.fsample'); 
+end
 
-cfg.usemym = false;
-cfg.silently = true;
-tinfo = getTankData(cfg);
+Fs = cfg.trialdef.fsample;
 
 if cfg.trialdef.eventtype(1) == '?'
+    cfg.usemym = false;
+    cfg.silently = true;
+    tinfo = getTankData(cfg);
     fprintf('\n\n* Event types and values for tank ''%s'',\n\t\t\tblock ''%s-%d''\n', ...
         cfg.tank,cfg.blockroot,cfg.blocks)
     for i = 1:length(tinfo.paramspec)-1
         fprintf('\t''%s'' : %s\n',tinfo.paramspec{i},mat2str(unique(tinfo.epochs(:,i))))
     end
     fprintf('\n\n')
-    trl = [];
+    trl   = [];
+    event = [];
     return
 else
+    % get event structure
     event = ft_read_event_tdt(cfg.tank,cfg.blocks,cfg.blockroot, ...
-        cfg.trialdef.eventtype,cfg.trialdef.eventvalue);
+        cfg.trialdef.eventtype,cfg.trialdef.eventvalue,Fs);
 end
 
-Fs = min(tinfo.allfsamples); % use lowest sampling rate in data (usually LFP)
-
-if Fs > 1500 % downsample to ~1kHz.  This is done in ft_read_lfp_tdt
-    Fs = Fs/round(Fs/1000);
-end
-
-% convert wonset and woffset parameters to samples
+% convert prestim and poststim parameters to samples
 sprestim  = round(cfg.trialdef.prestim*Fs);
 spoststim = round(cfg.trialdef.poststim*Fs);
 
@@ -64,12 +66,12 @@ esamps = [event.sample];
 %   positive offset indicates that the first sample is later than the trigger, 
 %   a negative offset indicates that the trial begins before the trigger.
 
-trl(:,1) = esamps+sprestim;
-trl(:,2) = esamps+spoststim;
-trl(:,3) = sprestim;
+trl(:,1) = esamps-sprestim;
+trl(:,2) = esamps+spoststim-1;
+trl(:,3) = -sprestim;
 trl(:,4) = [event.value];
 
-ind = trl(:,1) < 0 | trl(:,3) < 0;
+ind = trl(:,1) < 1 | trl(:,1)+trl(:,3) < 1;
 if any(ind)
     warning('%d of %d trials start before the recording. They were removed',sum(ind),length(ind))
     trl(ind,:) = [];

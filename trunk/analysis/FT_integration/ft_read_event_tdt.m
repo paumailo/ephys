@@ -1,10 +1,11 @@
-function event = ft_read_event_tdt(tank,block,blockroot,eventname,eventvalue)
+function event = ft_read_event_tdt(tank,block,blockroot,eventname,eventvalue,Fs)
 % EVENT = ft_read_event_tdt
 % EVENT = ft_read_event_tdt(TANK)
 % EVENT = ft_read_event_tdt(TANK,BLOCK)
 % EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT)
 % EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT,EVENTNAME)
 % EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT,EVENTNAME,EVENTVALUE)
+% EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT,EVENTNAME,EVENTVALUE,Fs)
 %
 % Read events from TDT tank for use with FieldTrip.
 %
@@ -22,7 +23,7 @@ function event = ft_read_event_tdt(tank,block,blockroot,eventname,eventvalue)
 % 
 % EVENTVALUE can be specified to limit the returned events to some value(s)
 % 
-% See also, ft_read_event, TankReg
+% See also, ft_read_event, trialfun_tdt, ft_read_lfp_tdt TankReg
 %
 % DJS 2013
 
@@ -37,7 +38,7 @@ if nargin < 2
     if isempty(tinfo)
         error('No blocks found in ''%s''',tank)
     end
-    [sel,ok] = listdlg('PromptSstring','Select one block', ...
+    [sel,ok] = listdlg('PromptString','Select one block', ...
                        'SelectionMode','single', ...
                        'ListString',num2cell([tinfo.block]));
     if ~ok, return; end
@@ -52,9 +53,6 @@ cfg.datatype    = 'BlockInfo';
 cfg.usemym      = false;
 tinfo           = getTankData(cfg);
 
-% because LFP data would have been downsampled (make user defined parameter)
-Fs = min(tinfo.allfsamples);
-if Fs > 1500, Fs = Fs/round(Fs/1000); end
 
 % deal with event name
 selparam = 1; % default
@@ -83,7 +81,7 @@ end
 parind = strcmpi(params{selparam},params);
 rvalues = tinfo.epochs(:,parind);
 
-if nargin == 5 % eventvalue was specified
+if nargin >= 5 % eventvalue was specified
     rind = rvalues == eventvalue;
 else
     rind = true(size(rvalues));

@@ -34,6 +34,13 @@ function varargout = getTankData(cfg)
 %                       protocol    ('PROT')
 %                           - parameter name from RPvds with an ID of the
 %                           protocol or experiment type.
+%                       downfs  (no default)
+%                           - for downsampling continuous data.  Set this
+%                           value to a target sampling rate.  If the actual
+%                           sampling rate is greater than this value, the
+%                           data will be downsampled to approximately this
+%                           value.  The final sampling rate will be
+%                           returned with the output structure.
 %                       usemym (true)
 %                           - indicates whether or not to use mym to look
 %                           for protocol info on the database
@@ -399,12 +406,40 @@ for bidx = 1:length(blocklist)
         if ~cfg.silently, fprintf('\n\tChannel: %d\t(%d of %d) ',cfg.channel(cidx),cidx,length(cfg.channel)); end
         
         TT.SetGlobals(sprintf('Channel=%d',cfg.channel(cidx)));
-        DO.waves(:,cidx) = TT.ReadWavesV(cfg.event);
-        if (any(isnan(DO.waves(:,cidx))) || all(DO.waves(:,cidx) == 0)) && ~cfg.silently
+        w = TT.ReadWavesV(cfg.event);
+        
+        cfg.fsample(bidx) = TT.ParseEvInfoV(0,1,9);
+        DO.fsample        = cfg.fsample(bidx);
+
+        if (any(isnan(w)) || all(w == 0)) && ~cfg.silently
             fprintf(' ... no data')
         end
+        
+        DO.waves(:,cidx) = w;
     end % cidx
+    clear w
     
+    if isfield(cfg,'downfs') && cfg.downfs < DO.fsample
+        sstep = round(DO.fsample/cfg.downfs);
+        if sstep > 1
+            % convert sampling rate
+            DO.fsample        = DO.fsample/sstep;
+            fprintf('\nDownsampling from %0.2f Hz to %0.2f Hz ', ...
+                cfg.fsample(bidx),DO.fsample)
+            cfg.fsample(bidx) = DO.fsample;
+            
+            % run anti-aliasing filter before downsampling
+            nyquist = DO.fsample/2;
+            lppb    = nyquist * 0.90;
+            [z,p,k] = butter(6,lppb/nyquist,'low');
+            [sos,~] = zp2sos(z,p,k);   
+            DO.waves = single(sosfilt(sos,double(DO.waves)));
+            
+            % downsample
+            DO.waves = DO.waves(1:sstep:end,:);
+            fprintf(' done\n')
+        end
+    end
     ind = logical(all(DO.waves==0));
     DO.channels = cfg.channel(~ind);
     DO.waves(:,ind) = [];
@@ -413,8 +448,6 @@ for bidx = 1:length(blocklist)
         fprintf('\n%d channels had no activity, so there were really %d channels',sum(ind),length(DO.channels));
     end
     
-    cfg.fsample(bidx) = TT.ParseEvInfoV(0,1,9);
-    DO.fsample = cfg.fsample(bidx);
     
     dataout(bidx) = DO; %#ok<AGROW>
     clear DO
