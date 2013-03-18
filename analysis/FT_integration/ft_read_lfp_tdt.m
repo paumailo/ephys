@@ -1,4 +1,13 @@
 function data = ft_read_lfp_tdt(tank,block,blockroot)
+% data = ft_read_lfp_tdt(tank,block)
+% data = ft_read_lfp_tdt(tank,block,blockroot)
+%
+% Read continuous (LFP) data from TDT Tank and convert for use with
+% FieldTrip toolbox
+% 
+% See also, trialfun_tdt
+%
+% DJS 2013
 
 if nargin == 0 || isempty(tank),  tank = char(TDT_TankSelect); end
 cfg.tank     = tank;

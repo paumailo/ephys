@@ -1,21 +1,18 @@
 %% Set some variables
 tank        = 'SLYTHERIN_VTA_INTEGRATED';
 block       = 5;
-blockroot   = [tank '-'];
 
 %% Read continuous LFP from tank
 cfg = [];
 cfg.tank      = tank;
 cfg.blocks    = block;
-cfg.blockroot = blockroot;
 
-fullLFP = ft_read_lfp_tdt(cfg.tank,cfg.blocks,cfg.blockroot);
+fullLFP = ft_read_lfp_tdt(cfg.tank,cfg.blocks);
 
 %% Call custom trial function (trialfun_tdt) to segment continuous LFP data
 cfg = [];
 cfg.tank      = tank;
 cfg.blocks    = block;
-cfg.blockroot = blockroot;
 cfg.trialfun  = 'trialfun_tdt';
 cfg.trialdef.prestim    = 0.25; % <-- positive value means trial begins before trigger
 cfg.trialdef.poststim   = 1;

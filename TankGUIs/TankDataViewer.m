@@ -130,6 +130,7 @@ cfg = [];
 cfg.tank     = blockinfo.tank;
 cfg.blocks   = blockinfo.id;
 cfg.datatype = 'Spikes';
+% cfg.event    = 'eNeu'; % <-------------------
 
 spikes = getTankData(cfg);
 
