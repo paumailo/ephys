@@ -54,9 +54,7 @@ tinfo           = getTankData(cfg);
 
 % because LFP data would have been downsampled (make user defined parameter)
 Fs = min(tinfo.allfsamples);
-if Fs > 1500
-    Fs = Fs/round(Fs/1000);
-end
+if Fs > 1500, Fs = Fs/round(Fs/1000); end
 
 % deal with event name
 selparam = 1; % default
@@ -66,7 +64,9 @@ if nargin >= 4 && ~isempty(eventname) % eventname was specified by user
     if isempty(selparam)
         error('No events called ''%s'' were found in tank ''%s''',eventname,tank);
     end
-    
+    if ~any(selparam)
+        error('The event ''%s'' was not found in this block',eventname)
+    end
 else % eventname was not specified
     if length(params) > 2 % meaning more than one parameter + onsets of trigger
         [selparam,ok] = listdlg('ListString',params(1:end-1), ...
@@ -79,6 +79,7 @@ else % eventname was not specified
         end
     end
 end
+
 parind = strcmpi(params{selparam},params);
 rvalues = tinfo.epochs(:,parind);
 

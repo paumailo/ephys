@@ -55,12 +55,6 @@ spoststim = round(cfg.trialdef.poststim*Fs);
 
 esamps = [event.sample];
 
-trl(:,1) = esamps-sprestim;
-trl(:,2) = esamps+spoststim;
-trl(:,3) = sprestim;
-trl(:,4) = [event.value];
-
-
 %  The trial definition "trl" is an Nx3 matrix, N is the number of trials.
 %   The first column contains the sample-indices of the begin of each trial 
 %   relative to the begin of the raw data, the second column contains the 
@@ -70,10 +64,16 @@ trl(:,4) = [event.value];
 %   positive offset indicates that the first sample is later than the trigger, 
 %   a negative offset indicates that the trial begins before the trigger.
 
+trl(:,1) = esamps+sprestim;
+trl(:,2) = esamps+spoststim;
+trl(:,3) = sprestim;
+trl(:,4) = [event.value];
 
-
-
-
+ind = trl(:,1) < 0 | trl(:,3) < 0;
+if any(ind)
+    warning('%d of %d trials start before the recording. They were removed',sum(ind),length(ind))
+    trl(ind,:) = [];
+end
 
 
 
