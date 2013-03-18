@@ -15,29 +15,21 @@ cfg = [];
 cfg.tank        = tank;
 cfg.blocks      = block;
 cfg.blockroot   = blockroot;
-cfg.trialdef.prestim    = 0.5;
+cfg.trialfun            = 'trialfun_tdt';
+cfg.trialdef.prestim    = 0.25; % <-- positive value means trial begins before trigger
 cfg.trialdef.poststim   = 1;
 cfg.trialdef.eventtype  = 'BitM';
-cfg.trialdef.eventvalue = 16;
-cfg.trialfun            = 'trialfun_tdt';
+cfg.trialdef.eventvalue = 16;   % <-- set event value 
+cfg.trialdef.fsample    = SPIKE.hdr.ADFrequency; % <-- must specify appropriate sampling rate in trial definition
 cfg.timestampspersecond = SPIKE.hdr.ADFrequency;
 
-cfg = ft_definetrial(cfg);
-visSPIKE = ft_spike_maketrials(cfg,SPIKE);
+tcfg = ft_definetrial(cfg);
+visSPIKE = ft_spike_maketrials(tcfg,SPIKE);
 
-cfg = [];
-cfg.tank        = tank;
-cfg.blocks      = block;
-cfg.blockroot   = blockroot;
-cfg.trialdef.prestim    = 0.5;
-cfg.trialdef.poststim   = 1;
-cfg.trialdef.eventtype  = 'BitM';
+
 cfg.trialdef.eventvalue = 32;
-cfg.trialfun            = 'trialfun_tdt';
-cfg.timestampspersecond = SPIKE.hdr.ADFrequency;
-
-cfg = ft_definetrial(cfg);
-audSPIKE = ft_spike_maketrials(cfg,SPIKE);
+tcfg = ft_definetrial(cfg);
+audSPIKE = ft_spike_maketrials(tcfg,SPIKE);
 
 
 
