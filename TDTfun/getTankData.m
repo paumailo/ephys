@@ -235,6 +235,8 @@ for bidx = 1:length(cfg.blocks)
     DO.endtime   = TT.FancyTime(t2,   'H:M:S');
     DO.duration  = TT.FancyTime(t2-t1,'H:M:S');
     
+    
+    
     % retrieve protocol ID #
     protocol = -1;
     n = TT.ReadEventsV(1,cfg.protocol,0,0,0,0,'NODATA');
