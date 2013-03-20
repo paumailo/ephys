@@ -1,6 +1,5 @@
-function data = ft_read_lfp_tdt(tank,block,blockroot)
+function data = ft_read_lfp_tdt(tank,block)
 % data = ft_read_lfp_tdt(tank,block)
-% data = ft_read_lfp_tdt(tank,block,blockroot)
 %
 % Read continuous (LFP) data from TDT Tank and convert for use with
 % FieldTrip toolbox
@@ -18,19 +17,17 @@ if nargin < 2
     if isempty(tinfo)
         error('No blocks found in ''%s''',tank)
     end
-    [sel,ok] = listdlg('PromptSstring','Select one block', ...
+    [sel,ok] = listdlg('PromptString','Select one block', ...
         'SelectionMode','single', ...
         'ListString',num2cell([tinfo.block]));
     if ~ok, return; end
     block = tinfo(sel).block;
 end
-if nargin < 3, blockroot = 'Block-'; end
 
 % Read in continuous 'Wave' data from the tank
 cfg = [];
 cfg.tank        = tank;
 cfg.blocks      = block;
-cfg.blockroot   = blockroot;
 cfg.usemym      = false;
 cfg.datatype    = 'Waves';
 cfg.downfs      = 600; % if real sampling rate is lower, this field will be ignored
