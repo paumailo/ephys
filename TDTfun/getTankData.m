@@ -80,6 +80,7 @@ if ~isfield(cfg,'sortname'),    cfg.sortname  = [];             end
 if ~isfield(cfg,'silently'),    cfg.silently  = false;          end
 if ~isfield(cfg,'usemym'),      cfg.usemym    = true;           end
 if ~isfield(cfg,'protocol'),    cfg.protocol  = 'PROT';         end
+if isfield(cfg,'block'),        cfg.blocks    = cfg.block;      end % because I can never remember it's blocks and not block
 if ~isfield(cfg,'event')
     if strcmpi(cfg.datatype,'Waves')
         cfg.event = 'Wave';
@@ -337,7 +338,7 @@ for bidx = 1:length(cfg.blocks)
     if ~cfg.silently, fprintf('done\n'); end
 end % bidx
 
-function [dataout,cfg] = get_spikes(TT,cfg,blocklist) %#ok<DEFNU>
+function [DO,cfg] = get_spikes(TT,cfg,blocklist) %#ok<DEFNU>
 TT.SetGlobalV('WavesMemLimit',10^8);
 
 nblocks = length(blocklist);
@@ -356,39 +357,50 @@ for bidx = 1:nblocks
         n = TT.ReadEventsV(10^6,cfg.event,0,0,0,0,'NODATA');
         cfg.channel = unique(TT.ParseEvInfoV(0,n,4));
     end
+        
+    cfg.fsample(bidx) = TT.ParseEvInfoV(0,1,9);
     
-    for cidx = 1:length(cfg.channel)
+    if ~isempty(cfg.sortname) && ~TT.SetUseSortName(cfg.sortname)
+        error('The sortname ''%s'' was not found in block ''%s'' of tank ''%s''', ...
+            cfg.sortname,cfg.tank,cfg.blocks{bidx});
+    end
+    
+
+    for cidx = cfg.channel
         if ~cfg.silently, fprintf('\n\tChannel: %d\t(%d of %d) ',cfg.channel(cidx),cidx,length(cfg.channel)); end
         
-        nSnips = TT.ReadEventsV(10^6,cfg.event,cfg.channel(cidx),0,0,0,'ALL');
-        if ~cfg.silently, fprintf('# snippets = %d',nSnips); end
-        
-        dataout(cidx).totalspikes = 0; %#ok<AGROW>
-        dataout(cidx).blockspikes(bidx) = nSnips; %#ok<AGROW>
-        dataout(cidx).channel = cfg.channel(cidx); %#ok<AGROW>
-        
         % GRAB SPIKES FROM BLOCKS
-%  Need to add functionality for spike sorting
-%         if ~isempty(cfg.sortname)
-%             TT.SetUseSortName(cfg.sortname);
-%         end
+        nSnips = TT.ReadEventsV(10^6,cfg.event,cidx,0,0,0,'ALL');
+        if ~cfg.silently, fprintf('\t#spikes = %d',nSnips); end
         
+        DO(cidx).totalspikes = 0; %#ok<AGROW>
+        DO(cidx).blockspikes(bidx) = nSnips; %#ok<AGROW>
+        DO(cidx).channel = cfg.channel(cidx); %#ok<AGROW>
+
         if nSnips > 1
-            dataout(cidx).timestamps{bidx} = TT.ParseEvInfoV(0,nSnips,6)'; %#ok<AGROW>
-            dataout(cidx).waveforms{bidx}  = TT.ParseEvV(0,nSnips)'; %#ok<AGROW>
-            dataout(cidx).sortcode{bidx}   = TT.ParseEvInfoV(0,nSnips,5)'; %#ok<AGROW>
+            DO(cidx).timestamps{bidx} = TT.ParseEvInfoV(0,nSnips,6)'; %#ok<AGROW>
+            DO(cidx).waveforms{bidx}  = TT.ParseEvV(0,nSnips)'; %#ok<AGROW>
+            DO(cidx).sortcode{bidx}   = TT.ParseEvInfoV(0,nSnips,5)'; %#ok<AGROW>
         else
-            dataout(cidx).timestamps{bidx} = []; %#ok<AGROW>
-            dataout(cidx).waveforms{bidx}  = []; %#ok<AGROW>
-            dataout(cidx).sortcode{bidx}   = []; %#ok<AGROW>
+            DO(cidx).timestamps{bidx} = []; %#ok<AGROW>
+            DO(cidx).waveforms{bidx}  = []; %#ok<AGROW>
+            DO(cidx).sortcode{bidx}   = []; %#ok<AGROW>
         end
         
-        dataout(cidx).totalspikes = dataout(cidx).totalspikes + nSnips; %#ok<AGROW>
-        
+        uids = unique(DO(cidx).sortcode{bidx});
+        uids(uids==31) = -1; % outliers
+        DO(cidx).sortcode{bidx}(DO(cidx).sortcode{bidx}==31) = -1; %#ok<AGROW> % outliers
+        DO(cidx).units(bidx).classid = uids; %#ok<AGROW>
+        for u = 1:length(uids)
+            cnt = sum(DO(cidx).sortcode{bidx} == uids(u));
+            if isempty(cnt), cnt = 0; end
+            DO(cidx).units(bidx).count(u) = cnt; %#ok<AGROW>
+            fprintf('\t% 3.0f: %d;',uids(u),DO(cidx).units(bidx).count(u))
+        end
+        DO(cidx).totalspikes = sum([DO(cidx).units(bidx).count]); %#ok<AGROW>
+        DO(cidx).fsample(bidx) = cfg.fsample(bidx); %#ok<AGROW> % I know these are all the same, but the strucuture is an array
     end % cidx
     
-    cfg.fsample(bidx) = TT.ParseEvInfoV(0,1,9);
-    DO.fsample = cfg.fsample(bidx);
 end % bidx
 cfg.tankcreation = TT.FancyTime(TT.CurBlockStartTime,'Y-O-D');
 

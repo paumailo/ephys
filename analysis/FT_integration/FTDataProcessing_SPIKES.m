@@ -9,13 +9,22 @@ block       = 5;
 
 SPIKE = ft_read_spike(fullfile(path2plx,plxfile));
 
+%% Read SPIKES directly from TDT Tank (with sort codes if available)
+cfg = [];
+cfg.tank     = tank;
+cfg.block    = block;
+cfg.event    = 'eNeu';
+cfg.sortname = 'FullBayes';
+SPIKE = ft_read_spikes_tdt(cfg);
+
+
 %% Call custom trial function (trialfun_tdt) to segment SPIKE data
 cfg = [];
 cfg.tank        = tank;
 cfg.blocks      = block;
 cfg.trialfun            = 'trialfun_tdt';
-cfg.trialdef.prestim    = 0.25; % <-- positive value means trial begins before trigger
-cfg.trialdef.poststim   = 1;
+cfg.trialdef.prestim    = 0; % <-- positive value means trial begins before trigger
+cfg.trialdef.poststim   = 0.5;
 cfg.trialdef.eventtype  = 'BitM';
 cfg.trialdef.eventvalue = 16;   % <-- set event value 
 cfg.trialdef.fsample    = SPIKE.hdr.ADFrequency; % <-- must specify appropriate sampling rate in trial definition
@@ -31,7 +40,7 @@ audSPIKE = ft_spike_maketrials(tcfg,SPIKE);
 
 
 
-%% Add waveforms if you like
+%% Do stuff with the waveforms if you like
 cfg             = [];
 cfg.fsample     = SPIKE.hdr.ADFrequency;
 cfg.interpolate = 1; % keep the density of samples as is
