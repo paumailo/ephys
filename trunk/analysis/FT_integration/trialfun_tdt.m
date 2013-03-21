@@ -45,10 +45,22 @@ if cfg.trialdef.eventtype(1) == '?'
     trl   = [];
     event = [];
     return
+
+
 else
-    % get event structure
-    event = ft_read_event_tdt(cfg.tank,cfg.blocks,cfg.blockroot, ...
-        cfg.trialdef.eventtype,cfg.trialdef.eventvalue,Fs);
+    try
+        % get event structure
+        event = ft_read_event_tdt(cfg.tank,cfg.blocks,cfg.blockroot, ...
+            cfg.trialdef.eventtype,cfg.trialdef.eventvalue,Fs);
+    catch %#ok<CTCH>
+        % Ad hoc solution to convert original event codes to BitM code.  This
+        % is a fix for a specific experiment.
+        fprintf(['\n* There was an error evaluating the default event function (', ...
+            'ft_read_event_tdt).\nCalling a backup ad hoc function (ft_read_event_tdt_2BitM)' ,...
+            'instead *\n'])
+        event = ft_read_event_tdt_2BitM(cfg.tank,cfg.blocks,cfg.blockroot, ...
+            cfg.trialdef.eventtype,cfg.trialdef.eventvalue,Fs);
+    end
 end
 
 % convert prestim and poststim parameters to samples

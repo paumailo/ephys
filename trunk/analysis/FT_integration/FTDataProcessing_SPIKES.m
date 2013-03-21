@@ -1,6 +1,9 @@
 %% Set some variables
-tank        = 'SLYTHERIN_VTA_INTEGRATED';
-block       = 5;
+% tank  = 'SLYTHERIN_VTA_INTEGRATED';
+% block = 5;
+
+tank  = 'ROCKSTAR_V_T_A';
+block = 1;
 
 
 %% Read SPIKEs from Plexon file
@@ -23,7 +26,7 @@ cfg = [];
 cfg.tank        = tank;
 cfg.blocks      = block;
 cfg.trialfun            = 'trialfun_tdt';
-cfg.trialdef.prestim    = 0; % <-- positive value means trial begins before trigger
+cfg.trialdef.prestim    = 0.5; % <-- positive value means trial begins before trigger
 cfg.trialdef.poststim   = 0.5;
 cfg.trialdef.eventtype  = 'BitM';
 cfg.trialdef.eventvalue = 16;   % <-- set event value 
