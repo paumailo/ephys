@@ -356,6 +356,10 @@ for i = 1:length(mods)
     end 
 end
 
+if isempty(G_FLAGS.ZBUSB_ON),  warning('ZBUSB_ON was not discovered');  end
+if isempty(G_FLAGS.ZBUSB_OFF), warning('ZBUSB_OFF was not discovered'); end
+
+
 
 % Set first trial parameters
 G_COMPILED.tidx = 1;
@@ -615,7 +619,7 @@ end
 
 % Check if session has been completed (or user has manually halted session)
 G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
-                      || G_DA.GetSysMode ~= 3;
+                      || G_DA.GetSysMode < 2;
 if G_COMPILED.FINISHED
     DAHalt(h,G_DA);
     idx = get(h.protocol_list,'Value');
