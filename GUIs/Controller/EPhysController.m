@@ -387,12 +387,15 @@ T = timer(                                   ...
 % 'ErrorFcn',{@StartTrialError,G_DA}, ...
 
 
-if strcmp(get(hObj,'String'),'Record') % otherwise, stay in preview mode
+if strcmp(get(hObj,'String'),'Record')
     % Begin recording
+    G_DA.SetSysMode(1); % Should go to Idle and then Record
+    pause(1);
     G_DA.SetSysMode(3); % Record
-    pause(0.5);
+else
+    G_DA.SetSysMode(2); % Preview
 end
-    
+pause(0.5);
 
 % Start timer
 start(T);
@@ -495,8 +498,6 @@ ph = findobj(h.EPhysController,'-regexp','tag','protocol\w');
 set(ph,'Enable','on');
 
 if ~isa(DA,'COM.TDevAcc_X'), DA = TDT_SetupDA; end
-
-pause(2); % give some time before halting system
 
 DA.SetSysMode(0); % Halt system
 
@@ -621,6 +622,7 @@ end
 G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
                       || G_DA.GetSysMode < 2;
 if G_COMPILED.FINISHED
+    pause(5); % give some time before actually halting the recording
     DAHalt(h,G_DA);
     idx = get(h.protocol_list,'Value');
     v   = get(h.protocol_list,'String');
