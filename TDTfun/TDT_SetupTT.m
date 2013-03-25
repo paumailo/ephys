@@ -27,7 +27,9 @@ end
 TT.ConnectServer('Local','Me');
 TT.GetEnumTank(0);
 
-tanks = TDT_RegTanks(TT);
+if nargout > 1
+    tanks = TDT_RegTanks(TT);
+end
 
 if nargin
     TT = tanks; 
