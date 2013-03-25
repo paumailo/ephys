@@ -392,8 +392,19 @@ if strcmp(get(hObj,'String'),'Record')
     G_DA.SetSysMode(1); % Should go to Idle and then Record
     pause(1);
     G_DA.SetSysMode(3); % Record
+    fprintf('Recording session begun at %s\n',datestr(now,'HH:MM:SS PM'))
+    ht = G_DA.GetTankName;
+    [TT,~,TDTfig] = TDT_SetupTT;
+    TT.OpenTank(ht,'R');
+    hb = TT.GetHotBlock;
+    TT.CloseTank;
+    TT.ReleaseServer;
+    delete(TT);
+    close(TDTfig);
+    fprintf('\tTank: ''%s''\n\tBlock: ''%s''\n',ht,hb)
 else
     G_DA.SetSysMode(2); % Preview
+    fprintf('* Previewing data ... data is not being recorded to tank *\n')
 end
 pause(0.5);
 
