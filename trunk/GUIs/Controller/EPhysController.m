@@ -70,6 +70,9 @@ clear global G_DA G_TT
 fh = findobj('type','figure','-and','name','ODevFig','-or','name','TTankFig');
 close(fh);
 
+% clear some leftover global variables
+clear global G_COMPILED G_FLAGS G_PAUSE
+
 % Hint: delete(hObj) closes the figure
 delete(hObj);
 
