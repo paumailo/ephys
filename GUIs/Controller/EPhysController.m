@@ -339,28 +339,38 @@ if ~isfield(G_COMPILED,'trialfunc'), G_COMPILED.OPTIONS.trialfunc = []; end
 
 % Find modules with requisite parameters
 mods = fieldnames(protocol.MODULES);
-G_FLAGS = struct('updated',[],'trigstate',[],'update',[],'ZBUSB_ON',[],'ZBUSB_OFF',[]);
+G_FLAGS = struct('updated',[],'trigstate',[],'update',[],'ZBUSB_ON',[],'ZBUSB_OFF',[],'ZBUSB',[]);
 for i = 1:length(mods)
     if strcmp(mods{i}(1:3),'PA5'), continue; end
     if G_DA.GetTargetType(sprintf('%s.~Updated',mods{i}))
-        G_FLAGS.updated = sprintf('%s.~Updated',mods{i});
+        G_FLAGS.updated     = sprintf('%s.~Updated',mods{i});
     end
     if G_DA.GetTargetType(sprintf('%s.~TrigState',mods{i}))
-        G_FLAGS.trigstate = sprintf('%s.~TrigState',mods{i});
+        G_FLAGS.trigstate   = sprintf('%s.~TrigState',mods{i});
     end
     if G_DA.GetTargetType(sprintf('%s.~Update',mods{i}))
-        G_FLAGS.update = sprintf('%s.~Update',mods{i});
+        G_FLAGS.update      = sprintf('%s.~Update',mods{i});
     end
     if G_DA.GetTargetType(sprintf('%s.ZBUSB_ON',mods{i}))
-        G_FLAGS.ZBUSB_ON = sprintf('%s.ZBUSB_ON',mods{i});
+        G_FLAGS.ZBUSB_ON    = sprintf('%s.ZBUSB_ON',mods{i});
     end
     if G_DA.GetTargetType(sprintf('%s.ZBUSB_OFF',mods{i}))
-        G_FLAGS.ZBUSB_OFF = sprintf('%s.ZBUSB_OFF',mods{i});
-    end 
+        G_FLAGS.ZBUSB_OFF   = sprintf('%s.ZBUSB_OFF',mods{i});
+    end
+    if G_DA.GetTargetType(sprintf('%s.ZBUSB',mods{i}))
+        G_FLAGS.ZBUSB       = sprintf('%s.ZBUSB',mods{i});
+    end
+    
 end
 
-if isempty(G_FLAGS.ZBUSB_ON),  warning('ZBUSB_ON was not discovered');  end
-if isempty(G_FLAGS.ZBUSB_OFF), warning('ZBUSB_OFF was not discovered'); end
+w = [];
+if isempty(G_FLAGS.ZBUSB),     w{end+1} = 'ZBUSB';      end
+if isempty(G_FLAGS.ZBUSB) && isempty(G_FLAGS.ZBUSB_ON),  w{end+1} = 'ZBUSB_ON';   end
+if isempty(G_FLAGS.ZBUSB) && isempty(G_FLAGS.ZBUSB_OFF), w{end+1} = 'ZBUSB_OFF';  end
+if isempty(G_FLAGS.trigstate), w{end+1} = '~TrigState'; end
+for i = 1:length(w)
+    fprintf('WARNING: ''%s'' was not discovered on any module\n',w{i})
+end
 
 
 
@@ -546,10 +556,20 @@ function t = DAZBUSBtrig(DA,flags)
 %               TDT.ZTrgOff(Asc("B"))
 %           End Sub
 
-if isempty(flags.ZBUSB_ON), t = hat; return; end
-DA.SetTargetVal(flags.ZBUSB_ON,1);
-t = hat; % start timer for next trial
-DA.SetTargetVal(flags.ZBUSB_OFF,1);
+eZBUSB   = isempty(flags.ZBUSB);
+eZBUSBON = isempty(flags.ZBUSB_ON);
+if eZBUSB && eZBUSBON, t = hat; return; end
+
+if ~eZBUSB
+    DA.SetTargetVal(flags.ZBUSB,1);
+    t = hat; % start timer for next trial
+else
+    DA.SetTargetVal(flags.ZBUSB_ON,1);
+    t = hat; % start timer for next trial
+    DA.SetTargetVal(flags.ZBUSB_OFF,1);
+end
+
+
 
 
 function protocol = InitParams(protocol)
