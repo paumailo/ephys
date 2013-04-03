@@ -196,7 +196,7 @@ fprintf('Computing')
 % first create PSTHs by stimulus onsets within a window
 psth = zeros(length(binvec),length(ons),length(spikes));
 for i = 1:length(spikes)
-    if isempty(spikes(i).timestamps{1}), continue; end
+    if isempty(spikes(i).timestamps), continue; end
     rons = repmat(ons,length(spikes(i).timestamps{1}),1);
     adjt = repmat(spikes(i).timestamps{1},1,size(rons,2)) - rons;
     psth(:,:,i) = histc(adjt,binvec);
