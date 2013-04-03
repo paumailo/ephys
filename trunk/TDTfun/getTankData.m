@@ -365,9 +365,10 @@ for bidx = 1:nblocks
             cfg.sortname,cfg.tank,cfg.blocks{bidx});
     end
     
-
+    k = 0;
     for cidx = cfg.channel
-        if ~cfg.silently, fprintf('\n\tChannel: %d\t(%d of %d) ',cfg.channel(cidx),cidx,length(cfg.channel)); end
+        k = k + 1;
+        if ~cfg.silently, fprintf('\n\tChannel: %d\t(%d of %d) ',cidx,k,length(cfg.channel)); end
         
         % GRAB SPIKES FROM BLOCKS
         nSnips = TT.ReadEventsV(10^6,cfg.event,cidx,0,0,0,'ALL');
@@ -375,7 +376,7 @@ for bidx = 1:nblocks
         
         DO(cidx).totalspikes = 0; %#ok<AGROW>
         DO(cidx).blockspikes(bidx) = nSnips; %#ok<AGROW>
-        DO(cidx).channel = cfg.channel(cidx); %#ok<AGROW>
+        DO(cidx).channel = cidx; %#ok<AGROW>
 
         if nSnips > 1
             DO(cidx).timestamps{bidx} = TT.ParseEvInfoV(0,nSnips,6)'; %#ok<AGROW>
