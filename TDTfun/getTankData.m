@@ -156,14 +156,19 @@ TT.SetGlobalV('MaxReturn',5*10^8);
 
 try
     [dataout,cfg] = feval(sprintf('get_%s',lower(cfg.datatype)),TT,cfg,blocklist);
-catch %#ok<CTCH>
-    % well that didn't work.  maybe we can try using the tank name as the
-    % block root.
-    blocklist = cell(size(cfg.blocks));
-    for i = 1:length(cfg.blocks)
-        blocklist{i} = [cfg.tank '-' num2str(cfg.blocks(i))];
+catch ME
+    if strcmp(ME.message,'Unable to select block: asdf10')
+        warning('\n%s\n* Trying to use tank name as a block root *\n',ME.message)
+        % well that didn't work.  maybe we can try using the tank name as the
+        % block root.
+        blocklist = cell(size(cfg.blocks));
+        for i = 1:length(cfg.blocks)
+            blocklist{i} = [cfg.tank '-' num2str(cfg.blocks(i))];
+        end
+        [dataout,cfg] = feval(sprintf('get_%s',lower(cfg.datatype)),TT,cfg,blocklist);
+    else
+        rethrow(ME)
     end
-    [dataout,cfg] = feval(sprintf('get_%s',lower(cfg.datatype)),TT,cfg,blocklist);
 end
 
 
@@ -327,6 +332,9 @@ for bidx = 1:length(cfg.blocks)
     end
     for i = 1:length(DO.paramspec)
         t = TT.GetEpocsV(DO.paramspec{i},0,0,10^6)';
+        if i > 1 && size(t,1) ~= size(DO.epochs,1)
+            error('Unequal number of events')
+        end
         DO.epochs(:,i) = t(:,1);
     end
     DO.paramspec{end+1} = 'onset';

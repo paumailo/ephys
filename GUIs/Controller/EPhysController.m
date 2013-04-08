@@ -158,6 +158,7 @@ ChkReady(h);
 function protocol_list_Callback(hObj, ~, h)
 pinfo = get(hObj,'UserData'); % originally set by call to locate_protocol_dir_Calback
 i = get(hObj,'value');
+if isempty(i), return; end
 
 load(fullfile(pinfo.dir,[pinfo.name{i} '.prot']),'-mat')
 
@@ -266,7 +267,7 @@ protocol_list_Callback(h.protocol_list, [], h);
 
 %% Session Control 
 function control_record_Callback(hObj, ~, h) 
-clear global G_DA G_TT
+clear global G_DA G_TT G_COMPILED
 
 global G_DA G_COMPILED G_PAUSE G_FLAGS
 
@@ -357,26 +358,25 @@ for i = 1:length(mods)
     if G_DA.GetTargetType(sprintf('%s.ZBUSB_OFF',mods{i}))
         G_FLAGS.ZBUSB_OFF   = sprintf('%s.ZBUSB_OFF',mods{i});
     end
-    if G_DA.GetTargetType(sprintf('%s.ZBUSB',mods{i}))
-        G_FLAGS.ZBUSB       = sprintf('%s.ZBUSB',mods{i});
-    end
+%     if G_DA.GetTargetType(sprintf('%s.ZBUSB',mods{i}))
+%         G_FLAGS.ZBUSB       = sprintf('%s.ZBUSB',mods{i});
+%     end
     
 end
 
 w = [];
-if isempty(G_FLAGS.ZBUSB),     w{end+1} = 'ZBUSB';      end
-if isempty(G_FLAGS.ZBUSB) && isempty(G_FLAGS.ZBUSB_ON),  w{end+1} = 'ZBUSB_ON';   end
-if isempty(G_FLAGS.ZBUSB) && isempty(G_FLAGS.ZBUSB_OFF), w{end+1} = 'ZBUSB_OFF';  end
+% if isempty(G_FLAGS.ZBUSB) && ~isempty(G_FLAGS.ZBUSB_ON), w{end+1} = 'ZBUSB';      end
+if isempty(G_FLAGS.ZBUSB_ON),  w{end+1} = 'ZBUSB_ON';   end
+if ~isempty(G_FLAGS.ZBUSB_ON) && isempty(G_FLAGS.ZBUSB_OFF), w{end+1} = 'ZBUSB_OFF';  end
 if isempty(G_FLAGS.trigstate), w{end+1} = '~TrigState'; end
 for i = 1:length(w)
     fprintf('WARNING: ''%s'' was not discovered on any module\n',w{i})
 end
 
-
-
 % Set first trial parameters
 G_COMPILED.tidx = 1;
 DAUpdateParams(G_DA,G_COMPILED);
+G_COMPILED.tidx = G_COMPILED.tidx + 1;
 
 % Set monitor channel
 monitor_channel_Callback(h.monitor_channel, [], h);
@@ -387,7 +387,8 @@ t = hat;
 per = t + ITI(G_COMPILED.OPTIONS);
 
 % Create new timer to control experiment
-delete(timerfind('Name','EPhysTimer'));
+T = timerfind('Name','EPhysTimer');
+if ~isempty(T), stop(T); delete(T); end
 T = timer(                                   ...
     'BusyMode',     'queue',                 ...
     'ExecutionMode','fixedRate',             ...
@@ -419,7 +420,6 @@ else
     G_DA.SetSysMode(2); % Preview
     fprintf('* Previewing data ... data is not being recorded to tank *\n')
 end
-pause(0.5);
 
 % Start timer
 start(T);
@@ -556,18 +556,18 @@ function t = DAZBUSBtrig(DA,flags)
 %               TDT.ZTrgOff(Asc("B"))
 %           End Sub
 
-eZBUSB   = isempty(flags.ZBUSB);
-eZBUSBON = isempty(flags.ZBUSB_ON);
-if eZBUSB && eZBUSBON, t = hat; return; end
-
-if ~eZBUSB
-    DA.SetTargetVal(flags.ZBUSB,1);
-    t = hat; % start timer for next trial
-else
+% eZBUSB   = isempty(flags.ZBUSB);
+% eZBUSBON = isempty(flags.ZBUSB_ON);
+% if eZBUSB && eZBUSBON, t = hat; return; end
+if isempty(flags.ZBUSB_ON), t = hat; return; end
+% if ~eZBUSB
+%     DA.SetTargetVal(flags.ZBUSB,1);
+%     t = hat; % start timer for next trial
+% else
     DA.SetTargetVal(flags.ZBUSB_ON,1);
     t = hat; % start timer for next trial
     DA.SetTargetVal(flags.ZBUSB_OFF,1);
-end
+% end
 
 
 
@@ -628,10 +628,6 @@ ud = get(hObj,'UserData');
 % ud{1} = figure handle; ud{2} = last trigger ; ud{3} = next trigger
 if hat < ud{3} - 0.025, return; end
 
-% ** The WaitSecs() function from the PsychToolbox seems to be extremely
-% accurate.  It may be worthwhile to use it to improve trigger accurracy **
-% DJS 2/26/13
-
 % hold computer hostage for a few milliseconds until the next trigger time
 while hat < ud{3}; end
 
@@ -656,8 +652,14 @@ end
 G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
                       || G_DA.GetSysMode < 2;
 if G_COMPILED.FINISHED
-    pause(5); % give some time before actually halting the recording
+    fprintf('Finishing recording ')
+    % give some time before actually halting the recording
+    for i = 1:5, fprintf('.'); pause(1); end
     DAHalt(h,G_DA);
+    fprintf(' done\n')
+    fprintf('Presented %d trials.\nTime is now %s.\n\n',G_COMPILED.tidx-1, ...
+        datestr(now,'HH:MM:SS PM'))
+    
     idx = get(h.protocol_list,'Value');
     v   = get(h.protocol_list,'String');
     
