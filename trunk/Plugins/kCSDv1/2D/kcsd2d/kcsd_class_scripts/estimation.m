@@ -13,14 +13,14 @@ end;
 [nx, ny] = size(k.X);
 output = zeros (nx*ny, nt);
 K_inv = (k.K_pot + k.lambda.*eye(size(k.K_pot)))^(-1);
-w = waitbar(0, 'estimating, please wait');
+% w = waitbar(0, 'estimating, please wait');
 for t = 1:nt
-    waitbar(t/nt);
+%     waitbar(t/nt);
     beta = K_inv * k.pots(:, t);
     for i = 1:k.n_el
         output(:, t) = output(:, t) + ...
             beta(i).*estimation_table(:,i);
     end
 end
-close(w);
+% close(w);
 output = reshape(output, nx, ny, nt);
