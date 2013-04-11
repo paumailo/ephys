@@ -12,7 +12,7 @@ function subdirs = ephys_startup(rootdir)
 
 fprintf('** Setting Paths for EPhys **\n')
 
-if ~nargin || isempty(rootdir), rootdir = 'C:\MATLAB\work\ephys'; end
+if ~nargin || isempty(rootdir), rootdir = cd; end
 
 p = genpath(rootdir);
 

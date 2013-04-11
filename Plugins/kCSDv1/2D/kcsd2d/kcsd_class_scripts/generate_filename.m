@@ -2,9 +2,10 @@ function filename = generate_filename(k, tag)
 % we try to contain as much data as possible in the filename
 % in order for it to be relly unique
 
-    s = which('kcsd2d.m');
-    [pth,~,~] = fileparts(s);
-    filename = fullfile(pth,'data','tempkcsd2d.mat');
+%     s = which('kcsd2d.m');
+%     [pth,~,~] = fileparts(s);
+%     filename = fullfile(pth,'data','tempkcsd2d.mat');
+    filename = tempname;
     
     % vvv This is kind of unnecesary and causes all sorts of problems vvv
     % DJS 4/4/2013

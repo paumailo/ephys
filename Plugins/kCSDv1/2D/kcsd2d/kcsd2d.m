@@ -412,12 +412,12 @@ function choose_R_lambda(k)
     n_Rs = length(k.Rs);
     error_min = 200;  
     k.CV_errors = zeros(n_Rs, n_lambdas);
-    wait = waitbar(0, 'Performing cross - validation over R & lambda...');
+%     wait = waitbar(0, 'Performing cross - validation over R & lambda...');
     for i = 1:n_Rs
         k.R = k.Rs(i);
         k.calc_K_pot;
         for j = 1:n_lambdas
-            waitbar(((i-1)*n_lambdas + j)/(n_Rs*n_lambdas));
+%             waitbar(((i-1)*n_lambdas + j)/(n_Rs*n_lambdas));
             k.lambda = k.lambdas(j);
             error = k.calc_cv_error(k.n_el);
             k.CV_errors(i, j) = error;
@@ -428,7 +428,7 @@ function choose_R_lambda(k)
             end
         end
     end
-    close(wait);
+%     close(wait);
     disp(['selected R: ', num2str(R_min)]);
     disp(['selected lambda: ', num2str(lambda_min)]);
     k.R = R_min;
