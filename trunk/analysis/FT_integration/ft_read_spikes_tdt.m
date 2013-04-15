@@ -49,13 +49,22 @@ if ~isequal(length(S),length(cfg.chremap))
 end
 
 % Create data structure
+k = 1;
 for i = 1:length(S)
-    data.label{i}           = sprintf('ch%02.0f',S(i).channel);
-    data.timestamp{i}       = uint64(round(S(i).fsample*S(i).timestamps{1}'));
-    data.unit{i}            = S(i).sortcode{1}';
-    data.waveform{i}(1,:,:) = S(i).waveforms{1}';
-    data.dimord             = '{chan}_lead_time_spike';
+    uscodes = unique(S(i).sortcode{1});
+    if isempty(uscodes), continue; end
+    for j = 1:length(uscodes)
+        if uscodes(j) == -1, continue; end
+%             data.label{k} = sprintf('ch%02.0f_noise',S(i).channel);
+        data.label{k} = sprintf('ch%02.0f_u%02.0f',S(i).channel,uscodes(j));
+        ind = S(i).sortcode{1} == uscodes(j);
+        data.timestamp{k}       = uint64(round(S(i).fsample*S(i).timestamps{1}(ind)'));
+%         data.unit{i}            = S(i).sortcode{1}';
+        data.waveform{k}(1,:,:) = S(i).waveforms{1}';
+        k = k + 1;
+    end
 end
+data.dimord = '{chan}_lead_time_spike';
 
 % generate a header
 data.hdr.ADFrequency = S(1).fsample;
