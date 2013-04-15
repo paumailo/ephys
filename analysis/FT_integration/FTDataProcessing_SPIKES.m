@@ -1,21 +1,22 @@
 %% Set some variables
-% tank  = 'SLYTHERIN_VTA_INTEGRATED';
-% block = 5;
+tank  = 'SLYTHERIN_VTA_INTEGRATED';
+block = 5;
 
-tank  = 'ROCKSTAR_V_T_A';
-block = 1;
+% tank  = 'ROCKSTAR_V_T_A';
+% block = 1;
 
 
-%% Read SPIKEs from Plexon file
-[plxfile,path2plx] = uigetfile({'*.plx','Plexon file (*.plx)'}, ...
-    'Locate Plexon File');
-
-SPIKE = ft_read_spike(fullfile(path2plx,plxfile));
+% %% Read SPIKEs from Plexon file
+% [plxfile,path2plx] = uigetfile({'*.plx','Plexon file (*.plx)'}, ...
+%     'Locate Plexon File');
+% 
+% SPIKE = ft_read_spike(fullfile(path2plx,plxfile));
 
 %% Read SPIKES directly from TDT Tank (with sort codes if available)
 cfg = [];
 cfg.tank     = tank;
 cfg.block    = block;
+cfg.blockroot = [tank '-'];
 cfg.event    = 'eNeu';
 cfg.sortname = 'FullBayes';
 SPIKE = ft_read_spikes_tdt(cfg);
@@ -25,6 +26,7 @@ SPIKE = ft_read_spikes_tdt(cfg);
 cfg = [];
 cfg.tank        = tank;
 cfg.blocks      = block;
+cfg.blockroot   = [tank '-'];
 cfg.trialfun            = 'trialfun_tdt';
 cfg.trialdef.prestim    = 0.5; % <-- positive value means trial begins before trigger
 cfg.trialdef.poststim   = 0.5;
@@ -48,7 +50,7 @@ cfg             = [];
 cfg.fsample     = SPIKE.hdr.ADFrequency;
 cfg.interpolate = 1; % keep the density of samples as is
 cfg.align       = 'no';
-cfg.rejectclippedspieks = 'yes';
+cfg.rejectclippedspikes = 'yes';
 [wave, SPIKECleaned] = ft_spike_waveform(cfg,SPIKE);
 
 
