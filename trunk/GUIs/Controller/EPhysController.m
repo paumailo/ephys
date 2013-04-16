@@ -296,7 +296,7 @@ fprintf('Loading Protocol file: %s\n',pinfo.name{ind})
 load(fullfile(pinfo.dir,[pinfo.name{ind} '.prot']),'-mat')
 
 % Check if protocol needs to be compiled before running
-if protocol.OPTIONS.compile_at_runtime && ~isempty(protocol.OPTIONS.trialfunc) %#ok<NODEF>
+if protocol.OPTIONS.compile_at_runtime && ~isequal(protocol.OPTIONS.trialfunc,'< default >')%#ok<NODEF>
     protocol.COMPILED = feval(protocol.OPTIONS.trialfunc,G_DA,protocol,true);
 elseif protocol.OPTIONS.compile_at_runtime
     % Initialize parameters
