@@ -181,6 +181,7 @@ if strcmp(r,'Cancel'), return; end
 
 if ~exist('fn','var') || isempty(fn) || ~exist(fn,'file')
     pn = getpref('EPHYS2','ProtDir',cd);
+    if isequal(pn,0), pn = cd; end
     [fn,pn] = uigetfile({'*.prot','Protocol File (*.prot)'},'Locate Protocol File',pn);
     if ~fn, return; end
 end
