@@ -217,6 +217,7 @@ for bidx = 1:length(cfg.blocks)
     DO.Wave = [];
     DO.Snip = [];
     DO.Strm = [];
+    DO.eNeu = [];
     
     if ~cfg.silently, fprintf('Retrieving Block info %d of %d ... ',bidx,length(cfg.blocks)); end
     
