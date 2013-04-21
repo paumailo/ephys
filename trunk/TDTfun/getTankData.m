@@ -400,6 +400,7 @@ for bidx = 1:nblocks
         uids = unique(DO(cidx).sortcode{bidx});
         uids(uids==31) = -1; % outliers
         DO(cidx).sortcode{bidx}(DO(cidx).sortcode{bidx}==31) = -1; %#ok<AGROW> % outliers
+        if isempty(uids), uids = 0; end
         DO(cidx).units(bidx).classid = uids; %#ok<AGROW>
         for u = 1:length(uids)
             cnt = sum(DO(cidx).sortcode{bidx} == uids(u));
