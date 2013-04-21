@@ -285,12 +285,17 @@ classdef spikes < tank
             % the onset and offset window around the stimulus onset (eg,
             % [-0.01 0.2]).
             
+            if nargin < 4 || length(win) ~= 2
+                error('comp_raster:The win input must be specified as a 2 value matrix')
+            end
+            
             ts = unit_timestamps(obj,unitid);
             ons = obj.params(parid(1)).vals(:,2);
+            ofs = obj.params(parid(1)).vals(:,2) + win(2);
             irast = cell(length(ons),1);
             for i = 1:length(ons)
-                irast{i,1} = ts(ts >= ons(i)+win(1) & ts < ons(i)+win(2))-ons(i);
-            end            
+                irast{i} = ts(ts >= ons(i) + win(1) & ts < ofs(i))-ons(i);
+            end
             
             vals = [obj.params(parid).vals];
             vals = vals(:,1:4:end);
@@ -304,22 +309,30 @@ classdef spikes < tank
                 raster{k} = irast(ind);
                 k = k + 1;
             end
+            pars = p;
             
-            validpars = ~cell2mat(cellfun(@isempty,raster,'uniformoutput',false));
-            raster = raster(validpars);
-            pars = p(validpars,:);
+%             validpars = ~cellfun(@isempty,raster,'uniformoutput',true);
+%             raster = raster(validpars);
+%             pars = p(validpars,:);
         end
         
         
         % compute receptive field
-        function [rfld,raster,pars] = comp_receptivefld(obj,unitid,parid,win)
-            [raster,pars] = comp_raster(obj,unitid,parid,win);
-            
-            for i = 1:size(pars,1)
-                for j = 1:size(pars,2)
-                    
-                end
+        function [rfld,pars] = comp_receptivefld(obj,unitid,parid,win)
+            if length(parid) ~= 2
+                error('comp_receptivefld:Must include 2 parameter ids')
             end
+            
+            [raster,rpars] = comp_raster(obj,unitid,parid,win);
+            
+            c = cellfun(@cell2mat,raster,'UniformOutput',false);
+            c = cellfun(@length,c,'UniformOutput',true);
+            
+            upars1 = unique(rpars(:,1));
+            upars2 = unique(rpars(:,2));
+            
+            rfld = reshape(c,length(upars1),length(upars2));
+            pars = {upars1, upars2};
         end
         
             
