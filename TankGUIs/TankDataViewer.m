@@ -196,6 +196,7 @@ fprintf('Computing')
 % first create PSTHs by stimulus onsets within a window
 psth = zeros(length(binvec),length(ons),length(spikes));
 for i = 1:length(spikes)
+    if iscell(spikes(i).timestamps) && isempty(spikes(i).timestamps{1}), continue; end
     if isempty(spikes(i).timestamps), continue; end
     rons = repmat(ons,length(spikes(i).timestamps{1}),1);
     adjt = repmat(spikes(i).timestamps{1},1,size(rons,2)) - rons;
@@ -260,6 +261,7 @@ if ~nargin
     event2 = datas.ylabel;
     uev1p  = datas.xticks;
     uev2p  = datas.yticks;
+    Xlogscale = datas.Xlogscale;
     data   = datas.data;
     channelid = datas.channel;
     f = figure;
@@ -310,9 +312,17 @@ else
     end
     if get(h.opt_interpolate,'Value')
         data = interp2(data,3);
-    end    
+        uev1p = interp1(1:length(uev1p),uev1p,linspace(1,length(uev1p),size(data,2)));
+        uev2p = interp1(1:length(uev2p),uev2p,linspace(1,length(uev2p),size(data,1)));
+    end
+    Xlogscale = get(h.opt_Xlogscale,'Value');
 end
-imh = imagesc(uev1p,uev2p,data,'Parent',ax);
+imh = surf(uev1p,uev2p,data,'Parent',ax);
+% [~,imh] = contourf(ax,uev1p,uev2p,data);
+view(ax,2)
+axis(ax,'tight');
+shading(ax,'flat');
+if Xlogscale, set(ax,'xscale','log'); else set(ax,'xscale','linear'); end
 
 datas.xlabel  = event1;
 datas.ylabel  = event2;
@@ -320,15 +330,17 @@ datas.xticks  = uev1p;
 datas.yticks  = uev2p;
 datas.data    = data;
 datas.channel = channelid;
+datas.Xlogscale = Xlogscale;
 
-set(ax,'ydir','normal','UserData',datas);
+set(ax,'UserData',datas);
+% set(ax,'ydir','normal','UserData',datas);
 title(ax,datas.channel);
 xlabel(ax,datas.xlabel); 
 ylabel(ax,datas.ylabel);
 
 if nargin > 1, set(imh,'ButtonDownFcn','TankDataViewer(''PlotData'')'); end
 
-
+set(gcf,'renderer','zbuffer');
 
 
 
