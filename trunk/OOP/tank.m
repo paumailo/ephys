@@ -61,8 +61,13 @@ classdef tank
         % Set/Get block
         function obj = set.block(obj,block)
             b = obj.blocklist; %#ok<MCSUP>
+            if block > length(b)
+                fprintf('Length of blocks == %d\n',length(b))
+                return
+            end
             obj = selectBlock(obj,b{block});
             obj.block = block;
+            updateBlock(obj);
         end
         
         function block = get.block(obj)
@@ -176,55 +181,6 @@ classdef tank
         
         
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        %% ----------------------------------------------------------------
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         % Close tank object
         function close(obj)
             closeTT(obj);
@@ -238,6 +194,41 @@ classdef tank
         
         
     end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    methods(Abstract)
+        updateBlock(obj)
+%         updateTank(obj)
+    end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
         
     methods(Access = 'protected', Hidden = true)
         % instantiate TTank ActiveX control
