@@ -4,10 +4,11 @@ classdef spikes < tank
     % S = spikes(TANKNAME,BLOCKNUMBER)
     % S = spikes(TANKNAME,BLOCKNUMBER,EVENTNAME)
     %
-    % Tank name, block number, and event name must be specified before
-    % retrieving data using S = S.update;
     %
     % methodsview(S) will get you a list of methods and their parameters.
+    %
+    % In order to clear a spikes object, use:
+    %       delete(S); clear S
     %
     % Inherits TANK class
     
@@ -17,7 +18,7 @@ classdef spikes < tank
         eventname               % Eventname (eg, 'Snip' or 'eNeu')
         sortname                % Sortname (if using OpenSorter)
         unitstr                 % Modifiable unit string identifier
-        get_waveforms = true;   % Toggle whether or not spike waveforms are collected on updates
+        get_waveforms = false;  % Toggle whether or not spike waveforms are collected on updates
     end
     
     properties (SetAccess = 'private',GetAccess = 'public')
@@ -47,6 +48,10 @@ classdef spikes < tank
                 fprintf('update:Must first set a block number (ex: S.block = 3)\n')
                 return
             end
+            if isempty(obj.eventname)
+%                 fprintf('update:Must fist specify eventname (ex: S.eventname = ''Snip'')\n')
+                return
+            end
             obj = checkTT(obj);
             fprintf('Retrieving data ...')
             obj.TT.CreateEpocIndexing;
@@ -71,7 +76,7 @@ classdef spikes < tank
             ucs = unique(cs,'rows');
             
             obj.units   = nan(size(cs,1),1);
-            obj.unitstr = cell(size(ucs));
+            obj.unitstr = cell(size(ucs,1),1);
             for i = 1:size(ucs,1)
                 ind = cs(:,1) == ucs(i,1) & cs(:,2) == ucs(i,2);
                 obj.units(ind) = i;
@@ -111,19 +116,25 @@ classdef spikes < tank
         
         %% Set/Get functions ----------------------------------------------
 
-        % Set/Get eventname
+        % Set eventname
         function obj = set.eventname(obj,name)
             obj.eventname = name;
             obj = update(obj);
         end
         
+        % Set sortname
+        function obj = set.sortname(obj,name)
+            obj.sortname = name;
+            obj = update(obj);
+        end
         
+        % Set get_waveforms
+        function obj = set.get_waveforms(obj,tf)
+            obj.get_waveforms = tf;
+            if tf, obj = update(obj); end                
+        end
         
-        
-        
-        
-        
-        
+       
         
         
         
@@ -171,7 +182,10 @@ classdef spikes < tank
             
             svec = 1:size(obj.waveforms,2);
             
-            titlestr = sprintf('%s (%0.0f)',obj.unitstr{find(uind,1)},sum(uind));
+            if isnumeric(unitid)
+                unitid = obj.unitstr{unitid};
+            end
+            titlestr = sprintf('%s (%0.0f)',unitid,sum(uind));
             
             cla(ax,'reset');
             
@@ -199,14 +213,14 @@ classdef spikes < tank
                     axis(ax,[svec(1) svec(end) -y y]);
                     
                 case 'density'
-                    y = max(abs(W(:)));
-                    y = linspace(-y,y,25);
+                    y = max(abs(W(:)))*0.75;
+                    y = linspace(-y,y,2*size(W,2));
                     bcnt = histc(W,y);
                     bcnt = bcnt ./ max(bcnt(:));
-                    h = imagesc(svec,y,interp2(bcnt,3));
-                    set(ax,'ydir','normal');
+                    bcnt = interp2(bcnt,3,'cubic');
+                    h = imagesc(svec,y,bcnt);
+                    set(ax,'ydir','normal','clim',[0 1]);
                     box(ax,'on');
-                    colorbar
                     
                 case 'sampling'
                     ridx = randperm(size(W,1));
@@ -386,6 +400,13 @@ classdef spikes < tank
         
     end
     
+    
+    methods(Hidden = true)
+        % TANK class abstract methods
+        function obj = updateBlock(obj)
+            obj = update(obj);
+        end
+    end
 end
 
 
