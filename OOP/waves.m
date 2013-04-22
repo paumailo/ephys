@@ -1,9 +1,25 @@
 classdef waves < tank
-    % waves data type working off of TDT data tank
-    % D = waves(TANKNAME)
-    % D = waves(TANKNAME,BLOCKNUMBER)
-    % D = waves(TANKNAME,BLOCKNUMBER,EVENTNAME)
+    % waves class
+    % W = waves(TANKNAME)
+    % W = waves(TANKNAME,BLOCKNUMBER)
+    % W = waves(TANKNAME,BLOCKNUMBER,EVENTNAME)
     %
+    % ex:   W = waves('ROCKSTAR_V_T_A') % open tank 'ROCKSTAR_V_T_A'
+    %       W.blocklist  % get a list of available blocks
+    %       W.block = 4; % change block to 4
+    %       W.block = 'ROCKSTAR_V_T_A-2'; % Alternative method to change block
+    %       W.downFs = 610; % set new sampling rate
+    %       W = update(W); % downsample to w.downFs
+    %       W = deline(W); % remove 60 Hz line noise
+    %     
+    %       % Get event-related potentials 
+    %       evokedW = eventrel(W,[0 0.25]); % samples X channels X events
+    %
+    %       % close Tank server connection and clear object from workspace
+    %       delete(W); clear W
+    %       
+    % methodsview(W) will get you a list of methods and their parameters.
+    % 
     % Inherits TANK class
     %
     % See also, tank, spikes
@@ -13,7 +29,6 @@ classdef waves < tank
     properties (SetAccess = 'public',GetAccess = 'public')
         eventname = 'Wave'; % Eventname (eg, 'Wave')
         downFs    = 1000;   % Downsample sampling rate 
-                            %   used if call to D.downsample method
     end
     
     properties (SetAccess = 'private',GetAccess = 'public')
@@ -65,15 +80,17 @@ classdef waves < tank
             
             if obj.downFs < obj.Fs
                 sstep = round(obj.Fs/obj.downFs);
-                
-                % convert sampling rate
-                obj.downFs = obj.Fs/sstep;
-                fprintf('\nDownsampling from %0.2f Hz to %0.2f Hz ...', ...
-                    obj.Fs,obj.downFs)
-                obj.TT.SetGlobals(sprintf('WaveSF=%0.6f',obj.downFs));
-                obj.Fs = obj.downFs;
+                if sstep > 1
+                    % convert sampling rate
+                    obj.downFs = obj.Fs/sstep;
+                    fprintf('\nDownsampling by a factor of %d from %0.2f Hz to %0.2f Hz', ...
+                        sstep,obj.Fs,obj.downFs)
+                    obj.TT.SetGlobals(sprintf('WaveSF=%0.6f',obj.downFs));
+                    obj.Fs = obj.downFs;
+                end
             end
             
+            obj.data = [];
             for i = 1:length(obj.channels)
                 if obj.verbose, fprintf('\n\tChannel: %d\t(%d of %d) ', ...
                     obj.channels(i),i,length(obj.channels)); 
@@ -97,48 +114,55 @@ classdef waves < tank
                 obj.data = single(sosfilt(sos,double(obj.data)));
             end
             
-            obj.time = (0:1/obj.Fs:size(obj.data,1)/obj.Fs)';
+            obj.time = (0:1/obj.Fs:(size(obj.data,1)-1)/obj.Fs)';
             
-            fprintf(' done\n')
-        end
-        
-        function obj = downsample(obj)
-            sstep = round(obj.Fs/obj.downFs);
-            if sstep <= 1, return; end
-            
-            % convert sampling rate
-            obj.downFs = obj.Fs/sstep;
-            fprintf('\nDownsampling from %0.2f Hz to %0.2f Hz ...', ...
-                obj.Fs,obj.downFs)
-            obj.Fs = obj.downFs;
-            
-            % run anti-aliasing filter before downsampling
-            nyquist = obj.Fs/2;
-            lppb    = nyquist * 0.90;
-            [z,p,k] = butter(6,lppb/nyquist,'low');
-            [sos,~] = zp2sos(z,p,k);
-            obj.data = single(sosfilt(sos,double(obj.data)));
-            
-            % downsample
-            obj.data = obj.data(1:sstep:end,:);
-            fprintf(' done\n')
+            fprintf('\ndone\n')
         end
         
         
+
+
+
         
         
         %% Computations ---------------------------------------------------
         function data = eventrel(obj,win)
             % data = eventrel(win)
             % Organize continuous waves into event-related trials
+            %
+            % dim order of output matrix: samples X channels X trials
+            
             swin = round(win*obj.Fs);
-            ons = round(obj.params(1).vals(:,2)*obj.Fs)+swin(1);
-            data = zeros(length(swin),size(obj.data,2),length(ons));
-            for i = 1:length(ons)
-                ind = ons(i):swin(2);
-                data(:,:,i) = obj.data(ind,:);
+            svec = 0:diff(swin);
+            onst = ceil(obj.params(1).vals(:,2)*obj.Fs+swin(1));
+            
+            if any(onst <= 0)
+                error('eventrel:%d window onsets occur before the first sample of the recording', ...
+                    sum(onst<=0));
+            end
+            
+            data = zeros(length(svec),size(obj.data,2),length(onst));
+            for i = 1:length(onst)
+                data(:,:,i) = obj.data(onst(i)+svec,:);
             end
         end
+        
+        
+        
+        
+        
+        
+        
+        function obj = deline(obj)
+            for i = 1:size(obj.data,2)
+                fprintf('Removing 60Hz line noise on channel %d of %d ...',i,size(obj.data,2))
+                obj.data(:,i) = chunkwiseDeline(obj.data(:,i),obj.Fs,[60 180],2,60,false);
+                fprintf(' done\n')
+            end
+        end
+        
+        
+        
         
         
         
@@ -150,9 +174,9 @@ classdef waves < tank
             % Export current block data for FieldTrip toolbox
             
             cfg = [];
-            cfg.tank     = obj.name;
-            cfg.block    = obj.currentblock;
-            cfg.event    = obj.eventname;
+            cfg.tank  = obj.name;
+            cfg.block = obj.currentblock;
+            cfg.event = obj.eventname;
             ft = ft_read_lfp_tdt(cfg.tank,cfg.block);
         end
         

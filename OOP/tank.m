@@ -247,7 +247,8 @@ classdef tank
     methods(Access = 'protected', Hidden = true)
         % instantiate TTank ActiveX control
         function [TT,TDTfig] = setupTT(obj)
-            TDTfig = figure('Visible','off','Name','TTankFig');
+            TDTfig = figure('Visible','off','Name','TTankFig', ...
+                'IntegerHandle','off','HandleVisibility','off');
             TT     = actxcontrol('TTank.X','parent',TDTfig);
             TT.ConnectServer(obj.server,'Me'); 
             TT.GetEnumTank(0); 
