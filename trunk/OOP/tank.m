@@ -1,5 +1,10 @@
 classdef tank
+    % T = tank(tankname)
+    % T = tank(tankname,block)
+    %
     % TANK Class for TDT Data Tank Server
+    %
+    % See also, waves, spikes
     
     % DJS 2013
     
@@ -61,13 +66,22 @@ classdef tank
         % Set/Get block
         function obj = set.block(obj,block)
             b = obj.blocklist; %#ok<MCSUP>
+            if ischar(block)
+                tmp = find(strcmpi(block,b));
+                if isempty(tmp)
+                    fprintf('The block ''%s'' does not exist in tank ''%s''\n', ...
+                        obj.block,obj.name) %#ok<MCSUP>
+                    return
+                end
+                block = tmp;
+            end
             if block > length(b)
                 fprintf('Length of blocks == %d\n',length(b))
                 return
             end
             obj = selectBlock(obj,b{block});
             obj.block = block;
-            updateBlock(obj);
+            obj = update(obj);
         end
         
         function block = get.block(obj)
@@ -209,7 +223,7 @@ classdef tank
     
     
     methods(Abstract)
-        updateBlock(obj)
+        update(obj)
 %         updateTank(obj)
     end
     

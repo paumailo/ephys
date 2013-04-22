@@ -64,6 +64,12 @@ classdef waves < tank
             obj.tankFs   = obj.Fs;
             
             if obj.downFs < obj.Fs
+                sstep = round(obj.Fs/obj.downFs);
+                
+                % convert sampling rate
+                obj.downFs = obj.Fs/sstep;
+                fprintf('\nDownsampling from %0.2f Hz to %0.2f Hz ...', ...
+                    obj.Fs,obj.downFs)
                 obj.TT.SetGlobals(sprintf('WaveSF=%0.6f',obj.downFs));
                 obj.Fs = obj.downFs;
             end
@@ -81,6 +87,15 @@ classdef waves < tank
                 obj.data(:,i) = w;
             end
             clear w
+            
+            if obj.Fs ~= obj.tankFs
+                % run anti-aliasing filter if there was a downsampling
+                nyquist = obj.Fs/2;
+                lppb    = nyquist * 0.90;
+                [z,p,k] = butter(6,lppb/nyquist,'low');
+                [sos,~] = zp2sos(z,p,k);
+                obj.data = single(sosfilt(sos,double(obj.data)));
+            end
             
             obj.time = (0:1/obj.Fs:size(obj.data,1)/obj.Fs)';
             
@@ -109,6 +124,26 @@ classdef waves < tank
             fprintf(' done\n')
         end
         
+        
+        
+        
+        %% Computations ---------------------------------------------------
+        function data = eventrel(obj,win)
+            % data = eventrel(win)
+            % Organize continuous waves into event-related trials
+            swin = round(win*obj.Fs);
+            ons = round(obj.params(1).vals(:,2)*obj.Fs)+swin(1);
+            data = zeros(length(swin),size(obj.data,2),length(ons));
+            for i = 1:length(ons)
+                ind = ons(i):swin(2);
+                data(:,:,i) = obj.data(ind,:);
+            end
+        end
+        
+        
+        
+        
+        
         %% Formatting functions -------------------------------------------
         function ft = fieldtrip(obj)
             % ft = fieldtrip
@@ -121,20 +156,6 @@ classdef waves < tank
             ft = ft_read_lfp_tdt(cfg.tank,cfg.block);
         end
         
-        
-        
-        
-    end
-    
-    
-    methods(Hidden = true)
-        % TANK class abstract methods
-        function obj = updateBlock(obj)
-            obj = update(obj);
-        end
-    end
-    
-    
-    
+    end   
     
 end
