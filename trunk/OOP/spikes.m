@@ -4,6 +4,16 @@ classdef spikes < tank
     % S = spikes(TANKNAME,BLOCKNUMBER)
     % S = spikes(TANKNAME,BLOCKNUMBER,EVENTNAME)
     %
+    % ex:   S = spikes('ROCKSTAR_V_T_A') % open tank 'ROCKSTAR_V_T_A'
+    %       S.blocklist  % get a list of available blocks
+    %       S.block = 4; % change block to 4
+    %       S.block = 'ROCKSTAR_V_T_A-2'; % Alternative method to change block
+    %       S.eventname = 'eNeu'; % change event name; required to retrieve spike data
+    %       S.sortname = 'OfflineSort'; % retrieve sortcodes from OpenSorter
+    %       S.unitstr   % list of available units
+    %
+    %       S.get_waveforms = true; % Set to true to retrieve spike waveforms
+    %
     % methodsview(S) will get you a list of methods and their parameters.
     %
     % In order to clear a spikes object, use:
@@ -18,7 +28,6 @@ classdef spikes < tank
     properties (SetAccess = 'public',GetAccess = 'public')
         eventname               % Eventname (eg, 'Snip' or 'eNeu')
         sortname                % Sortname (if using OpenSorter)
-        unitstr                 % Modifiable unit string identifier
         get_waveforms = false;  % Toggle whether or not spike waveforms are collected on updates
     end
     
@@ -29,6 +38,7 @@ classdef spikes < tank
         units               % Unit ids
         timestamps          % Spike timestamps from block onset        
         waveforms           % Spike waveforms
+        unitstr             % Modifiable unit string identifier        
         count               % Spike count total
     end
     
