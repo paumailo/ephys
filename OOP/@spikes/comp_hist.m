@@ -1,15 +1,18 @@
-function [h,pars] = comp_hist(obj,unitid,parid,parval,binvec)
-% [h,pars] = comp_hist(obj,unitid,parid,parval,binvec)
+function [H,pars,tH] = comp_hist(obj,unitid,parid,parval,binvec)
+% [H,pars,tH] = comp_hist(obj,unitid,parid,parval)
+% [H,pars,tH] = comp_hist(obj,unitid,parid,parval,binvec)
+
+if nargin < 5, binvec = 0:0.001:0.2; end
 
 win = [binvec(1) binvec(end)];
 [raster,pars] = comp_raster(obj,unitid,parid,parval,win);
 
 if isempty(raster)
-    h = [];
+    H = [];
     return
 end
 
 raster = raster{1};
-h = cellfun(@histc,raster,repmat({binvec},size(raster)),'UniformOutput',false);
-h = cellfun(@(x) x(:),h,'UniformOutput',false);
-h = cell2mat(h');
+tH = cellfun(@histc,raster,repmat({binvec},size(raster)),'UniformOutput',false);
+H = cellfun(@(x) x(:),tH,'UniformOutput',false);
+H = cell2mat(H');

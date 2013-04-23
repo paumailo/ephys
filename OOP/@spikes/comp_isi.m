@@ -1,4 +1,4 @@
-function varargout = isi(obj,unitid,varargin)
+function [H,bins] = comp_isi(obj,unitid,varargin)
 % H = isi(unitid)
 % H = isi(unitid)
 % H = isi(unitid,N)
