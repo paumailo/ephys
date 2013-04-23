@@ -35,11 +35,9 @@ end
 
 p = obj.permutepars(parid);
 raster = cell(size(p,1),1);
-k = 1;
 for i = 1:size(p,1)
     ind = all(vals == repmat(p(i,:),nvals,1),2);
-    raster{k} = irast(ind);
-    k = k + 1;
+    raster{i} = irast(ind);
 end
 
 validpars = ~cellfun(@isempty,raster,'uniformoutput',true);

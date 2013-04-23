@@ -80,6 +80,7 @@ classdef spikes < tank
         varargout       = plot_waveforms(obj,varargin);
         h               = plot_raster(obj,ax,unitid,parid,parval,win);
         h               = plot_hist(obj,ax,unitid,parid,parval,binvec);
+        h               = plot_spikedensity(obj,ax,unitid,parid,parval,win,varargin)
         [h,pars]        = comp_isi(obj,unitid,varargin);
         [raster,pars]   = comp_raster(obj,ax,unitid,parid,parval,win);
         [rfld,pars]     = comp_receptivefld(obj,ax,unitid,parid,parval,win);
