@@ -80,10 +80,10 @@ classdef spikes < tank
         varargout       = plot_waveforms(obj,varargin);
         h               = plot_raster(obj,ax,unitid,parid,parval,win);
         h               = plot_hist(obj,ax,unitid,parid,parval,binvec);
-        varargout       = isi(obj,unitid,varargin);
+        [h,pars]        = comp_isi(obj,unitid,varargin);
         [raster,pars]   = comp_raster(obj,ax,unitid,parid,parval,win);
         [rfld,pars]     = comp_receptivefld(obj,ax,unitid,parid,parval,win);
-        [h,pars]        = comp_hist(obj,unitid,parid,parval,binvec);
+        [H,pars]        = comp_hist(obj,unitid,parid,parval,binvec);
         ind             = subset(obj,ids);
         ts              = unit_timestamps(obj,unitid);
         ft              = fieldtrip(obj);
