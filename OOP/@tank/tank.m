@@ -25,6 +25,7 @@ classdef tank
         blocklist               % Blocks in tank
         currentblock            % Selected block name
         params                  % Event data structure
+        paramslist              % User friendly version of params structure
         tankpath                % Path to tank
         time_start              % Block start time
         time_stop               % Block stop time
@@ -149,6 +150,10 @@ classdef tank
             end
         end
         
+        % Get params
+        function p = get.paramslist(obj)
+            p = [{obj.params.event};{obj.params.uvals}];
+        end
         
         % @methods
         p = permutepars(obj,parid);
