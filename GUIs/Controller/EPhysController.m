@@ -556,18 +556,10 @@ function t = DAZBUSBtrig(DA,flags)
 %               TDT.ZTrgOff(Asc("B"))
 %           End Sub
 
-% eZBUSB   = isempty(flags.ZBUSB);
-% eZBUSBON = isempty(flags.ZBUSB_ON);
-% if eZBUSB && eZBUSBON, t = hat; return; end
 if isempty(flags.ZBUSB_ON), t = hat; return; end
-% if ~eZBUSB
-%     DA.SetTargetVal(flags.ZBUSB,1);
-%     t = hat; % start timer for next trial
-% else
-    DA.SetTargetVal(flags.ZBUSB_ON,1);
-    t = hat; % start timer for next trial
-    DA.SetTargetVal(flags.ZBUSB_OFF,1);
-% end
+DA.SetTargetVal(flags.ZBUSB_ON,1);
+t = hat; % start timer for next trial
+DA.SetTargetVal(flags.ZBUSB_OFF,1);
 
 
 
