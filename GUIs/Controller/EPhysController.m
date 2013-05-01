@@ -729,7 +729,7 @@ i = fix(i) / 1000; % round to nearest millisecond
 function UpdateProgress(h,v,trem)
 % Update progress bar
 set(h.progress_status,'String', ...
-    sprintf('Progress: %0.1f%% | Time Remaining: %0.0f sec',v*100,trem));
+    sprintf('Progress: %0.1f%% | Time Remaining: %0.1f min',v*100,trem/60));
 
 if ~isfield(h,'progbar') || ~ishandle(h.progbar)
     % set handle to progress bar line object
