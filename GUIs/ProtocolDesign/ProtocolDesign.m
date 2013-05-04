@@ -74,6 +74,7 @@ function SaveProtocolFile(h,fn)
 % Save current protocol to file
 if ~exist('fn','var') || isempty(fn)
     pn = getpref('EPHYS2','ProtDir',cd);
+    if ~ischar(pn), pn = cd; end
     [fn,pn] = uiputfile({'*.prot','Protocol File (*.prot)'}, ...
         'Save Protocol File',pn);
     setpref('EPHYS2','ProtDir',pn);
