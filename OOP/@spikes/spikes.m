@@ -82,9 +82,10 @@ classdef spikes < tank
         h               = plot_hist(obj,ax,unitid,parid,parval,binvec);
         h               = plot_spikedensity(obj,ax,unitid,parid,parval,win,varargin)
         [h,pars]        = comp_isi(obj,unitid,varargin);
-        [raster,pars]   = comp_raster(obj,ax,unitid,parid,parval,win);
+        [raster,cfg]    = comp_raster(obj,cfg);
         [rfld,pars]     = comp_receptivefld(obj,ax,unitid,parid,parval,win);
-        [H,pars]        = comp_hist(obj,unitid,parid,parval,binvec);
+        [H,cfg]         = comp_hist(obj,cfg);
+        [SD,cfg]        = comp_spikedensity(obj,cfg);
         ind             = subset(obj,ids);
         ts              = unit_timestamps(obj,unitid);
         ft              = fieldtrip(obj);
