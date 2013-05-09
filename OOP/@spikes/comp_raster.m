@@ -19,6 +19,7 @@ if iscellstr(pcfg.parid)
 end
 
 ts = unit_timestamps(obj,pcfg.unitid);
+if ~iscell(ts), ts = {ts}; end
 
 ind = true(size(obj.params(pcfg.parid(1)).vals,1),1);
 for i = 1:length(pcfg.parid)
@@ -30,20 +31,24 @@ nvals = size(vals,1);
 
 ons = obj.params(pcfg.parid(1)).vals(ind,2);
 ofs = ons + pcfg.win(2);
-irast = cell(length(ons),1);
+irast = cell(length(ons),length(ts));
 for i = 1:length(ons)
-    irast{i} = ts(ts >= ons(i) + pcfg.win(1) & ts < ofs(i))-ons(i);
+    for j = 1:length(ts)
+        irast{i,j} = ts{j}(ts{j} >= ons(i) + pcfg.win(1) & ts{j} < ofs(i))-ons(i);
+    end
 end
 
 p = obj.permutepars(pcfg.parid);
-raster = cell(size(p,1),1);
+raster = cell(size(p,1),size(irast,2));
 for i = 1:size(p,1)
-    ind = all(vals == repmat(p(i,:),nvals,1),2);
-    raster{i} = irast(ind);
+    for j = 1:length(ts)
+        ind = all(vals == repmat(p(i,:),nvals,1),2);
+        raster{i,j} = irast(ind,j);
+    end
 end
 
-validpars = ~cellfun(@isempty,raster,'uniformoutput',true);
-raster = raster(validpars);
+validpars = ~cellfun(@isempty,raster(:,1),'uniformoutput',true);
+raster = raster(validpars,:);
 pcfg.params = p(validpars,:);
 
 data.raster = raster;
