@@ -1,6 +1,6 @@
 function varargout = DB_UploadUtility(varargin)
 
-% Last Modified by GUIDE v2.5 13-Jan-2013 14:37:56
+% Last Modified by GUIDE v2.5 10-May-2013 22:26:00
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -98,6 +98,12 @@ if isempty(db), db_newdb_Callback(h.db_newdb,[],h); end
 db = cellstr(get(h.db_list,'String'));
 db = db{get(h.db_list,'Value')};
 
+if ~myisopen
+    set(0,'pointer','watch'); drawnow
+    DB_Connect; 
+    set(0,'pointer','arrow'); drawnow
+end
+
 mym('use',db);
 
 setpref('UploadUtility','database',db);
@@ -157,6 +163,12 @@ else
 end
 set(h.db_list,'Value',val);
 
+if isempty(dbs)
+    uiwait(msgbox(['We''re connected to the server, but no appropriate databases were found.', ...
+        '\n\nClick OK to create your first database'],'No databases found','help','modal'));
+    db_newdb_Callback(h.db_newdb, [], h);
+end
+    
 mym('use', dbs{val});
 
 % get electrode types
@@ -356,50 +368,37 @@ if isempty(s), return; end
 set(h.figure1,'pointer','watch'); 
 set(h.ds_add_to_queue,'Enable','off'); drawnow
 
-pn = get(h.ds_path,'String');
-if pn(end) ~= '\', pn(end+1) = '\'; end
-
 tank = get_string(h.ds_list);
-[tank,sup] = strtok(tank,' [');
-haspools = ~isempty(sup);
+[tank,~] = strtok(tank,' [');
 
-% get block info
-cfg = [];
-cfg.tank = fullfile(pn,tank);
-BlockInfo = getTankData(cfg);
+pn = get(h.ds_path,'String');
+ptank = fullfile(pn,tank);
+blocks = TDT2mat(ptank);
 
-bstr = cell(size(BlockInfo));
-for i = 1:length(BlockInfo)
-    BlockInfo(i).haspools = haspools;
-    B = BlockInfo(i);
+bstr  = cell(size(blocks));
+bidx  = [];
+for i = 1:length(blocks)
+    d = TDT2mat(ptank,blocks{i},'silent',true,'Type',2);
+    c = struct2cell(d);
+    f = fieldnames(d);
+    ind = strcmp('epocs',f);
+    if any(ind) && isfield(c{ind},'PROT')
+        pname = DB_GetProtocolName(c{ind}.PROT.data(1));
+    else
+        pname = 'Unknown';
+    end
+    f{end+1} = 'pname'; %#ok<AGROW>
+    c{end+1} = pname; %#ok<AGROW>
+    data(i) = cell2struct(c,f); %#ok<AGROW>
     bstr{i} = sprintf('%s - %s [%s]', ...
-        B.name,B.protocolname,datestr(B.duration,'MM:SS'));
-end
-bidx = find(str2num(datestr({BlockInfo.duration},'MM')) > 0); %#ok<ST2NM> % select blocks longer than 1 minute
-if ~any(bidx), bidx = 1:length(BlockInfo); end
-
-% Check for available data types
-if isempty(BlockInfo(bidx(1)).Snip)
-    set(h.dtype_spikes,'Value',0,'Enable','off');
-else
-    set(h.dtype_spikes,'Value',1,'Enable','on');
-end
-if isempty(BlockInfo(bidx(1)).Wave)
-    set(h.dtype_lfp,'Value',0,'Enable','off');
-else
-    set(h.dtype_spikes,'Value',1,'Enable','on');
+        blocks{i},data(i).pname,datestr(data(i).info.duration,'MM:SS'));
+    if str2num(datestr(data(i).info.duration,'MM')) > 0, bidx(end+1) = i; end %#ok<ST2NM,AGROW>
 end
 
-set(h.ds_blocks,'String',bstr,'Value',bidx,'UserData',BlockInfo); % update listbox
-
+set(h.ds_blocks,'String',bstr,'Value',bidx,'UserData',data); % update listbox
 
 ds_blocks_Callback(h.ds_blocks, [], h);
 set(h.figure1,'pointer','arrow');
-
-
-
-
-
 
 
 
@@ -407,21 +406,24 @@ function ds_add_to_queue_Callback(hObj, ~, h) %#ok<INUSL,DEFNU>
 Queue = getappdata(h.figure1,'UPLOAD_QUEUE');
 
 % Gather all info for uploading
-Q.BlockInfo  = getappdata(h.figure1,'QBlockInfo');
+Q.data  = getappdata(h.figure1,'QBlockInfo');
 
-if isempty(Q.BlockInfo), return; end
+if isempty(Q.data), return; end
 
 Q.experiment = get_string(h.expt_list);
-Q.hasSpikes  = get(h.dtype_spikes,'Value');
-Q.hasWaves   = get(h.dtype_lfp,'Value');
+Q.events     = get_string(h.ds_events);
+for i = 1:length(Q.events)
+    [Q.events{i},r] = strtok(Q.events{i});
+    Q.eventtype{i}  = r(3:end-1);
+end
 Q.condition  = get(h.ds_condition,'String');
 Q.tanknotes  = get(h.ds_notes,'String'); 
 Q.electrode  = get_string(h.ds_electrode);
 Q.elecdepth  = str2num(get(h.ds_depth,'String')); %#ok<ST2NM>
 Q.electarget = get(h.ds_target,'String');
 
-if isempty(Q.condition),  Q.condition = ' '; end
-if isempty(Q.tanknotes),  Q.tanknotes = ' '; end
+if isempty(Q.condition),  Q.condition = ' ';  end
+if isempty(Q.tanknotes),  Q.tanknotes = ' ';  end
 if isempty(Q.electarget), Q.electarget = ' '; end
 
 tank = get_string(h.ds_list);
@@ -439,7 +441,8 @@ setappdata(h.figure1,'UPLOAD_QUEUE',Queue);
 
 % Update Queue
 qstr = get(h.upload_queue,'String');
-qstr{end+1} = ['TANK: ' Q.tank ' | BLOCKS: ' num2str([Q.BlockInfo.id])];
+estr = sprintf(' %s,',Q.events{:}); estr(end) = [];
+qstr{end+1} = sprintf('TANK: %s with %d blocks, %s',Q.tank,length(Q.data),estr);
 set(h.upload_queue,'String',qstr);
 
 
@@ -475,9 +478,11 @@ for i = 1:length(ACsubdirs)
     hasPools(i)  = ~isempty(pooledChs{i});
 end
 ACtanks = {ACsubdirs.name};
-idx = find(ismember(Tanks,ACtanks));
-for i = idx
-    Tanks{i} = sprintf('%s [%d POOLS]',Tanks{i},length(pooledChs{i}));
+if ~isempty(Tanks)
+    idx = find(ismember(Tanks,ACtanks));
+    for i = idx
+        Tanks{i} = sprintf('%s [%d POOLS]',Tanks{i},length(pooledChs{i}));
+    end
 end
 set(h.ds_list,'Value',length(Tanks),'String',Tanks);
 
@@ -485,15 +490,78 @@ function ds_blocks_Callback(hObj, ~, h)
 v = get(hObj,'Value');
 if isempty(v) % no blocks are selected
     set(h.ds_add_to_queue,'Enable','off');
+    return
+end
+
+data = get(hObj,'UserData');
+
+dfltvals = [];
+
+str = {[]};
+fn = fieldnames(data(1).snips);
+if ~isempty(fn)
+    dfltvals = 1;
+    for i = 1:length(fn)
+        str{i} = sprintf('%s (snips)',fn{i});
+    end
+end
+
+fn = fieldnames(data(1).streams);
+if ~isempty(fn)
+    n = length(str);
+    dfltvals(end+1) = n+1;
+    for i = 1:length(fn)
+        str{n+i} = sprintf('%s (streams)',fn{i});
+    end
+end
+
+if isempty(str{1})
+    errordlg('No events were found for this block.','DB_UploadUtility','modal')
+    set(h.ds_events,'String','','Value',1);
+	set(h.ds_add_to_queue,'Enable','off');
+    return
 else
     set(h.ds_add_to_queue,'Enable','on');
 end
 
-BlockInfo = get(hObj,'UserData');
+vals = getpref('DB_UploadUtility','datatypes',dfltvals);
+if vals == 0, vals = dfltvals; end
 
-BlockInfo = BlockInfo(v);
+set(h.ds_events,'String',str,'Value',vals);
 
-setappdata(h.figure1,'QBlockInfo',BlockInfo);
+setappdata(h.figure1,'QBlockInfo',data(v));
+
+
+function ds_events_Callback(hObj, ~, ~  ) %#ok<DEFNU>
+vals = get(hObj,'Value');
+setpref('DB_UploadUtility','datatypes',vals);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -519,7 +587,7 @@ if ~strcmp(dbcurr,curdb), dbopen(curdb); end
 for i = 1:length(Queue)
     Q = Queue(i);
     
-    B = Q.BlockInfo;
+    B = Q.data;
     
     exptid = myms(sprintf('SELECT id FROM experiments WHERE name = "%s"',Q.experiment));
     
@@ -538,112 +606,150 @@ for i = 1:length(Queue)
                 if ~isempty(olduid)
                     s = sprintf('%d,',olduid); s(end) = [];
                     mym('DELETE IGNORE FROM spike_data WHERE unit_id IN ({S})',s);
+                    mym('DELETE IGNORE FROM units WHERE id IN ({S})',s);
                 end
             end
-
+            
         end
         mym('DELETE IGNORE FROM tanks WHERE id = {Si}',oldtid);
         mym('DELETE IGNORE FROM blocks WHERE tank_id = {Si}',oldtid);
     end
     
     
-    
-    
-    
-    
     % update tanks
-    spikefs = 0; wavefs = 0;
-    if Q.hasSpikes, spikefs = B(1).Snip.fsample; end
-    if Q.hasWaves,  wavefs  = B(1).Wave.fsample; end
+    snipsFs   = 1;
+    streamsFs = 1;
+        
+    for j = 1:length(Q.eventtype)
+        eval(sprintf('%sFs = B(1).%s.%s.fs;',Q.eventtype{j},Q.eventtype{j},Q.events{j}));
+    end
     
-    mym(['INSERT tanks (exp_id,tank_condition,tank_date,name,spike_fs,wave_fs,tank_notes) ', ...
-        'VALUES ({Si},"{S}","{S}","{S}",{S},{S},"{S}")'], ...
-        exptid,Q.condition,datestr(B(1).date,'yyyy-mm-dd'),Q.tank, ...
-        num2str(spikefs,'%0.5f'),num2str(wavefs,'%0.5f'),Q.tanknotes);
+    snipEvent   = Q.events{strcmp('snips',Q.eventtype)};
+    streamEvent = Q.events{strcmp('streams',Q.eventtype)};
+    
+    mym(['INSERT tanks (exp_id,tank_condition,tank_date,tank_time,name,spike_fs,wave_fs,tank_notes) ', ...
+        'VALUES ({Si},"{S}","{S}","{S}","{S}",{S},{S},"{S}")'], ...
+        exptid,Q.condition,datestr(B(1).info.date,'yyyy-mm-dd'),datestr(B(1).info.begintime,'HH:MM:SS'), ...
+        Q.tank,num2str(snipsFs,'%0.5f'),num2str(streamsFs,'%0.5f'),Q.tanknotes);
     tid = myms(sprintf('SELECT id FROM tanks WHERE name = "%s"',Q.tank));
     
     % update electrode
+    e = Q.electrode(find(Q.electrode=='-',1,'first')+2:end);
     mym(['INSERT electrodes (tank_id,type,depth,target) VALUES ', ...
-        '({Si},(SELECT id FROM db_util.electrode_types WHERE STRCMP(product_id,"{S}")),' ...
-        '{S},"{S}")'],tid,Q.electrode,Q.elecdepth,Q.electarget);
+        '({Si},(SELECT id FROM db_util.electrode_types WHERE NOT STRCMP(product_id,"{S}")),' ...
+        '{S},"{S}")'],tid,e,Q.elecdepth,Q.electarget);
     
     for j = 1:length(B)
+        fprintf('\nUploading tank ''%s'', block ''%s'' (%d of %d)\n', ...
+            Q.tank,B(j).info.blockname,j,length(B))
         % update blocks
+        if strcmp(B(j).pname,'Unknown'), B(j).pname = '?'; end
         pid = myms(sprintf('SELECT pid FROM db_util.protocol_types WHERE alias = "%s"',...
-            B(j).protocolname));
-        mym(['REPLACE blocks (tank_id,block,protocol,block_date,block_time) VALUES ', ...
+            B(j).pname));
+        blockidx = str2num(B(j).info.blockname(find(B(j).info.blockname=='-',1,'last')+1:end)); %#ok<ST2NM>
+         mym(['REPLACE blocks (tank_id,block,protocol,block_date,block_time) VALUES ', ...
             '({Si},{Si},{Si},"{S}","{S}")'], ...
-            tid,B(j).id,pid,datestr(B(j).date,'yyyy-mm-dd'),B(j).begintime);
+            tid,blockidx,pid, ...
+            datestr(datevec(B(j).info.date,'yyyy-mmm-dd'),'yyyy-mm-dd'), ...
+            B(j).info.begintime);
         
         % update protocols
-        blockid = myms(sprintf('SELECT id FROM blocks WHERE tank_id = %d AND block = %d',tid,B(j).id));
+        blockid = myms(sprintf('SELECT id FROM blocks WHERE tank_id = %d AND block = %d',tid,blockidx));
         
-        % remove any existing protocol for this block id
-        fprintf('\tUploading protocol data for block %d (%d of %d) ...',B(j).id,j,length(B))
-
-        
-        
-        
-        
+        fprintf('\tUploading protocol data ...')
         
         % get parameter codes from db_util.param_types; insert new codes if does not exist
-        parcode = nan(size(B(j).paramspec));
-        for k = 1:length(B(j).paramspec)
-            checkpar = myms(sprintf('SELECT id FROM db_util.param_types WHERE param = "%s"',B(j).paramspec{k}));
-            if isempty(checkpar)
-                mym('INSERT db_util.param_types (param) VALUE ("{S}")',B(j).paramspec{k});
-                parcode(k) = myms(sprintf('SELECT id FROM db_util.param_types WHERE param = "%s"',B(j).paramspec{k}));
-            else
-                parcode(k) = checkpar;
+        if ~isempty(B(j).epocs)
+            paramspec = fieldnames(B(j).epocs);
+            paramspec(strcmpi('PROT',paramspec)) = [];
+            B(j).epocs.onset.data = B(j).epocs.(paramspec{1}).onset;
+            paramspec{end+1} = 'onset'; %#ok<AGROW>
+            parcode = nan(size(paramspec));
+            epocs = nan(length(B(j).epocs.(paramspec{1}).data),length(paramspec));
+            for k = 1:length(paramspec)
+                checkpar = myms(sprintf('SELECT id FROM db_util.param_types WHERE param = "%s"',paramspec{k}));
+                if isempty(checkpar)
+                    mym('INSERT db_util.param_types (param) VALUE ("{S}")',paramspec{k});
+                    parcode(k) = myms(sprintf('SELECT id FROM db_util.param_types WHERE param = "%s"',paramspec{k}));
+                else
+                    parcode(k) = checkpar;
+                end
+                epocs(:,k) = B(j).epocs.(paramspec{k}).data;
             end
+            % create matrix for protocol
+            param_id      = repmat(1:size(epocs,1),size(epocs,2),1);
+            param_type    = repmat(parcode(:),1,size(epocs,1));
+            param_value   = epocs';
+            nepochs       = numel(epocs);
+            protdata(:,1) = repmat(blockid,nepochs,1);
+            protdata(:,2) = param_id(:);
+            protdata(:,3) = param_type(:);
+            protdata(:,4) = param_value(:);
+            
+            % upload each row of the protocol (LOAD IN FILE may be faster?)
+            for k = 1:size(protdata,1)
+                mym(['INSERT protocols (block_id,param_id,param_type,param_value) VALUES ', ...
+                    '({Si},{Si},{Si},{S})'], ...
+                    protdata(k,1),protdata(k,2),protdata(k,3),num2str(protdata(k,4),'%0.6f'));
+            end
+            clear protdata
+            fprintf(' done\n')
+        else
+            fprintf(' no protocol data found\n')
         end
-        % create matrix for protocol
-        param_id      = repmat(1:size(B(j).epochs,1),size(B(j).epochs,2),1);
-        param_type    = repmat(parcode(:),1,size(B(j).epochs,1));
-        param_value   = B(j).epochs';
-        nepochs       = numel(B(j).epochs);
-        protdata(:,1) = repmat(blockid,nepochs,1);
-        protdata(:,2) = param_id(:);
-        protdata(:,3) = param_type(:);
-        protdata(:,4) = param_value(:);
         
-        % upload each row of the protocol (LOAD FILE may be faster)
-        
-        for k = 1:size(protdata,1)
-            mym(['INSERT protocols (block_id,param_id,param_type,param_value) VALUES ', ...
-                '({Si},{Si},{Si},{S})'], ...
-                protdata(k,1),protdata(k,2),protdata(k,3),num2str(protdata(k,4),'%0.5f'));
-        end
-        clear protdata
-        fprintf(' done\n')
+        % get snips from tank block
+        data = TDT2mat(Q.tank,B(j).info.blockname,'silent',true,'type',[2 3]);
         
         % update channels
-        if ~isempty(B(j).Wave)
-            channels = B(j).Wave.channels;
+        if ~isempty(data.streams)
+            channels = data.streams.(streamEvent).chan;
         else
-            channels = B(j).Snip.channels;
+            channels = unique(data.snips.(snipEvent).chan);
         end
-        fprintf('Adding %d channels ... ',length(channels))
+        
+        fprintf('\tAdding %d channels ... ',length(channels))
         for k = channels
             mym(['INSERT channels (block_id,channel,target) VALUES ', ...
                 '({Si},{Si},"{S}")'],blockid,k,Q.electarget);
         end
         fprintf('done\n')
         
+        %         ACpath = 'C:\AutoClass_Files\AC2_RESULTS\';
+        
         % update units
-        if Q.hasSpikes
-            cfg = [];
-            cfg.tank = B(j).tank;
-            cfg.blocks = B(j).id;
-            cfg.datatype = 'Spikes';
-            Spikes = getTankData(cfg);
-            
-            %         ACpath = 'C:\AutoClass_Files\AC2_RESULTS\';
-            for k = 1:length(channels)
-                fprintf('\tUploading spikes on channel %d (%d of %d) ... ',channels(k),k,length(channels))
-                channel_id = myms(sprintf(['SELECT id FROM channels ', ...
-                    'WHERE channel = %d AND block_id = %d'],channels(k),blockid));
+        if ~isempty(data.snips)
+            snips = data.snips.(snipEvent);
+            schans = unique(snips.chan);
+            for k = 1:length(schans)
+                fprintf('\tUploading spikes on channel% 3.0f (%d of %d) ... ', ...
+                    schans(k),k,length(schans))
+                channel_id = myms(sprintf('SELECT id FROM channels WHERE channel = %d AND block_id = %d', ...
+                    schans(k),blockid));
                 
+                units = unique(snips.sort(snips.chan==schans(k)));
+                
+                for u = 1:length(units)
+                    uind = snips.sort == units(u) & snips.chan == schans(k);
+                    pwaveform = mean(snips.data(uind,:));
+                    pstddev   = std(snips.data(uind,:));
+                    
+                    mym(['INSERT units (channel_id,pool,unit_count,pool_waveform,pool_stddev) VALUES ', ...
+                        '({Si},{Si},{Si},"{S}","{S}")'], ...
+                        channel_id,units(u),sum(uind),num2str(pwaveform),num2str(pstddev));
+                    
+                    uid = myms(sprintf(['SELECT id FROM units ', ...
+                        'WHERE channel_id = %d AND pool = %d'], ...
+                        channel_id,units(u)));
+                    
+                    
+                    % update spike_data
+                    ts = num2str(snips.ts(uind)','%0.6f');
+                    for kk = 1:size(ts,1)
+                        mym('INSERT spike_data (unit_id,spike_time) VALUES ({Si},{S})', ...
+                            uid,ts(kk,:));
+                    end
+                end
                 % Check if pools were made with AutoClass Pooling_GUI2
                 %             ACfn = sprintf('%s_Ch_%d_POOLS.mat',Q.tank,channels(j));
                 %             ACfn = fullfile(ACpath,Q.tank,ACfn);
@@ -666,46 +772,48 @@ for i = 1:length(Queue)
                 %                 POOLS = AC.POOLS;
                 %             else
                 % AutoClass Pools NOT found - Use tank sort code
-                chind = [Spikes.channel] == channels(k);
-                POOLS = cell2mat(Spikes(chind).sortcode(:));
+                %                 chind = [Spikes.channel] == channels(k);
+                %                 POOLS = cell2mat(Spikes(chind).sortcode(:));
                 %             end
                 
+                %********************************
+                %                 uPOOLS = unique(POOLS);
+                %                 pw = cell2mat(Spikes(k).waveforms(~isempty(Spikes(k).waveforms))');
+                %                 st = cell2mat(Spikes(k).timestamps(:));
+                %                 for up = uPOOLS
+                %                     uind = up == POOLS;
+                %                     pwaveform = mean(pw(uind,:),1);
+                %                     pstddev   = std(pw(uind,:),1);
+                %
+                %                     mym(['INSERT units (channel_id,pool,unit_count,pool_waveform,pool_stddev) VALUES ', ...
+                %                         '({Si},{Si},{Si},"{S}","{S}")'], ...
+                %                         channel_id,up,sum(uind),num2str(pwaveform),num2str(pstddev));
+                %
+                %                     uid = myms(sprintf(['SELECT id FROM units ', ...
+                %                         'WHERE channel_id = %d AND pool = %d'], ...
+                %                         channel_id,up));
+                %
+                %
+                %                     % update spike_data
+                %                     uidx = find(uind);
+                %                     for kk = 1:length(uidx)
+                %                         mym('INSERT spike_data (unit_id,spike_time) VALUES ({Si},{S})', ...
+                %                             uid,st(uidx(kk)));
+                %                     end
+                %                 end
                 
-                uPOOLS = unique(POOLS);
-                pw = cell2mat(Spikes(k).waveforms(~isempty(Spikes(k).waveforms))');
-                st = cell2mat(Spikes(k).timestamps(:));
-                for up = uPOOLS
-                    uind = up == POOLS;
-                    pwaveform = mean(pw(uind,:),1);
-                    pstddev   = std(pw(uind,:),1);
-                    
-                    mym(['INSERT units (channel_id,pool,unit_count,pool_waveform,pool_stddev) VALUES ', ...
-                        '({Si},{Si},{Si},"{S}","{S}")'], ...
-                        channel_id,up,sum(uind),num2str(pwaveform),num2str(pstddev));
-                    
-                    uid = myms(sprintf(['SELECT id FROM units ', ...
-                        'WHERE channel_id = %d AND pool = %d'], ...
-                        channel_id,up));
-                    
-                    
-                    % update spike_data
-                    uidx = find(uind);
-                    for kk = 1:length(uidx)
-                        mym('INSERT spike_data (unit_id,spike_time) VALUES ({Si},{S})', ...
-                            uid,st(uidx(kk)));
-                    end
-                end
                 fprintf('done\n')
             end
-                        
+            
         end
-    end
-    
-    
-    if ~isempty(B(j).Wave)
-        % updata wave_data
-        DB_UploadWaveData(Q.tank,B(j));
         
+        
+        
+        if ~isempty(data.streams)
+            % update wave_data
+            DB_UploadWaveData(Q.tank,B(j).info.blockname,streamEvent);
+            
+        end
     end
 end
 fprintf('\nCompleted upload at %s\n\n',datestr(now,'dd-mmm-yyyy HH:MM:SS'))
@@ -723,19 +831,3 @@ qstr = get(h.upload_queue,'String');
 qstr(v) = [];
 if isempty(qstr), v = 1; elseif v > length(qstr),v = length(qstr); end
 set(h.upload_queue,'Value',v,'String',qstr);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -214,10 +214,10 @@ for bidx = 1:length(cfg.blocks)
     DO.name = blocklist{bidx};
     DO.tank = cfg.tank;
     
-    DO.Wave = [];
-    DO.Snip = [];
-    DO.Strm = [];
-    DO.eNeu = [];
+%     DO.Wave = [];
+%     DO.Snip = [];
+%     DO.Strm = [];
+%     DO.eNeu = [];
     
     if ~cfg.silently, fprintf('Retrieving Block info %d of %d ... ',bidx,length(cfg.blocks)); end
     
@@ -226,15 +226,18 @@ for bidx = 1:length(cfg.blocks)
     end
     
     TT.CreateEpocIndexing;
-    
-    % TODO: This next line should be updated to be compatible without prior
-    % knowledge of event names.
-    events = {'Wave','Strm','STRM','Snip','Spik','eNeu'};
-    for i = 1:length(events)
-        ev = events{i};
-        n = TT.ReadEventsV(256,ev,0,0,0,0,'NODATA');
-        if ~n,  continue;   end
-        DO.(ev).fsample = TT.ParseEvInfoV(0,1,9);
+        
+    lStores = TT.GetEventCodes(0);
+    for i = 1:length(lStores)
+        TT.GetCodeSpecs(lStores(i));
+        type = TT.EvTypeToString(TT.EvType);
+        
+        if ~any(ismember(type,{'Snip','Stream'})), continue; end
+        
+        name = TT.CodeToString(lStores(i));
+        n = TT.ReadEventsV(10000,name,0,0,0,0,'NODATA');
+        DO.(name).fsample = TT.EvSampFreq;
+        DO.(name).type    = type;
         
         % make sure there is actually data on the channel
         c = unique(TT.ParseEvInfoV(0,n,4));
@@ -242,9 +245,9 @@ for bidx = 1:length(cfg.blocks)
         TT.SetGlobalV('T1',0);  TT.SetGlobalV('T2',1);
         for j = 1:length(c)
             TT.SetGlobalV('Channel',c(j));
-            w = TT.ReadWavesV(events{i});
+            w = TT.ReadWavesV(name);
             if any(w)
-                DO.(ev).channels(k) = c(j);
+                DO.(name).channels(k) = c(j);
                 k = k + 1;
             end
         end

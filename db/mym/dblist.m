@@ -7,7 +7,7 @@ else
     % new compilation of mym returns structure DJS 1/2013
     dbs = mym('show databases');
     names = dbs.Database;
-    % remove incompatible databases from list DJS 1/2013
+    % remove non-data databases from list DJS 1/2013
     ind = false(size(names));
     for i = 1:length(names)
         ind(i) = ~istable([names{i} '.protocols']);
