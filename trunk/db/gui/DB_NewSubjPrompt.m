@@ -7,7 +7,7 @@ function varargout = DB_NewSubjPrompt(varargin)
 % 
 % DJS (c) 2010
 % 
-% Last Modified by GUIDE v2.5 24-Mar-2010 11:18:48
+% Last Modified by GUIDE v2.5 10-May-2013 13:10:04
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -30,7 +30,7 @@ end
 
 
 % --- Executes just before DB_NewSubjPrompt is made visible.
-function DB_NewSubjPrompt_OpeningFcn(hObject, eventdata, handles, varargin)
+function DB_NewSubjPrompt_OpeningFcn(hObject, ~, handles, varargin)
 database = [];
 if length(varargin) == 1
     database = varargin{1};
@@ -67,7 +67,7 @@ guidata(hObject, handles);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = DB_NewSubjPrompt_OutputFcn(hObject, eventdata, handles) 
+function varargout = DB_NewSubjPrompt_OutputFcn(hObject, ~, handles) 
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
@@ -80,12 +80,11 @@ else
 end
 
 
-function add_subject_Callback(hObject, eventdata, handles)
+function add_subject_Callback(~, ~, handles) %#ok<DEFNU>
 n  = get(handles.name,'String');
 sp = cellstr(get(handles.species,'String'));
 sp = lower(sp{get(handles.species,'Value')});
 st = get(handles.strain,'String');
-% d  = FixDate(get(handles.dob,'String'));
 d  = datestr(get(handles.dob,'String'),'yyyy-mm-dd');
 w  = get(handles.weight,'String');
 sx = cellstr(get(handles.sex,'String'));
@@ -127,75 +126,5 @@ end
 
 
 
-function cancel_Callback(hObject, eventdata, handles)
+function cancel_Callback(~, ~, handles) %#ok<DEFNU>
 close(handles.figure1);
-
-function name_Callback(hObject, eventdata, handles)
-
-
-function name_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-function dob_Callback(hObject, eventdata, handles)
-
-
-function dob_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-function species_Callback(hObject, eventdata, handles)
-
-
-function species_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-function sex_Callback(hObject, eventdata, handles)
-
-
-function sex_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-function notes_Callback(hObject, eventdata, handles)
-
-
-function notes_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-function weight_Callback(hObject, eventdata, handles)
-
-
-function weight_CreateFcn(hObject, eventdata, handles)
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-function strain_Callback(hObject, eventdata, handles)
-
-
-function strain_CreateFcn(hObject, eventdata, handles)
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
