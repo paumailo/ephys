@@ -169,7 +169,11 @@ for i = starth:length(ord)
     
     val = GetListPref(ord{i+1},e.str);
     set(h.(['list_' ord{i+1}]),'String',e.str,'Value',val);
-    setappdata(h.DB_Browser,ord{i+1},get_listid(h.(['list_' ord{i+1}])));
+    setappdata(h.DB_Browser,ord{i+1},get_listid(h.(['list_' ord{i+1}])));    
+end
+
+for i = 2:length(ord)
+	setpref('DB_BROWSER_SELECTION',ord{i},get_listid(h.(['list_' ord{i}])));
 end
 
 plot_unit_waveform(id,h);
@@ -326,9 +330,9 @@ function LaunchParams(h)
 block_id = get_listid(h.list_blocks);
 DB_ParameterBreakout(block_id);
 
-function LaunchPlot(h) %#ok<DEFNU>
-f = DB_GenericPlot(true);
-figure(f)
-
+function LaunchPlot(h) %#ok<INUSD,DEFNU>
+% f = DB_GenericPlot(true);
+% figure(f)
+DB_QuickPlot;
 
 
