@@ -19,7 +19,8 @@ end
 
 if isempty(PP) || block_id ~= PP.block_id || ~strcmp(PP.database,database)   
     % retrieve block data
-    PP = mym('SELECT id,param_id,param_type,param_value FROM protocols WHERE block_id = {Si}',block_id);
+    PP = mym(['SELECT id,param_id,param_type,param_value FROM protocols ', ...
+        'WHERE block_id = {Si}'],block_id);
     
     if isempty(PP)
         error('No protocol data found for block %d',block_id);
@@ -32,7 +33,7 @@ if isempty(PP) || block_id ~= PP.block_id || ~strcmp(PP.database,database)
     pid(ind) = []; pstr(ind) = [];
     
     p = mym([ ...
-        'SELECT t.spike_fs,t.wave_fs FROM tanks t ', ...
+        'SELECT t.spike_fs,t.wave_fs,t.id AS tank_id FROM tanks t ', ...
         'INNER JOIN blocks b ON b.tank_id = t.id ', ...
         'WHERE b.id = {Si} ', ...
         'LIMIT 1'],block_id);
@@ -42,6 +43,7 @@ if isempty(PP) || block_id ~= PP.block_id || ~strcmp(PP.database,database)
     p.database   = database;
     p.param_type = pstr;
     p.param_id   = unique(PP.param_id);
+    
     for i = 1:length(pid)
         ind = PP.param_type == pid(i);
         p.param_value(:,i)   = PP.param_value(ind); 

@@ -10,7 +10,7 @@ function dbs = DB_Connect(host,user,pass)
 % DJS 2013
 
 prevcon = getpref('DB_Connect',{'host','user','pass'},{'','',''});
-if nargin == 1
+if nargin >= 1 && islogical(host)
     % force update
     newcon = PromptNewInfo(prevcon);
     if ~isempty(newcon)
@@ -42,8 +42,7 @@ end
 dbs = dblist;
 % remove reserved database names
 reserved = {'information_schema','class_lists','db_util','mysql'};
-i = ismember(dbs,reserved);
-dbs(i) = [];
+dbs(ismember(dbs,reserved)) = [];
 
 setpref('DB_Connect',{'host','user','pass'},{host,user,pass});
 
