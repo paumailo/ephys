@@ -15,16 +15,15 @@ if ~exist('F','var') || isempty(F), F = 4;  end
 
 [nrow, ncol] = size(data);
 
-try
-    if rem(floor(ncol/F),2)
-        smdata = sgolayfilt(data, floor(ncol/K), floor(ncol/F),[], 2); %#ok<NASGU>
-    else
-        smdata = sgolayfilt(data, floor(ncol/K), floor(ncol/F)+1,[], 2); %#ok<NASGU>
-    end
-    
-    if rem(floor(nrow/F),2)
-        smdata = sgolayfilt(smdata, floor(nrow/K), floor(nrow/F),[], 1);
-    else
-        smdata = sgolayfilt(smdata, floor(nrow/K), floor(nrow/F)+1,[], 1);
-    end
+
+if rem(floor(ncol/F),2)
+    smdata = sgolayfilt(data, floor(ncol/K), floor(ncol/F),[], 2); %#ok<NASGU>
+else
+    smdata = sgolayfilt(data, floor(ncol/K), floor(ncol/F)+1,[], 2); %#ok<NASGU>
+end
+
+if rem(floor(nrow/F),2)
+    smdata = sgolayfilt(smdata, floor(nrow/K), floor(nrow/F),[], 1);
+else
+    smdata = sgolayfilt(smdata, floor(nrow/K), floor(nrow/F)+1,[], 1);
 end

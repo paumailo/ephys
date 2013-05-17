@@ -1,37 +1,18 @@
 function varargout = DB_QuickPlot(varargin)
 % DB_QUICKPLOT MATLAB code for DB_QuickPlot.fig
-%      DB_QUICKPLOT, by itself, creates a new DB_QUICKPLOT or raises the existing
-%      singleton*.
-%
-%      H = DB_QUICKPLOT returns the handle to a new DB_QUICKPLOT or the handle to
-%      the existing singleton*.
-%
-%      DB_QUICKPLOT('CALLBACK',hObject,eventData,h,...) calls the local
-%      function named CALLBACK in DB_QUICKPLOT.M with the given input arguments.
-%
-%      DB_QUICKPLOT('Property','Value',...) creates a new DB_QUICKPLOT or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before DB_QuickPlot_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to DB_QuickPlot_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
 
 % Edit the above text to modify the response to help DB_QuickPlot
 
-% Last Modified by GUIDE v2.5 14-May-2013 14:42:25
+% Last Modified by GUIDE v2.5 16-May-2013 12:42:17
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
-                   'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @DB_QuickPlot_OpeningFcn, ...
-                   'gui_OutputFcn',  @DB_QuickPlot_OutputFcn, ...
-                   'gui_LayoutFcn',  [] , ...
-                   'gui_Callback',   []);
+    'gui_Singleton',  gui_Singleton, ...
+    'gui_OpeningFcn', @DB_QuickPlot_OpeningFcn, ...
+    'gui_OutputFcn',  @DB_QuickPlot_OutputFcn, ...
+    'gui_LayoutFcn',  [] , ...
+    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
 end
@@ -52,14 +33,16 @@ guidata(hObj, h);
 
 RefreshParameters([],h);
 
-if ~ispref('DB_QuickPlot')
-    setpref('DB_QuickPlot',{'val_ncols','val_nrows','val_win'},{'4','4','0 0.1'});
+pref = getpref('DB_QuickPlot','opt','opt_spikes');
+if strcmp(pref,'opt_spikes')
+    e.OldValue = h.opt_LFP;
+    e.NewValue = h.opt_spikes;
+else
+    e.OldValue = h.opt_spikes;
+    e.NewValue = h.opt_LFP;
 end
-pref = getpref('DB_QuickPlot');
-fn = fieldnames(pref);
-for i = 1:length(fn)
-    set(h.(fn{i}),'String',pref.(fn{i}));
-end
+opts_datatype_SelectionChangeFcn([], e, h)
+
 
 
 % --- Outputs from this function are returned to the command line.
@@ -81,9 +64,7 @@ varargout{1} = h.output;
 
 %%
 function RefreshParameters(hObj,h) %#ok<INUSL>
-
 pref = getpref('DB_BROWSER_SELECTION');
-
 if isempty(pref)
     errordlg('DB_Browser malfunctioned')
     return
@@ -92,13 +73,66 @@ end
 P = DB_GetParams(pref.blocks);
 
 params = fieldnames(P.lists);
-params(strcmp(params,'onset')) = [];
+% params(strcmp(params,'onset')) = [];
 
 str = get_string(h.list_params);
 val = find(ismember(params,str));
 if isempty(val), val = 1; end
 
+for i = 1:length(params)
+    params{i} = sprintf('%s (%d)',params{i},length(P.lists.(params{i})));
+end
+
 set(h.list_params,'String',params,'Value',val)
+
+
+function SelectParam(hObj,h) %#ok<DEFNU>
+val = get(hObj,'Value');
+
+lastval = get(hObj,'UserData');
+if ~isempty(lastval) && numel(val) > 1
+    ind = val == lastval;
+    set(hObj,'UserData',val(~ind))
+    val(ind) = [];
+    val = [lastval val];
+else
+    set(hObj,'UserData',val);
+end
+
+
+if numel(val) > 2
+    val(end) = [];
+    set(hObj,'Value',val);
+end
+
+param = cellstr(get(hObj,'String'));
+param = param(val);
+
+nrows = 1;
+ncols = 1;
+    
+if length(param) == 1
+    idx = find(param{1} == '(' | param{1} == ')');
+    n = str2num(param{1}(idx(1):idx(2))); %#ok<ST2NM>
+    nrows = round(sqrt(n));
+    ncols = ceil(n/nrows);
+end
+
+data = get(h.optTable,'Data');
+data{1,2} = ncols;
+data{2,2} = nrows;
+set(h.optTable,'Data',data);
+
+pref = getpref('DB_BROWSER_SELECTION');
+P = DB_GetParams(pref.blocks);
+
+for i = 1:length(param)
+    name{i} = param{i}(1:find(param{i} == ' ')-1); %#ok<AGROW>
+    t = num2cell(sort(P.lists.(name{i})));
+    pdata(1:length(t),i) = t; %#ok<AGROW>
+end
+set(h.param_table,'data',pdata,'ColumnName',name);
+
 
 
 
@@ -106,27 +140,82 @@ set(h.list_params,'String',params,'Value',val)
 
 
 %% Helper functions
-function CheckVals(hObj,nvals) %#ok<DEFNU>
 
-str = get(hObj,'String');
-val = str2num(str); %#ok<ST2NM>
 
-dflt = getpref('DB_QuickPlot_DEFAULTS',get(hObj,'tag'));
 
-if isnan(val)
-    errordlg(sprintf('''%s'' is an invalid entry\n\nExpecting %d numeric values.', ...
-        str,nvals),'Invalid entry','modal');
-    set(hObj,'String',dflt);
-    str = dflt;
+
+
+function opts_datatype_SelectionChangeFcn(~, e, h)
+hObj = h.optTable;
+
+oldtype = get(e.OldValue,'String');
+type    = get(e.NewValue,'String');
+
+setpref('DB_QuickPlot','opt',get(e.NewValue,'tag'));
+
+data  = get(hObj,'Data');
+udata = get(hObj,'UserData');
+setpref('DB_QuickPlot',sprintf('optTable_%s',oldtype),{data,udata});
+
+prefdata = getpref('DB_QuickPlot',sprintf('optTable_%s',type),[]);
+
+switch type 
+    case 'Spikes'
+        CURDATASIZE = 8;
+    case 'LFPs'
+        CURDATASIZE = 6;
 end
 
-setpref('DB_QuickPlot',get(hObj,'tag'),str);
+if isempty(prefdata) || ~iscell(prefdata) || isempty(prefdata{1}{1}) ...
+        || size(prefdata{1},1) ~= CURDATASIZE
+    clear data udata
+    data{1,1} = '# Columns';            data{1,2} = 4;      udata{1} = 'ncols';
+    data{2,1} = '# Rows';               data{2,2} = 5;      udata{2} = 'nrows';
+    data{3,1} = 'Window Onset (ms)';    data{3,2} = -10;    udata{3} = 'win_on';
+    data{4,1} = 'Window Offset (ms)';   data{4,2} = 200;    udata{4} = 'win_off';
+    
+    switch type
+        case 'Spikes'
+            data{end+1,1} = 'Bin size (ms)'; data{end,2} = 1;    udata{end+1} = 'binsize';
+            data{end+1,1} = '2d smoothing';  data{end,2} = true; udata{end+1} = 'smooth2d';
+            data{end+1,1} = 'interpolate';   data{end,2} = 3;    udata{end+1} = 'interpolate';
+            
+        case 'LFPs'
+            data{end+1,1} = 'Error band';    data{end,2} = true;  udata{end+1} = 'errorband';
+
+    end
+    
+    data{end+1,1} = 'X is log';     data{end,2} = false; udata{end+1} = 'xislog';
+else
+    data  = prefdata{1};
+    udata = prefdata{2};
+end
+
+set(hObj,'data',data,'UserData',udata);
+        
+        
+
+
+function param_table_CellSelectionCallback(hObj, e, h) %#ok<INUSD,DEFNU>
+eI = e.Indices;
+
+data = get(hObj,'Data');
+
+uc = unique(eI(:,2));
+for i = 1:length(uc)
+    idx = find(eI(:,2) == uc(i));
+    t = data(eI(idx,1),uc(i));
+    eind = cellfun(@isempty,t,'UniformOutput',true);
+    eI(idx(eind),:) = [];
+end
+
+set(hObj,'UserData',eI);
 
 
 
 %%
 function PlotData(h) %#ok<DEFNU>
-persistent FIGH
+global FIGH
 
 pref = getpref('DB_BROWSER_SELECTION');
 
@@ -136,85 +225,75 @@ if isempty(pref)
 end
 
 P = DB_GetParams(pref.blocks);
-param = get_string(h.list_params);
 
-win   = str2num(get(h.val_win,'String')); %#ok<ST2NM>
-nrows = str2num(get(h.val_nrows,'String')); %#ok<ST2NM>
-ncols = str2num(get(h.val_ncols,'String')); %#ok<ST2NM>
+paramsel = get(h.param_table,'UserData');
+param    = get(h.param_table,'ColumnName');
 
-% get spike times of selected unit
-S = myms(sprintf('SELECT spike_time FROM spike_data WHERE unit_id = %d',pref.units));
-
-% Organize by stimulus onsets
-ons = P.VALS.onset;
-
-TS = cell(size(ons));
-for i = 1:length(ons)
-    ind = S >= ons(i) + win(1) & S < ons(i) + win(2);
-    TS{i} = S(ind) - ons(i);
-end
-
-% Reorganize by stimulus type
-try
-    st = P.lists.(param);
-catch ME
-    switch ME.identifier
-        case 'MATLAB:nonExistentField'
-            helpdlg('Click OK to refresh and then click Plot again');
-            RefreshParameters([],h)
-            return
+if ~isempty(paramsel)
+    for i = 1:length(param)
+        ind = paramsel(:,2) == i;
+        if ~any(ind), continue; end
+        P.lists.(param{i}) = P.lists.(param{i})(paramsel(ind,1));
     end
 end
 
-RF = cell(size(st));
-for i = 1:length(st)
-    ind = P.VALS.(param) == st(i);
-    RF{i} = TS(ind);
+data   = get(h.optTable,'Data');
+params = get(h.optTable,'UserData');
+for i = 1:length(params)
+    cfg.(params{i}) = data{i,2};
 end
 
-% Plot rasters by stimulus type
-if get(h.chk_newfig,'Value')
-    FIGH = figure;
+if get(h.chk_newfig,'Value') || ~ishandle(FIGH) || isempty(FIGH), FIGH = figure; end
+figure(FIGH)
+clf
+
+set(FIGH,'NumberTitle','off','Renderer','painters','pointer','watch'); 
+
+drawnow
+
+if get(h.opt_spikes,'Value')
+    
+    if numel(param) == 1 || (numel(param) == 2 ...
+            && (numel(P.lists.(param{1})) == 1 || numel(P.lists.(param{2})) == 1))
+        plot_spike_raster(pref,P,param,cfg);
+    
+    elseif numel(param) == 2
+        plot_spike_rf(pref,P,param,cfg);
+            
+    end
+    
+    % label figure
+    n = myms(sprintf([ ...
+        'SELECT CONCAT(e.name,": ",t.tank_condition,"-",p.alias,"[",c.target,c.channel,"-",cl.class,"]") ', ...
+        'FROM tanks t INNER JOIN experiments e ON t.exp_id = e.id ', ...
+        'INNER JOIN blocks b ON b.tank_id = t.id ', ...
+        'INNER JOIN db_util.protocol_types p ON b.protocol = p.pid ', ...
+        'INNER JOIN channels c ON c.block_id = b.id ', ...
+        'INNER JOIN units u ON u.channel_id = c.id ', ...
+        'INNER JOIN class_lists.pool_class cl ON cl.id = u.pool ', ...
+        'WHERE u.id = %d'],pref.units));
+
 else
-    if isempty(FIGH), FIGH = figure; end
-    figure(FIGH)
-    clf
+    switch numel(param)
+        case 1
+            plot_evLFP(pref,P,param,cfg);
+
+        case 2
+            
+    end
+    
+    % label figure
+    n = myms(sprintf([ ...
+        'SELECT CONCAT(e.name,": ",t.tank_condition,"-",p.alias,"[",c.target,c.channel,"]") ', ...
+        'FROM tanks t INNER JOIN experiments e ON t.exp_id = e.id ', ...
+        'INNER JOIN blocks b ON b.tank_id = t.id ', ...
+        'INNER JOIN db_util.protocol_types p ON b.protocol = p.pid ', ...
+        'INNER JOIN channels c ON c.block_id = b.id ', ...
+        'WHERE c.id = %d'],pref.channels));
+
 end
 
-n = myms(sprintf([ ...
-    'SELECT CONCAT(e.name,": ",t.tank_condition,"-",p.alias,"[",c.target,c.channel,"-",cl.class,"]") ', ...
-    'FROM tanks t INNER JOIN experiments e ON t.exp_id = e.id ', ...
-    'INNER JOIN blocks b ON b.tank_id = t.id ', ...
-    'INNER JOIN db_util.protocol_types p ON b.protocol = p.pid ', ...
-    'INNER JOIN channels c ON c.block_id = b.id ', ...
-    'INNER JOIN units u ON u.channel_id = c.id ', ...
-    'INNER JOIN class_lists.pool_class cl ON cl.id = u.pool ', ...
-    'WHERE u.id = %d'],pref.units));
-
-set(FIGH,'name',char(n) );
-
-for i = 1:length(st)
-    subplot(nrows,ncols,i)
-%     hold on
-    lr = cellfun(@length,RF{i},'UniformOutput',true);
-    fr = find(lr);
-    rm = cellfun(@repmat,num2cell(fr),num2cell(lr(fr)),num2cell(ones(size(fr))),'UniformOutput',false);
-    X = cell2mat(RF{i});
-    Y = cell2mat(rm);
-
-%     plot(X,Y,'sr','markersize',2,'markerfacecolor','none','markeredgecolor','b');
-    plot(X,Y,'sk','markersize',2,'markerfacecolor',[0.6 0.6 0.6],'markeredgecolor','none');
-    
-    hold on
-    plot([0 0],ylim,'-k');
-    hold off
-    
-    
-%     title(st(i));
-end
-
-ax = findobj(gcf,'type','axes');
-set(ax,'xtick',[],'ytick',[],'xlim',win,'ylim',[0 length(lr)+1]);
+set(FIGH,'name',char(n),'pointer','arrow');
 
 
 
@@ -225,30 +304,7 @@ set(ax,'xtick',[],'ytick',[],'xlim',win,'ylim',[0 length(lr)+1]);
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        
+        
+        
+  
