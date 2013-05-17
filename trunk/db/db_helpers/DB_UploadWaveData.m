@@ -8,33 +8,19 @@ function result = DB_UploadWaveData(tankname,blockname,eventname)
 
 result = 0; %#ok<NASGU>
 
-%     get Wave Data from tank
+% get Wave Data from tank
 data = TDT2mat(tankname,blockname,'silent',1,'type',4);
 
 stream = data.streams.(eventname).data;
 
-%----------------------------------------------------------------------
-% Decimate
-%     n = floor(Fs/1200);
-%     Fs = Fs / n;
-%
-%         % build a LFP filter (lowpass at 300 Hz)
-%         Wp = 600 * 2 / Fs;
-%         Ws = 1000 * 2 / Fs;
-%         [N,Wn] = buttord( Wp, Ws, 3, 20);
-%         [Lb,La] = butter(N,Wn);
-%
-%         S.waves = downsample(WaveData,n);
-%         WaveData.waves(:,j) = filtfilt(Lb, La, S.waves);
-%         clear S
-%
-% %     mym('UPDATE tanks SET wave_fs = {S} WHERE STRCMP(name,"{S}")',num2str(Fs),tankname);
-%----------------------------------------------------------------------
 
 % Split WaveData according to size of blob datatype (2^16-1 bytes)
 a = stream(1); %#ok<NASGU>
 w = whos('a');
 splits = 1:2^16/w.bytes-2*w.bytes:size(stream,1);
+if splits(end) < size(stream,1)
+    splits(end+1) = size(stream,1)+1;
+end
 
 blocknum = str2num(blockname(find(blockname=='-',1,'last')+1:end)); %#ok<ST2NM>
 block_id = myms(sprintf([ ...
