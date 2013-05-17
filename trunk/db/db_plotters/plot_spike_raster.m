@@ -1,12 +1,10 @@
-function plot_spike_raster(pref,P,param,cfg)
-% plot_spike_raster(pref,P,param,cfg)
+function plot_spike_raster(S,P,param,cfg)
+% plot_spike_raster(S,P,param,cfg)
 % 
 % For use with DB_QuickPlot
 %
 % DJS 2013
 
-% get spike times of selected unit
-S = DB_GetSpiketimes(pref.units);
 
 nrows = cfg.nrows;
 ncols = cfg.ncols;
@@ -86,7 +84,6 @@ for i = 1:length(st{largestdim})
     set(pax,'UserData',ax_data);
 end
 
-fig_data.ids = pref;
 fig_data.P   = P;
 fig_data.cfg = cfg;
 set(gcf,'UserData',fig_data);

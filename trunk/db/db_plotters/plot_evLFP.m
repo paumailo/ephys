@@ -1,13 +1,10 @@
-function plot_evLFP(pref,P,param,cfg)
-% plot_evLFP(pref,P,param,cfg)
+function plot_evLFP(W,P,param,cfg)
+% plot_evLFP(W,P,param,cfg)
 % 
 % For use with DB_QuickPlot
 %
 % DJS 2013
 
-
-% get continuously sampled data
-W = DB_GetWave(pref.channels);
 
 win  = [cfg.win_on cfg.win_off] / 1000; % ms -> s
 svec = floor(win(1)*P.wave_fs):round(win(2)*P.wave_fs);

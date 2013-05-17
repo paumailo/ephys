@@ -252,13 +252,15 @@ set(FIGH,'NumberTitle','off','Renderer','painters','pointer','watch');
 drawnow
 
 if get(h.opt_spikes,'Value')
+    % get spike data
+    S = DB_GetSpiketimes(pref.units);
     
     if numel(param) == 1 || (numel(param) == 2 ...
             && (numel(P.lists.(param{1})) == 1 || numel(P.lists.(param{2})) == 1))
-        plot_spike_raster(pref,P,param,cfg);
+        plot_spike_raster(S,P,param,cfg);
     
     elseif numel(param) == 2
-        plot_spike_rf(pref,P,param,cfg);
+        plot_spike_rf(S,P,param,cfg);
             
     end
     
@@ -274,9 +276,12 @@ if get(h.opt_spikes,'Value')
         'WHERE u.id = %d'],pref.units));
 
 else
+    % get continuously sampled data
+    W = DB_GetWave(pref.channels);
+
     switch numel(param)
         case 1
-            plot_evLFP(pref,P,param,cfg);
+            plot_evLFP(W,P,param,cfg);
 
         case 2
             
