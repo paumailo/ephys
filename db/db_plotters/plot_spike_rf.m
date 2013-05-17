@@ -1,12 +1,10 @@
-function plot_spike_rf(pref,P,param,cfg)
-% plot_spike_rf(pref,P,param,cfg)
+function plot_spike_rf(S,P,param,cfg)
+% plot_spike_rf(S,P,param,cfg)
 % 
 % For use with DB_QuickPlot
 %
 % DJS 2013
 
-% get spike times of selected unit
-S = DB_GetSpiketimes(pref.units);
 
 win = [cfg.win_on cfg.win_off] / 1000; % ms -> s
 
@@ -60,9 +58,15 @@ end
 if cfg.xislog, set(gca,'xscale','log'); end
 axis tight
 
+ax_data.RFraster = RFraster;
+ax_data.RFcnt = RFcnt;
+ax_data.x_axis = stims{1};
+ax_data.y_axis = stims{2};
+set(gca,'UserData',ax_data);
 
-
-
+fig_data.cfg = cfg;
+fig_data.P   = P;
+set(gcf,'UserData',fig_data);
 
 
 
