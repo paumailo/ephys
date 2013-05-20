@@ -87,7 +87,9 @@ if isfield(P,'lists')
     params = fieldnames(P.lists);
     params(strcmp(params,'onset')) = [];
     
-    str = get_string(h.list_params);
+    str = cellstr(get_string(h.list_params));
+    str = cellfun(@(x)x(1:find(x==' ',1)-1),str,'UniformOutput',false);
+%     str(find(str==' ',1,'first'):end) = [];
     val = find(ismember(params,str));
     if isempty(val), val = 1; end
     
@@ -114,7 +116,6 @@ else
     set(hObj,'UserData',val);
 end
 
-
 if numel(val) > 2
     val(end) = [];
     set(hObj,'Value',val);
@@ -131,6 +132,9 @@ if length(param) == 1
     n = str2num(param{1}(idx(1):idx(2))); %#ok<ST2NM>
     nrows = round(sqrt(n));
     ncols = ceil(n/nrows);
+    set([h.txt_xaxis h.txt_yaxis h.btn_swapxy],'Visible','off');
+else
+    set([h.txt_xaxis h.txt_yaxis h.btn_swapxy],'Visible','on');
 end
 
 data = get(h.optTable,'Data');
@@ -148,7 +152,17 @@ for i = 1:length(param)
 end
 set(h.param_table,'data',pdata,'ColumnName',name);
 
+function SwapXY(h) %#ok<DEFNU>
 
+vals = get(h.list_params,'Value');
+
+if length(vals) == 1, return; end
+
+ud = get(h.list_params,'UserData');
+ud = flipud(ud(:));
+set(h.list_params,'UserData',ud);
+
+SelectParam(h.list_params,h);
 
 
 
@@ -222,6 +236,7 @@ for i = 1:length(uc)
 end
 
 set(hObj,'UserData',eI);
+
 
 
 
