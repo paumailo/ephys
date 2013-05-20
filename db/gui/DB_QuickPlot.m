@@ -33,12 +33,19 @@ guidata(hObj, h);
 
 RefreshParameters([],h);
 
-pref = getpref('DB_QuickPlot','opt','opt_spikes');
-if strcmp(pref,'opt_spikes')
-    e.OldValue = h.opt_LFP;
+% pref = getpref('DB_QuickPlot','opt','opt_spikes');
+% if strcmp(pref,'opt_spikes')
+%     e.OldValue = h.opt_LFP;
+%     e.NewValue = h.opt_spikes;
+% else
+%     e.OldValue = h.opt_spikes;
+%     e.NewValue = h.opt_LFP;
+% end
+if get(h.opt_spikes,'Value')
+    e.OldValue = h.opt_spikes;
     e.NewValue = h.opt_spikes;
 else
-    e.OldValue = h.opt_spikes;
+    e.OldValue = h.opt_LFP;
     e.NewValue = h.opt_LFP;
 end
 opts_datatype_SelectionChangeFcn([], e, h)
@@ -48,6 +55,14 @@ opts_datatype_SelectionChangeFcn([], e, h)
 % --- Outputs from this function are returned to the command line.
 function varargout = DB_QuickPlot_OutputFcn(hObj, ~, h)  %#ok<INUSL>
 varargout{1} = h.output;
+
+
+
+
+
+
+
+
 
 
 
@@ -101,7 +116,7 @@ if isfield(P,'lists')
 end
 
 SelectParam(h.list_params,h);
-
+chk_newfigure_Callback(h.chk_newfig,h)
 
 function SelectParam(hObj,h)
 val = get(hObj,'Value');
@@ -124,16 +139,21 @@ end
 param = cellstr(get(hObj,'String'));
 param = param(val);
 
-nrows = 1;
-ncols = 1;
+data = get(h.optTable,'Data');
+ncols = data{1,2};
+nrows = data{2,2};
     
 if length(param) == 1
     idx = find(param{1} == '(' | param{1} == ')');
     n = str2num(param{1}(idx(1):idx(2))); %#ok<ST2NM>
-    nrows = round(sqrt(n));
-    ncols = ceil(n/nrows);
+    if ncols*nrows < n
+        nrows = round(sqrt(n));
+        ncols = ceil(n/nrows);
+    end
     set([h.txt_xaxis h.txt_yaxis h.btn_swapxy],'Visible','off');
 else
+    nrows = 1;
+    ncols = 1;
     set([h.txt_xaxis h.txt_yaxis h.btn_swapxy],'Visible','on');
 end
 
@@ -144,7 +164,7 @@ set(h.optTable,'Data',data);
 
 pref = getpref('DB_BROWSER_SELECTION');
 P = DB_GetParams(pref.blocks);
-
+% list parameters
 for i = 1:length(param)
     name{i} = param{i}(1:find(param{i} == ' ')-1); %#ok<AGROW>
     t = num2cell(sort(P.lists.(name{i})));
@@ -168,6 +188,20 @@ SelectParam(h.list_params,h);
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %% Helper functions
 function opts_datatype_SelectionChangeFcn(~, e, h)
 hObj = h.optTable;
@@ -179,17 +213,19 @@ setpref('DB_QuickPlot','opt',get(e.NewValue,'tag'));
 
 data  = get(hObj,'Data');
 udata = get(hObj,'UserData');
-setpref('DB_QuickPlot',sprintf('optTable_%s',oldtype),{data,udata});
+if ~isempty(data{1})
+    setpref('DB_QuickPlot',sprintf('optTable_%s',oldtype),{data,udata});
+end
 
 prefdata = getpref('DB_QuickPlot',sprintf('optTable_%s',type),[]);
 
 
-
+% check to see if things have changed
 switch type 
     case 'Spikes'
-        CURDATASIZE = 8;
+        CURDATASIZE = 11;
     case 'LFPs'
-        CURDATASIZE = 8;
+        CURDATASIZE = 9;
 end
 
 if isempty(prefdata) || ~iscell(prefdata) || isempty(prefdata{1}{1}) ...
@@ -202,16 +238,19 @@ if isempty(prefdata) || ~iscell(prefdata) || isempty(prefdata{1}{1}) ...
     
     switch type
         case 'Spikes'
-            data{end+1,1} = 'Bin size (ms)'; data{end,2} = 1;    udata{end+1} = 'binsize';
+            data{end+1,1} = 'Plot Raster';      data{end,2} = true; udata{end+1} = 'plotraster';
+            data{end+1,1} = 'Plot Histogram';   data{end,2} = true; udata{end+1} = 'plothist';
+            data{end+1,1} = 'Bin size (ms)';    data{end,2} = 1;    udata{end+1} = 'binsize';
+            
             
         case 'LFPs'
             data{end+1,1} = 'Error band';    data{end,2} = true;  udata{end+1} = 'errorband';
 
     end
-    
-    data{end+1,1} = '2d smoothing';  data{end,2} = true; udata{end+1} = 'smooth2d';
-    data{end+1,1} = '2d interpolate';   data{end,2} = 3;    udata{end+1} = 'interpolate';
-    data{end+1,1} = '2d X is log';     data{end,2} = false; udata{end+1} = 'xislog';
+    data{end+1,1} = 'Color Order';      data{end,2} = 'brgbkcmy';   udata{end+1} = 'colororder';
+    data{end+1,1} = '2d smoothing';     data{end,2} = true;         udata{end+1} = 'smooth2d';
+    data{end+1,1} = '2d interpolate';   data{end,2} = 3;            udata{end+1} = 'interpolate';
+    data{end+1,1} = '2d X is log';      data{end,2} = false;        udata{end+1} = 'xislog';
 else
     data  = prefdata{1};
     udata = prefdata{2};
@@ -219,9 +258,6 @@ end
 
 set(hObj,'data',data,'UserData',udata);
         
-        
-
-
 function param_table_CellSelectionCallback(hObj, e, h) %#ok<INUSD,DEFNU>
 eI = e.Indices;
 
@@ -237,12 +273,44 @@ end
 
 set(hObj,'UserData',eI);
 
+function optTable_CellEditCallback(~,~,h) %#ok<DEFNU>
+if get(h.opt_spikes,'Value')
+    e.OldValue = h.opt_spikes;
+    e.NewValue = h.opt_spikes;
+else
+    e.OldValue = h.opt_LFP;
+    e.NewValue = h.opt_LFP;
+end
+opts_datatype_SelectionChangeFcn(h.opts_datatype,e,h);
+
+function chk_newfigure_Callback(hObj,h)
+val = get(hObj,'Value');
+if val
+    set(h.chk_holdplot,'Visible','off');
+else
+    set(h.chk_holdplot,'Visible','on');
+end
 
 
 
-%%
+
+
+
+
+
+
+
+
+
+
+
+
+%% Plotting
 function PlotData(h) %#ok<DEFNU>
 global FIGH
+persistent CIDX
+
+if isempty(CIDX); CIDX = 1; end
 
 pref = getpref('DB_BROWSER_SELECTION');
 
@@ -257,7 +325,6 @@ P = DB_GetParams(pref.blocks);
 
 paramsel = get(h.param_table,'UserData');
 param    = get(h.param_table,'ColumnName');
-
 if ~isempty(paramsel)
     for i = 1:length(param)
         ind = paramsel(:,2) == i;
@@ -266,17 +333,32 @@ if ~isempty(paramsel)
     end
 end
 
+
+% Plot Figure
+if get(h.chk_newfig,'Value') || isempty(FIGH) || ~ishandle(FIGH), FIGH = figure; end
+figure(FIGH)
+set(FIGH,'NumberTitle','off','Renderer','painters','pointer','watch'); 
+
+
+
+% CFG structure
 data   = get(h.optTable,'Data');
 params = get(h.optTable,'UserData');
 for i = 1:length(params)
     cfg.(params{i}) = data{i,2};
 end
+if get(h.chk_holdplot,'Value') && ~get(h.chk_newfig,'Value')
+    cfg.hold = 'on';
+    CIDX = CIDX + 1;
+else
+    cfg.hold = 'off';
+    CIDX = 1;
+    clf(FIGH);
+end
+tidx = mod(CIDX,length(cfg.colororder));
+if tidx == 0, tidx = length(cfg.colororder); end
+cfg.color = cfg.colororder(tidx);
 
-if get(h.chk_newfig,'Value') || isempty(FIGH) || ~ishandle(FIGH), FIGH = figure; end
-figure(FIGH)
-clf
-
-set(FIGH,'NumberTitle','off','Renderer','painters','pointer','watch'); 
 
 drawnow
 

@@ -65,14 +65,9 @@ ax_data.RFraster = RFraster;
 ax_data.RFcnt = RFcnt;
 ax_data.x_axis = stims{1};
 ax_data.y_axis = stims{2};
+ax_data.P      = P;
+ax_data.cfg    = cfg;
 set(gca,'UserData',ax_data);
-
-fig_data.cfg = cfg;
-fig_data.P   = P;
-set(gcf,'UserData',fig_data);
-
-
-
 
 
 

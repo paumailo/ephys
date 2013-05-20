@@ -39,13 +39,15 @@ for i = 1:length(st{largestdim})
 end
 
 mWon = cellfun(@mean,Won,'UniformOutput',false);
-eWon = cellfun(@std,Won,'UniformOutput',false);
+eWon = cellfun(@std,Won,'UniformOutput',false); %#ok<NASGU>
 
 tvec = svec ./ P.wave_fs;
 for i = 1:length(mWon)
     pax = subplot(cfg.nrows,cfg.ncols,i);
     
-    plot(tvec,mWon{i},'linewidth',1);
+    hold(pax,cfg.hold);
+    
+    plot(tvec,mWon{i},'linewidth',1,'color',cfg.color);
     
     
     [c,r] = ind2sub([cfg.ncols cfg.nrows],i);
@@ -64,9 +66,15 @@ for i = 1:length(mWon)
     ax_data.trials    = Won{i};
     ax_data.stim_type = param;
     ax_data.stim_val  = st{largestdim}(i);
-    
+    ax_data.P         = P;
+    ax_data.cfg       = cfg;
+    if strcmp(cfg.hold,'on') % append to existing ax_data
+        ax_data = [get(pax,'UserData') ax_data]; %#ok<AGROW>
+    end
     set(pax,'UserData',ax_data);
-
+    clear ax_data
+    
+    hold(pax,'off'); 
 end
 ch = get(gcf,'children');
 y = cell2mat(get(ch,'ylim'));
