@@ -24,7 +24,7 @@ for i = 1:length(param)
 end
 if largestdim == 1, smallestdim = 2; else smallestdim = 1; end
 
-% Won: samples X stim type X reps
+% Won: {stim1}(reps X samples)
 Won = cell(size(st{largestdim}));
 for i = 1:length(st{largestdim})
     ind = P.VALS.(param{largestdim}) == st{largestdim}(i);
