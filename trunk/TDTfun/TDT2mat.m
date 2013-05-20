@@ -76,7 +76,7 @@ while strcmp(blocks{i}, '') == 0
 end
 blocks(end) = [];
 
-if nargin == 1
+if nargin == 1 || isempty(block)
     data = blocks;
     return
 end
