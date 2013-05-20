@@ -270,7 +270,7 @@ for i = 1:length(params)
     cfg.(params{i}) = data{i,2};
 end
 
-if get(h.chk_newfig,'Value') || ~ishandle(FIGH) || isempty(FIGH), FIGH = figure; end
+if get(h.chk_newfig,'Value') || isempty(FIGH) || ~ishandle(FIGH), FIGH = figure; end
 figure(FIGH)
 clf
 
