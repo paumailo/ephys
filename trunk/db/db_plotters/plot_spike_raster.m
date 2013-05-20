@@ -1,6 +1,6 @@
 function plot_spike_raster(S,P,param,cfg)
 % plot_spike_raster(S,P,param,cfg)
-% 
+%
 % For use with DB_QuickPlot
 %
 % DJS 2013
@@ -46,22 +46,25 @@ binvec = binvec/1000; % ms -> s
 for i = 1:length(st{largestdim})
     pax = subplot(nrows,ncols,i);
     
-    % raster   
+    hold(pax,cfg.hold);
+    
+    % raster
     lr = cellfun(@length,RF{i},'UniformOutput',true);
     fr = find(lr);
     rm = cellfun(@repmat,num2cell(fr),num2cell(lr(fr)),num2cell(ones(size(fr))),'UniformOutput',false);
     X = cell2mat(RF{i});
     Y = cell2mat(rm);
-    plot(pax,X,Y,'sk','markersize',2,'markerfacecolor',[0.6 0.6 0.6],'markeredgecolor','none');
- 
-    
+    if cfg.plotraster
+        plot(pax,X,Y,'s','markersize',2,'markerfacecolor',cfg.color,'markeredgecolor','none');
+    end
     
     % histogram
     bincnt = histc(X,binvec);
-    hold(pax,'on')
-    stairs(binvec,bincnt,'-k','Parent',pax);
-    hold(pax,'off')
-    
+    if cfg.plothist
+        hold(pax,'on')
+        stairs(binvec,bincnt,'-','color',cfg.color,'Parent',pax);
+        hold(pax,'off')
+    end
     
     [c,r] = ind2sub([ncols nrows],i);
     
@@ -80,11 +83,14 @@ for i = 1:length(st{largestdim})
     ax_data.histogram = [binvec(:),bincnt(:)];
     ax_data.stim_type = param;
     ax_data.stim_val  = st{largestdim}(i);
-    
+    ax_data.P         = P;
+    ax_data.cfg       = cfg;
+    if strcmp(cfg.hold,'on') % append to existing ax_data
+        ax_data = [get(pax,'UserData') ax_data]; %#ok<AGROW>
+    end
     set(pax,'UserData',ax_data);
+    clear ax_data
 end
 
-fig_data.P   = P;
-fig_data.cfg = cfg;
-set(gcf,'UserData',fig_data);
+
 
