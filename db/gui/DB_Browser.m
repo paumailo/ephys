@@ -145,7 +145,8 @@ for i = starth:length(ord)
             
         case 'experiments'
             e = mym(['SELECT CONCAT(id,". ",tank_condition," [",name,"]") ', ...
-                'AS str FROM tanks WHERE exp_id = {Si} {S}'],id,iustr);
+                'AS str FROM tanks WHERE exp_id = {Si} {S} ', ...
+                'ORDER BY id'],id,iustr);
             
         case 'tanks'
             e = mym(['SELECT CONCAT(b.id,". ",p.alias," [",b.block,"]") ', ...
@@ -178,9 +179,9 @@ end
 
 plot_unit_waveform(id,h);
 
-pf = findobj('type','figure','-and','tag','ParameterBreakout');
-if ~isempty(pf)
-    LaunchParams(h);
+% update DB_QuickPlot
+if ~isempty(findobj('name','DB_QuickPlot'))
+    DB_QuickPlot(@RefreshParameters);
 end
 
 set(h.DB_Browser,'Pointer','arrow');
@@ -225,6 +226,9 @@ for i = 1:length(ord)
     end
 end
 setpref('DB_Browser',ord,vals);
+
+
+
 
 function val = GetListPref(ord,str)
 pref = getpref('DB_Browser',ord,[]);

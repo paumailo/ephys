@@ -64,29 +64,44 @@ varargout{1} = h.output;
 
 %%
 function RefreshParameters(hObj,h) %#ok<INUSL>
+if isempty(h), h = guidata(findobj('type','figure','-and','name','DB_QuickPlot')); end
+
 pref = getpref('DB_BROWSER_SELECTION');
 if isempty(pref)
     errordlg('DB_Browser malfunctioned')
     return
 end
 
+pref = orderfields(pref,{'experiments','tanks','blocks','channels','units'});
+
+dbstr = '';
+dbfn = fieldnames(pref);
+for i = 1:length(dbfn)
+    dbstr = sprintf('%s%s:\t% 6.0f\n',dbstr,dbfn{i}(1:end-1),pref.(dbfn{i}));
+end
+set(h.txt_dbinfo,'String',dbstr);
+
 P = DB_GetParams(pref.blocks);
 
-params = fieldnames(P.lists);
-% params(strcmp(params,'onset')) = [];
-
-str = get_string(h.list_params);
-val = find(ismember(params,str));
-if isempty(val), val = 1; end
-
-for i = 1:length(params)
-    params{i} = sprintf('%s (%d)',params{i},length(P.lists.(params{i})));
+if isfield(P,'lists')
+    params = fieldnames(P.lists);
+    params(strcmp(params,'onset')) = [];
+    
+    str = get_string(h.list_params);
+    val = find(ismember(params,str));
+    if isempty(val), val = 1; end
+    
+    for i = 1:length(params)
+        params{i} = sprintf('%s (%d)',params{i},length(P.lists.(params{i})));
+    end
+    
+    set(h.list_params,'String',params,'Value',val)
 end
 
-set(h.list_params,'String',params,'Value',val)
+SelectParam(h.list_params,h);
 
 
-function SelectParam(hObj,h) %#ok<DEFNU>
+function SelectParam(hObj,h)
 val = get(hObj,'Value');
 
 lastval = get(hObj,'UserData');
@@ -140,11 +155,6 @@ set(h.param_table,'data',pdata,'ColumnName',name);
 
 
 %% Helper functions
-
-
-
-
-
 function opts_datatype_SelectionChangeFcn(~, e, h)
 hObj = h.optTable;
 
@@ -158,6 +168,8 @@ udata = get(hObj,'UserData');
 setpref('DB_QuickPlot',sprintf('optTable_%s',oldtype),{data,udata});
 
 prefdata = getpref('DB_QuickPlot',sprintf('optTable_%s',type),[]);
+
+
 
 switch type 
     case 'Spikes'
@@ -178,14 +190,14 @@ if isempty(prefdata) || ~iscell(prefdata) || isempty(prefdata{1}{1}) ...
         case 'Spikes'
             data{end+1,1} = 'Bin size (ms)'; data{end,2} = 1;    udata{end+1} = 'binsize';
             data{end+1,1} = '2d smoothing';  data{end,2} = true; udata{end+1} = 'smooth2d';
-            data{end+1,1} = 'interpolate';   data{end,2} = 3;    udata{end+1} = 'interpolate';
+            data{end+1,1} = '2d interpolate';   data{end,2} = 3;    udata{end+1} = 'interpolate';
             
         case 'LFPs'
             data{end+1,1} = 'Error band';    data{end,2} = true;  udata{end+1} = 'errorband';
 
     end
     
-    data{end+1,1} = 'X is log';     data{end,2} = false; udata{end+1} = 'xislog';
+    data{end+1,1} = '2d X is log';     data{end,2} = false; udata{end+1} = 'xislog';
 else
     data  = prefdata{1};
     udata = prefdata{2};
