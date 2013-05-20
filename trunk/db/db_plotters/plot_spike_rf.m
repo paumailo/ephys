@@ -35,8 +35,8 @@ RFcnt = cellfun(@numel,RFraster,'UniformOutput',true)';
 
 
 % post processing based on user options
-if cfg.smooth2d, RFcnt = sgsmooth2d(RFcnt); end
-if cfg.interpolate > 1
+if isfield(cfg,'smooth2d') && cfg.smooth2d, RFcnt = sgsmooth2d(RFcnt); end
+if isfield(cfg,'interpolate') && cfg.interpolate > 1
     RFcnt = interp2(RFcnt,cfg.interpolate);
     if cfg.xislog
         stims{1} = logspace(log10(stims{1}(1)),log10(stims{1}(end)),size(RFcnt,2));
@@ -50,13 +50,16 @@ set(gcf,'renderer','zbuffer'); % OpenGL doesn't seem to like log axes
 
 surf(stims{1},stims{2},RFcnt);
 view(2)
-if cfg.interpolate > 1 || cfg.smooth2d
+if isfield(cfg,'interpolate') && cfg.interpolate > 1 || isfield(cfg,'smooth2d') && cfg.smooth2d
     shading interp
 else
     shading flat
 end
 if cfg.xislog, set(gca,'xscale','log'); end
 axis tight
+
+xlabel(param{1});
+ylabel(param{2});
 
 ax_data.RFraster = RFraster;
 ax_data.RFcnt = RFcnt;

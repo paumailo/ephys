@@ -189,7 +189,7 @@ switch type
     case 'Spikes'
         CURDATASIZE = 8;
     case 'LFPs'
-        CURDATASIZE = 6;
+        CURDATASIZE = 8;
 end
 
 if isempty(prefdata) || ~iscell(prefdata) || isempty(prefdata{1}{1}) ...
@@ -203,14 +203,14 @@ if isempty(prefdata) || ~iscell(prefdata) || isempty(prefdata{1}{1}) ...
     switch type
         case 'Spikes'
             data{end+1,1} = 'Bin size (ms)'; data{end,2} = 1;    udata{end+1} = 'binsize';
-            data{end+1,1} = '2d smoothing';  data{end,2} = true; udata{end+1} = 'smooth2d';
-            data{end+1,1} = '2d interpolate';   data{end,2} = 3;    udata{end+1} = 'interpolate';
             
         case 'LFPs'
             data{end+1,1} = 'Error band';    data{end,2} = true;  udata{end+1} = 'errorband';
 
     end
     
+    data{end+1,1} = '2d smoothing';  data{end,2} = true; udata{end+1} = 'smooth2d';
+    data{end+1,1} = '2d interpolate';   data{end,2} = 3;    udata{end+1} = 'interpolate';
     data{end+1,1} = '2d X is log';     data{end,2} = false; udata{end+1} = 'xislog';
 else
     data  = prefdata{1};
@@ -250,6 +250,8 @@ if isempty(pref)
     errordlg('DB_Browser malfunctioned')
     return
 end
+
+set(h.figure1,'Pointer','watch'); drawnow
 
 P = DB_GetParams(pref.blocks);
 
@@ -311,7 +313,7 @@ else
             plot_evLFP(W,P,param,cfg);
 
         case 2
-            
+            plot_LFP_rf(W,P,param,cfg);
     end
     
     % label figure
@@ -326,7 +328,7 @@ else
 end
 
 set(FIGH,'name',char(n),'pointer','arrow');
-
+set(h.figure1,'Pointer','arrow');
 
 
 
