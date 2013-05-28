@@ -23,8 +23,6 @@ function data = TDT2mat(tank, block, varargin)
 %           of recording).
 %       "SORTNAME" is the sorted spikes to be returned. (default is online
 %       sorted spikes).
-%       "SORTCODE" can be followed by a scalar or array of sort codes
-%       (default = 0; means all are returned)
 %       "SILENT" a summary of tank data will be
 %           returned if false (default).
 %       "TYPE" specifies to return all or subset of datatypes
@@ -37,18 +35,16 @@ function data = TDT2mat(tank, block, varargin)
 %
 % Built by TDT, modified by DJS 5/2013
 
-data.epocs   = [];
-data.snips   = [];
-data.streams = [];
-data.info    = [];
+data = struct('epochs',[],'snips',[],'streams',[],'info',[]);
 
-T1          = 0;
-T2          = 0;
-SILENT      = 0;
-TYPE        = 1;
-SORTNAME    = 'TankSort';
-SORTCODE   = 0;
+% defaults
+T1       = 0;
+T2       = 0;
+SILENT   = 0;
+TYPE     = 1;
+SORTNAME = 'TankSort';
 
+% parse varargin
 for i = 1:2:length(varargin)
     eval([upper(varargin{i}) '=varargin{i+1};']);
 end
@@ -147,25 +143,26 @@ for i = 1:length(lStores)
         case 'Snip'
             if any(TYPE==3)
                 data.snips.(name) = struct('data',[],'chan',[],'sort',[],'ts',[],'index',[]);
-                for SC = SORTCODE
-                    TTX.SetUseSortName(SORTNAME);
-                    TTX.SetFilterWithDescEx(sprintf('sort=%d',SC));
-                    N = TTX.ReadEventsV(1e7, name, 0, SC, 0.0, 0.0, 'ALL');
-                    if N == 0, continue; end
-                    data.snips.(name).data(end+1:end+N,:) = TTX.ParseEvV(0, N)';
-                    data.snips.(name).chan(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 4);
-                    data.snips.(name).sort(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 5);
-                    data.snips.(name).ts(end+1:end+N)     = TTX.ParseEvInfoV(0, N, 6);
-                    N = TTX.ReadEventsV(N,name,0,0,0,0,'IDXPSQ');
-                    data.snips.(name).index(end+1:end+N)  = TTX.GetEvTsqIdx;
-                end
-                % resort by timestamps in the case of multiple sort codes
-                [~,tsi] = sort(data.snips.(name).ts);
-                data.snips.(name) = structfun(@(x) x(tsi),data.snips.(name),'UniformOutput',false);
+                TTX.SetUseSortName(SORTNAME);
+                N = TTX.ReadEventsV(1e7, name, 0, 0, 0.0, 0.0, 'ALL');
+                if N == 0, continue; end
+                data.snips.(name).data(end+1:end+N,:) = TTX.ParseEvV(0, N)';
+                data.snips.(name).chan(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 4);
+                data.snips.(name).sort(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 5);
+                data.snips.(name).ts(end+1:end+N)     = TTX.ParseEvInfoV(0, N, 6);
+                N = TTX.ReadEventsV(N,name,0,0,0,0,'IDXPSQ');
+                data.snips.(name).index(end+1:end+N)  = TTX.GetEvTsqIdx;
                 data.snips.(name).sortname = SORTNAME;
             else
                 TTX.ReadEventsV(2^9, name, 0, 0, 0, 0, 'ALL');
             end
+            s = 1;
+            while 1
+                sorts{s} = TTX.GetSortName(name, s); %#ok<AGROW>
+                if isempty(sorts{s}), sorts{s} = 'TankSort'; break; end %#ok<AGROW>
+                s = s + 1;
+            end
+            data.snips.(name).sorts = sorts;
             data.snips.(name).fs = TTX.EvSampFreq;
             if ~SILENT, fprintf('\t>Sort ID:    \t%s\n',SORTNAME);         end
             if ~SILENT, fprintf('\t>Data Size:  \t%d\n',TTX.EvDataSize); end
