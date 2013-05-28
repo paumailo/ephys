@@ -66,7 +66,7 @@ for i = 1:length(unitfiles)
         fprintf('Tank: ''%s'', Block: ''%s'', Channel: %d, Unit: %d has % 7.0f spikes ...', ...
             tank,blockname,data.channel,unit,sum(bind))
         
-        SCA = [data.index(bind)'; unit*ones(1,sum(bind))];
+        SCA = uint32([data.index(bind)'; unit*ones(1,sum(bind))]);
         SCA = SCA(:)';
         
         success = TTX.SaveSortCodes(SORTNAME,data.SnipName,data.channel, ...
