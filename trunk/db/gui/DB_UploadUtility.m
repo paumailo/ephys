@@ -375,6 +375,12 @@ pn = get(h.ds_path,'String');
 ptank = fullfile(pn,tank);
 blocks = TDT2mat(ptank);
 
+% sort = TT.GetSortName('Snip', i)
+% while ~isempty(sort)
+%     i = i + 1;
+%     sort = TT.GetSortName('Snip', i)
+% end
+
 bstr  = cell(size(blocks));
 bidx  = [];
 for i = 1:length(blocks)
@@ -699,7 +705,8 @@ for i = 1:length(Queue)
         end
         
         % get snips from tank block
-        data = TDT2mat(Q.tank,B(j).info.blockname,'silent',true,'type',[2 3]);
+        data = TDT2mat(Q.tank,B(j).info.blockname,'silent',true,'type',[2 3], ...
+            'SORTNAME',B(j).info.sortname);
         
         % update channels
         if ~isempty(data.streams)
