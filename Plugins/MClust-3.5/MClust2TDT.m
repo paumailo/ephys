@@ -1,36 +1,107 @@
-function MClust2TDT(datfilename)
+function MClust2TDT(datfilename,varargin)
+% MClust2TDT(datfilename)
+% MClust2TDT(datfilename,'parameter',value)
+% 
+% Update tank with a new sort code after processing with MClust.
+% 
+%   parameter       default value
+%   ---------       -------------
+%   SERVER        = 'Local';        % Tank server
+%   BLOCKROOT     = 'Block';        % Block root
+%   SORTNAME      = 'MClust';       % Name for sort code
+%   SORTCONDITION = 'KlustaKwik';   % Sort condition
+% 
+% See also, TDT2MClust, MClust
+% 
+% DJS 2013
 
-% datfiles = dir('*.dat');
-% ndatfiles = length(datfiles);
-% fnames = {datfiles.name};
-% fnames = cellfun(@(x) x(1:end-4),fnames,'UniformOutput',false);
+% defaults are modifiable using varargin parameter, value pairs
+SERVER        = 'Local';
+BLOCKROOT     = 'Block';
+SORTNAME      = 'MClust';
+SORTCONDITION = 'KlustaKwik';
+
+% parse inputs
+for i = 1:2:length(varargin)
+    eval([upper(varargin{i}) '=varargin{i+1};']);
+end
 
 load(datfilename,'-mat'); % data
+tank = data.tank;
 rootfn = datfilename(1:end-4);
 
-% parse info from file name: Tank_[blocks]-channel
-aidx = find(rootfn=='[',1);
-bidx = find(rootfn==']',1);
-bstr = rootfn(aidx+1:bidx-1);
-bstr = textscan(bstr,'%d','delimiter','-');
+TTXfig = figure('Visible','off','HandleVisibility','off');
+TTX = actxcontrol('TTank.X','Parent',TTXfig);
 
-tank = rootfn(1:aidx-2);
-blocks = bstr{1};
-channel = str2num(rootfn(bidx+2:end)); %#ok<ST2NM>
+if ~TTX.ConnectServer(SERVER, 'Me')
+    error(['Problem connecting to Tank server: ' SERVER])
+end
+
+if ~TTX.OpenTank(tank, 'W')
+    CloseUp(TTX,TTXfig);
+    error(['Problem opening tank: ' tank]);
+end
 
 
 
 % find units sorted with MClust
 unitfiles = dir([rootfn '*.t']);
 for i = 1:length(unitfiles)
-    idx = find(unitfiles=='-',1,'last');
-    unit = str2num(unit(length(rootfn)+2:idx-1)); %#ok<ST2NM>
-    load(rootfn,'-mat'); % TS
+    sidx = find(unitfiles(i).name=='_',1,'last');
+    eidx = find(unitfiles(i).name=='-',1,'last');
+    unit = str2num(unitfiles(i).name(sidx+1:eidx-1)); %#ok<ST2NM>
+    load(unitfiles(i).name,'-mat'); % TS
     ind = ismember(data.unwrapped_times,TS);
-    spiketimes = data.spiketimes(ind);
-    corrblocks = data.unwrapped_blocks(ind);
     
-    % update Tank with new MClust sort codes
+    % update Tank with new MClust sort codes 
+    for b = data.validblocks
+        blockname = [BLOCKROOT '-' num2str(b)];
+        if ~TTX.SelectBlock(blockname)
+            CloseUp(TTX,TTXfig)
+            error('MClust2TDT: Unable to select block ''%s''',blockname)
+        end
+        bind = ind & data.unwrapped_blocks == b;
+        if ~any(bind), continue; end
+        
+        fprintf('Tank: ''%s'', Block: ''%s'', Channel: %d, Unit: %d has % 7.0f spikes ...', ...
+            tank,blockname,data.channel,unit,sum(bind))
+        
+        SCA = [data.index(bind)'; unit*ones(1,sum(bind))];
+        SCA = SCA(:)';
+        
+        success = TTX.SaveSortCodes(SORTNAME,data.SnipName,data.channel, ...
+            SORTCONDITION,SCA);
+        
+        if success
+            fprintf(' UPDATED\n')
+        else
+            fprintf(' FAILED\n')
+            CloseUp(TTX,TTXfig)
+        end
+    end 
 end
+
+CloseUp(TTX,TTXfig)
+
+
+
+
+function CloseUp(TTX,TTXfig)
+TTX.CloseTank;
+TTX.ReleaseServer;
+close(TTXfig);
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

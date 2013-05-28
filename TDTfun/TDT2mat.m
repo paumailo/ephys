@@ -21,6 +21,10 @@ function data = TDT2mat(tank, block, varargin)
 %           beginning of recording).
 %       "T2" is a scalar, retrieve data ending at T2 (0 for end at ending
 %           of recording).
+%       "SORTNAME" is the sorted spikes to be returned. (default is online
+%       sorted spikes).
+%       "SORTCODES" can be followed by a scalar or array of sort codes
+%       (default = 0; means all are returned)
 %       "SILENT" a summary of tank data will be
 %           returned if false (default).
 %       "TYPE" specifies to return all or subset of datatypes
@@ -38,19 +42,15 @@ data.snips   = [];
 data.streams = [];
 data.info    = [];
 
-T1      = 0;
-T2      = 0;
-SILENT  = 0;
-TYPE    = 1;
+T1          = 0;
+T2          = 0;
+SILENT      = 0;
+TYPE        = 1;
+SORTNAME    = 'TankSort';
+SORTCODES   = 0;
 
 for i = 1:2:length(varargin)
-    if isscalar(varargin{i+1})
-        eval(sprintf('%s = %d;',upper(varargin{i}), varargin{i+1}));
-    elseif isvector(varargin{i+1})
-        eval(sprintf('%s = [%s];',upper(varargin{i}), num2str(varargin{i+1}(:)')));
-    elseif ischar
-        eval(sprintf('%s = %s;',upper(varargin{i}), varargin{i+1}));
-    end
+    eval([upper(varargin{i}) '=varargin{i+1};']);
 end
 
 if TYPE == 1, TYPE = 1:4; end
@@ -90,7 +90,7 @@ if TTX.SelectBlock(['~' block]) ~= 1
 end
 
 TTX.SetGlobalV('WavesMemLimit',1e9);
-TTX.SetGlobalV('MaxReturn',1e6);
+TTX.SetGlobalV('MaxReturn',1e7);
 TTX.SetGlobalV('T1', T1);
 TTX.SetGlobalV('T2', T2);
 
@@ -101,7 +101,7 @@ for i = 1:length(lStores)
     
     TTX.GetCodeSpecs(lStores(i));
     type = TTX.EvTypeToString(TTX.EvType);
-    if ~SILENT, fprintf('EvType:\t\t%s\n', type); end
+    if ~SILENT, fprintf('\t>EvType:     \t%s\n', type); end
     
     if bitand(TTX.EvType, 33025) == 33025 % catch RS4 header (33073)
         type = 'Stream';
@@ -138,25 +138,35 @@ for i = 1:length(lStores)
                 TTX.SetGlobalV('T2', T2);
                 num_channels = size(t,2);
             end
-            if ~SILENT, fprintf('N channels:\t%d\n', num_channels); end
-            data.streams.(name).chan = 1:num_channels;
+            if ~SILENT, fprintf('\t>N channels: \t%d\n', num_channels);  end
+            data.streams.(name).chans = 1:num_channels;
             data.streams.(name).fs = TTX.EvSampFreq;
-            if ~SILENT, fprintf('Data Size:\t%d\n',TTX.EvDataSize); end
-            if ~SILENT, fprintf('Samp Rate:\t%f\n',TTX.EvSampFreq); end
+            if ~SILENT, fprintf('\t>Data Size:  \t%d\n',TTX.EvDataSize); end
+            if ~SILENT, fprintf('\t>Samp Rate:  \t%f\n',TTX.EvSampFreq); end
             
         case 'Snip'
             if any(TYPE==3)
-                N = TTX.ReadEventsV(1e7, name, 0, 0, 0, 0, 'ALL');
-                data.snips.(name).data = TTX.ParseEvV(0, N)';
-                data.snips.(name).chan = TTX.ParseEvInfoV(0, N, 4);
-                data.snips.(name).sort = TTX.ParseEvInfoV(0, N, 5);
-                data.snips.(name).ts   = TTX.ParseEvInfoV(0, N, 6);
+                data.snips.(name) = struct('data',[],'chan',[],'sort',[],'ts',[],'index',[]);
+                for SC = SORTCODES
+                    TTX.SetUseSortName(SORTNAME);
+                    TTX.SetFilterWithDescEx(sprintf('sort=%d',SC));
+                    N = TTX.ReadEventsV(1e7, name, SC, 0, 0.0, 0.0, 'ALL');
+                    if N == 0, continue; end
+                    data.snips.(name).data(end+1:end+N,:) = TTX.ParseEvV(0, N)';
+                    data.snips.(name).chan(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 4);
+                    data.snips.(name).sort(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 5);
+                    data.snips.(name).ts(end+1:end+N)     = TTX.ParseEvInfoV(0, N, 6);
+                    N = TTX.ReadEventsV(N,name,0,0,0,0,'IDXPSQ');
+                    data.snips.(name).index(end+1:end+N)  = TTX.GetEvTsqIdx;
+                end
+                data.snips.(name).sortname = SORTNAME;
             else
                 TTX.ReadEventsV(2^9, name, 0, 0, 0, 0, 'ALL');
             end
             data.snips.(name).fs = TTX.EvSampFreq;
-            if ~SILENT, fprintf('Data Size:\t%d\n',TTX.EvDataSize); end
-            if ~SILENT, fprintf('Samp Rate:\t%f\n',TTX.EvSampFreq); end
+            if ~SILENT, fprintf('\t>Sort ID:    \t%s\n',SORTNAME);         end
+            if ~SILENT, fprintf('\t>Data Size:  \t%d\n',TTX.EvDataSize); end
+            if ~SILENT, fprintf('\t>Samp Rate:  \t%f\n',TTX.EvSampFreq); end
             
     end
     if ~SILENT, disp(' '); end
