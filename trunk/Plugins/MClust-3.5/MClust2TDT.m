@@ -63,7 +63,7 @@ for i = 1:length(unitfiles)
         bind = ind & data.unwrapped_blocks == b;
         if ~any(bind), continue; end
         
-        fprintf('Tank: ''%s'', Block: ''%s'', Channel: %d, Unit: %d has % 7.0f spikes ...', ...
+        fprintf('Tank: ''%s'', Block: ''%s'', Channel: % 3.0f, Unit: %d\t% 8.0f spikes ...', ...
             tank,blockname,data.channel,unit,sum(bind))
         
         SCA = uint32([data.index(bind)'; unit*ones(1,sum(bind))]);
