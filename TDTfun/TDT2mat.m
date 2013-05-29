@@ -135,7 +135,7 @@ for i = 1:length(lStores)
                 num_channels = size(t,2);
             end
             if ~SILENT, fprintf('\t>N channels: \t%d\n', num_channels);  end
-            data.streams.(name).chans = 1:num_channels;
+            data.streams.(name).chan = 1:num_channels;
             data.streams.(name).fs = TTX.EvSampFreq;
             if ~SILENT, fprintf('\t>Data Size:  \t%d\n',TTX.EvDataSize); end
             if ~SILENT, fprintf('\t>Samp Rate:  \t%f\n',TTX.EvSampFreq); end
