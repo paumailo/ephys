@@ -162,7 +162,8 @@ for i = starth:length(ord)
         case 'channels'
             e = mym(['SELECT CONCAT(u.id,". ",p.class," (",u.unit_count,")") ', ...
                 'AS str FROM units u JOIN class_lists.pool_class p ', ...
-                'ON u.pool = p.id WHERE u.channel_id = {Si} {S}'],id,iustr);
+                'ON u.pool = p.id WHERE u.channel_id = {Si} {S} ', ...
+                'ORDER BY p.id'],id,iustr);
             
         case 'units'
             setappdata(h.DB_Browser,ord{i},get_listid(h.(['list_' ord{i}])));
