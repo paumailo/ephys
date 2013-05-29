@@ -734,25 +734,27 @@ for i = 1:length(Queue)
             snips = data.snips.(snipEvent);
             schans = unique(snips.chan);
             for k = 1:length(schans)
-                fprintf('\tUploading spikes on channel% 3.0f (%d of %d) ... ', ...
+                fprintf('\tUploading spikes on channel% 3.0f (%d of %d)', ...
                     schans(k),k,length(schans))
                 channel_id = myms(sprintf('SELECT id FROM channels WHERE channel = %d AND block_id = %d', ...
                     schans(k),blockid));
                 
                 units = unique(snips.sort(snips.chan==schans(k)));
+                                
+                for u = units
+                    uind = snips.sort == u & snips.chan == schans(k);
+                    pwaveform = mean(snips.data(uind,:),1);
+                    pstddev   = std(snips.data(uind,:),0,1);
                 
-                for u = 1:length(units)
-                    uind = snips.sort == units(u) & snips.chan == schans(k);
-                    pwaveform = mean(snips.data(uind,:));
-                    pstddev   = std(snips.data(uind,:));
+                    fprintf('\n\t\tPool %d: % 6.0f spikes ...',u,sum(uind))
                     
                     mym(['INSERT units (channel_id,pool,unit_count,pool_waveform,pool_stddev) VALUES ', ...
                         '({Si},{Si},{Si},"{S}","{S}")'], ...
-                        channel_id,units(u),sum(uind),num2str(pwaveform),num2str(pstddev));
+                        channel_id,u,sum(uind),num2str(pwaveform),num2str(pstddev));
                     
                     uid = myms(sprintf(['SELECT id FROM units ', ...
                         'WHERE channel_id = %d AND pool = %d'], ...
-                        channel_id,units(u)));
+                        channel_id,u));
                     
                     
                     % update spike_data
@@ -761,9 +763,9 @@ for i = 1:length(Queue)
                         mym('INSERT spike_data (unit_id,spike_time) VALUES ({Si},{S})', ...
                             uid,ts(kk,:));
                     end
-                end
-                
-                fprintf('done\n')
+                    
+                    fprintf(' done\n')
+                end 
             end
             
         end
