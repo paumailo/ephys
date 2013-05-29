@@ -35,7 +35,7 @@ function data = TDT2mat(tank, block, varargin)
 %
 % Built by TDT, modified by DJS 5/2013
 
-data = struct('epochs',[],'snips',[],'streams',[],'info',[]);
+data = struct('epocs',[],'snips',[],'streams',[],'info',[]);
 
 % defaults
 T1       = 0;

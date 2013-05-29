@@ -1,6 +1,6 @@
 function varargout = DB_UploadUtility(varargin)
 
-% Last Modified by GUIDE v2.5 10-May-2013 22:26:00
+% Last Modified by GUIDE v2.5 29-May-2013 09:40:19
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -375,12 +375,7 @@ pn = get(h.ds_path,'String');
 ptank = fullfile(pn,tank);
 blocks = TDT2mat(ptank);
 
-% sort = TT.GetSortName('Snip', i)
-% while ~isempty(sort)
-%     i = i + 1;
-%     sort = TT.GetSortName('Snip', i)
-% end
-
+sortnames = {'TankSort'};
 bstr  = cell(size(blocks));
 bidx  = [];
 for i = 1:length(blocks)
@@ -399,9 +394,20 @@ for i = 1:length(blocks)
     bstr{i} = sprintf('%s - %s [%s]', ...
         blocks{i},data(i).pname,datestr(data(i).info.duration,'MM:SS'));
     if str2num(datestr(data(i).info.duration,'MM')) > 0, bidx(end+1) = i; end %#ok<ST2NM,AGROW>
+    subfield = char(fieldnames(data(i).snips));
+    if ~isempty(subfield)
+        sortnames = union(sortnames,data(i).snips.(subfield).sorts);
+    end
 end
 
 set(h.ds_blocks,'String',bstr,'Value',bidx,'UserData',data); % update listbox
+
+sval = 1;
+if length(sortnames) > 1
+    sval = ismember(sortnames,'TankSort');
+    sval = find(~sval,1);
+end
+set(h.ds_sortname,'String',sortnames,'Value',sval);
 
 ds_blocks_Callback(h.ds_blocks, [], h);
 set(h.figure1,'pointer','arrow');
@@ -422,6 +428,7 @@ for i = 1:length(Q.events)
     [Q.events{i},r] = strtok(Q.events{i});
     Q.eventtype{i}  = r(3:end-1);
 end
+Q.sortname   = get_string(h.ds_sortname);
 Q.condition  = get(h.ds_condition,'String');
 Q.tanknotes  = get(h.ds_notes,'String'); 
 Q.electrode  = get_string(h.ds_electrode);
@@ -706,7 +713,7 @@ for i = 1:length(Queue)
         
         % get snips from tank block
         data = TDT2mat(Q.tank,B(j).info.blockname,'silent',true,'type',[2 3], ...
-            'SORTNAME',B(j).info.sortname);
+            'SortName',Q.sortname);
         
         % update channels
         if ~isempty(data.streams)
@@ -721,9 +728,7 @@ for i = 1:length(Queue)
                 '({Si},{Si},"{S}")'],blockid,k,Q.electarget);
         end
         fprintf('done\n')
-        
-        %         ACpath = 'C:\AutoClass_Files\AC2_RESULTS\';
-        
+                
         % update units
         if ~isempty(data.snips)
             snips = data.snips.(snipEvent);
@@ -757,64 +762,11 @@ for i = 1:length(Queue)
                             uid,ts(kk,:));
                     end
                 end
-                % Check if pools were made with AutoClass Pooling_GUI2
-                %             ACfn = sprintf('%s_Ch_%d_POOLS.mat',Q.tank,channels(j));
-                %             ACfn = fullfile(ACpath,Q.tank,ACfn);
-                %             if exist(ACfn,'file')
-                % NEED TO UPDATE POOLING_GUI FILE STRUCTURE TO  INCLUDE
-                % BLOCK ID VECTOR **************************************
-                % AutoClass Pools found - Use these
-                %                 AC        = load(ACfn);
-                %                 ACsnipfn  = sprintf('%s_%03d_SNIP.mat',Q.tank,channels(j));
-                %                 ACsnipfn  = fullfile(ACpath,Q.tank,ACsnipfn);
-                %                 ACsnip    = load(ACsnipfn);
-                %                 ACblocks  = ACsnip.cfg.TankCFG.blocks;
-                % %                 spchanind = [Spikes.channel]==channels(j);
-                %                 blockind  = ismember(ACblocks,[B.id]);
-                %                 blockspikes = ACsnip.cfg.Spikes.blockspikes(blockind);
-                %                 POOLS = [];
-                %                 for k = 1:length(blockspikes)
-                %                     p = length(POOLS);
-                %                     POOLS(p+1:p) = AC.POOLS(
-                %                 POOLS = AC.POOLS;
-                %             else
-                % AutoClass Pools NOT found - Use tank sort code
-                %                 chind = [Spikes.channel] == channels(k);
-                %                 POOLS = cell2mat(Spikes(chind).sortcode(:));
-                %             end
-                
-                %********************************
-                %                 uPOOLS = unique(POOLS);
-                %                 pw = cell2mat(Spikes(k).waveforms(~isempty(Spikes(k).waveforms))');
-                %                 st = cell2mat(Spikes(k).timestamps(:));
-                %                 for up = uPOOLS
-                %                     uind = up == POOLS;
-                %                     pwaveform = mean(pw(uind,:),1);
-                %                     pstddev   = std(pw(uind,:),1);
-                %
-                %                     mym(['INSERT units (channel_id,pool,unit_count,pool_waveform,pool_stddev) VALUES ', ...
-                %                         '({Si},{Si},{Si},"{S}","{S}")'], ...
-                %                         channel_id,up,sum(uind),num2str(pwaveform),num2str(pstddev));
-                %
-                %                     uid = myms(sprintf(['SELECT id FROM units ', ...
-                %                         'WHERE channel_id = %d AND pool = %d'], ...
-                %                         channel_id,up));
-                %
-                %
-                %                     % update spike_data
-                %                     uidx = find(uind);
-                %                     for kk = 1:length(uidx)
-                %                         mym('INSERT spike_data (unit_id,spike_time) VALUES ({Si},{S})', ...
-                %                             uid,st(uidx(kk)));
-                %                     end
-                %                 end
                 
                 fprintf('done\n')
             end
             
         end
-        
-        
         
         if ~isempty(data.streams)
             % update wave_data
