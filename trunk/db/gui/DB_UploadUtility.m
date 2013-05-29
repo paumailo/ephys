@@ -594,7 +594,7 @@ curdb = get_string(h.db_list);
 if ~myisopen, DB_Connect; end
 if ~strcmp(dbcurr,curdb), dbopen(curdb); end
 
-allobjs = get(h.figure1,'Children');
+allobjs = findobj(h.figure1,'Enable','on');
 set(allobjs,'Enable','off');
 
 try
