@@ -1,10 +1,11 @@
 function varargout = DB_Browser(varargin)
 % DB_Browser
 %
+% Browses MySQL Electrophysiology database.
+%
+% See also, DB_UploadUtility
 %
 % DJS 2013
-
-% Edit the above text to modify the response to help DB_Browser
 
 % Last Modified by GUIDE v2.5 04-Jan-2013 12:28:43
 
@@ -146,7 +147,7 @@ for i = starth:length(ord)
         case 'experiments'
             e = mym(['SELECT CONCAT(id,". ",tank_condition," [",name,"]") ', ...
                 'AS str FROM tanks WHERE exp_id = {Si} {S} ', ...
-                'ORDER BY id'],id,iustr);
+                'ORDER BY tank_condition'],id,iustr);
             
         case 'tanks'
             e = mym(['SELECT CONCAT(b.id,". ",p.alias," [",b.block,"]") ', ...
