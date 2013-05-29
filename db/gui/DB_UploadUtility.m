@@ -754,8 +754,7 @@ for i = 1:length(Queue)
                     
                     uid = myms(sprintf(['SELECT id FROM units ', ...
                         'WHERE channel_id = %d AND pool = %d'], ...
-                        channel_id,u));
-                    
+                        channel_id,u));     
                     
                     % update spike_data
                     ts = num2str(snips.ts(uind)','%0.6f');
