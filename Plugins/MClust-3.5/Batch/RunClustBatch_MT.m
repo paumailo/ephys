@@ -413,18 +413,18 @@ if strcmp(Do_AutoClust,'yes')
         INdoneyet = FindFiles([INname '.clu*']);
         popdir;
         
-        CluNotDoneFlag = 1;
+%         CluNotDoneFlag = 1;
         
 
         
-        if ~exist('FinishedFiles.mat','file') && (~isempty(INdoneyet) && ((length(INdoneyet) >= 2 && ...
-                strcmpi(gPar.ClusterAlgorithm,'BBClust')) || (length(INdoneyet) >= 1 && strcmpi(gPar.ClusterAlgorithm,'KlustaKwik'))))
-            CluNotDoneFlag = 0;
-        elseif FinishedFiles(i)
-            CluNotDoneFlag = 0;
-        end
+%         if ~exist('FinishedFiles.mat','file') && (~isempty(INdoneyet) && ((length(INdoneyet) >= 2 && ...
+%                 strcmpi(gPar.ClusterAlgorithm,'BBClust')) || (length(INdoneyet) >= 1 && strcmpi(gPar.ClusterAlgorithm,'KlustaKwik'))))
+%             CluNotDoneFlag = 0;
+%         elseif FinishedFiles(i)
+%             CluNotDoneFlag = 0;
+%         end
         
-        if ~ForceRun && ~CluNotDoneFlag
+        if ~ForceRun 
             disp(' ')
             disp(['File ' IN ' has already been completed; skipping... ']);
             disp(' ')
