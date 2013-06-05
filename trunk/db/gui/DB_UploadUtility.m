@@ -597,7 +597,7 @@ if ~strcmp(dbcurr,curdb), dbopen(curdb); end
 %allobjs = findobj(h.figure1,'Enable','on');
 %set(allobjs,'Enable','off');
 
-try
+%try
     for i = 1:length(Queue)
         Q = Queue(i);
         
@@ -700,7 +700,7 @@ try
                 protdata(:,3) = param_type(:);
                 protdata(:,4) = param_value(:);
                 
-                % upload each row of the protocol (LOAD IN FILE may be faster?)
+                % upload each row of the protocol
                 for k = 1:size(protdata,1)
                     mym(['INSERT protocols (block_id,param_id,param_type,param_value) VALUES ', ...
                         '({Si},{Si},{Si},{S})'], ...
@@ -778,11 +778,26 @@ try
         end
     end
     fprintf('\nCompleted upload at %s\n\n',datestr(now,'dd-mmm-yyyy HH:MM:SS'))
-catch ME
+%catch ME
    % set(allobjs,'Enable','on');
-    error('DB_UploadUtility: There was an error uploading to database')
-end
+    %error('DB_UploadUtility: There was an error uploading to database')
+%end
 %set(allobjs,'Enable','on');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function upload_remove_Callback(hObj, ~, h) %#ok<INUSL,DEFNU>
 Queue = getappdata(h.figure1,'UPLOAD_QUEUE');
