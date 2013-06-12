@@ -594,10 +594,10 @@ curdb = get_string(h.db_list);
 if ~myisopen, DB_Connect; end
 if ~strcmp(dbcurr,curdb), dbopen(curdb); end
 
-%allobjs = findobj(h.figure1,'Enable','on');
-%set(allobjs,'Enable','off');
+allobjs = findobj(h.figure1,'Enable','on');
+set(allobjs,'Enable','off');
 
-%try
+try
     for i = 1:length(Queue)
         Q = Queue(i);
         
@@ -645,8 +645,8 @@ if ~strcmp(dbcurr,curdb), dbopen(curdb); end
             'VALUES ({Si},"{S}","{S}","{S}","{S}",{S},{S},"{S}")'], ...
             exptid,Q.condition,datestr(B(1).info.date,'yyyy-mm-dd'),datestr(B(1).info.begintime,'HH:MM:SS'), ...
             Q.tank,num2str(snipsFs,'%0.5f'),num2str(streamsFs,'%0.5f'),Q.tanknotes);
-        tid = myms(sprintf('SELECT id FROM tanks WHERE name = "%s"',Q.tank));
-        
+        tid = myms(sprintf('SELECT DISTINCT id FROM tanks WHERE name = "%s"',Q.tank));
+                
         % update electrode
         e = Q.electrode(find(Q.electrode=='-',1,'first')+2:end);
         mym(['INSERT electrodes (tank_id,type,depth,target) VALUES ', ...
@@ -658,8 +658,13 @@ if ~strcmp(dbcurr,curdb), dbopen(curdb); end
                 Q.tank,B(j).info.blockname,j,length(B))
             % update blocks
             if strcmp(B(j).pname,'Unknown'), B(j).pname = '?'; end
-            pid = myms(sprintf('SELECT pid FROM db_util.protocol_types WHERE alias = "%s"',...
+            pid = myms(sprintf('SELECT DISTINCT pid FROM db_util.protocol_types WHERE alias = "%s"',...
                 B(j).pname));
+            
+            if ~isscalar(pid)
+                error('DB_UploadUtility:upload_data_Callback: Redundant protocol types (pid) on protocol_types table in db_util database.')
+            end
+            
             blockidx = str2num(B(j).info.blockname(find(B(j).info.blockname=='-',1,'last')+1:end)); %#ok<ST2NM>
             mym(['REPLACE blocks (tank_id,block,protocol,block_date,block_time) VALUES ', ...
                 '({Si},{Si},{Si},"{S}","{S}")'], ...
@@ -778,11 +783,11 @@ if ~strcmp(dbcurr,curdb), dbopen(curdb); end
         end
     end
     fprintf('\nCompleted upload at %s\n\n',datestr(now,'dd-mmm-yyyy HH:MM:SS'))
-%catch ME
-   % set(allobjs,'Enable','on');
-    %error('DB_UploadUtility: There was an error uploading to database')
-%end
-%set(allobjs,'Enable','on');
+catch ME
+   set(allobjs,'Enable','on');
+   rethrow(ME)
+end
+set(allobjs,'Enable','on');
 
 
 
