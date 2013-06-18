@@ -680,7 +680,7 @@ try
             % get parameter codes from db_util.param_types; insert new codes if does not exist
             if ~isempty(B(j).epocs)
                 paramspec = fieldnames(B(j).epocs);
-                paramspec(strcmpi('PROT',paramspec)) = [];
+                paramspec(ismember(paramspec,{'PROT','Tick','Tock','Mark'})) = [];
                 B(j).epocs.onset.data = B(j).epocs.(paramspec{1}).onset;
                 paramspec{end+1} = 'onset'; %#ok<AGROW>
                 parcode = nan(size(paramspec));
