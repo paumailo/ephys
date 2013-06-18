@@ -661,9 +661,9 @@ try
             pid = myms(sprintf('SELECT DISTINCT pid FROM db_util.protocol_types WHERE alias = "%s"',...
                 B(j).pname));
             
-            if ~isscalar(pid)
-                error('DB_UploadUtility:upload_data_Callback: Redundant protocol types (pid) on protocol_types table in db_util database.')
-            end
+            
+            assert(isscalar(pid),'DB_UploadUtility:upload_data_Callback: Redundant protocol types (pid) on protocol_types table in db_util database.')
+            
             
             blockidx = str2num(B(j).info.blockname(find(B(j).info.blockname=='-',1,'last')+1:end)); %#ok<ST2NM>
             mym(['REPLACE blocks (tank_id,block,protocol,block_date,block_time) VALUES ', ...
