@@ -184,6 +184,10 @@ for i = 1:size(data,1)
         v = data{i,4};
     
     elseif ~data{i,6} % Char and not WAV
+        if ~ischar(data{i,4}) % left over from previous use as WAV file
+            data{i,4} = '';
+        end
+        
         v = str2num(data{i,4}); %#ok<ST2NM>
     
     elseif data{i,6} % WAV files
