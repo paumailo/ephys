@@ -513,7 +513,7 @@ if fail
     set(h.protocol_dur,'String','Invalid Value Combinations', ...
         'backgroundcolor','r');
 else
-    pdur = size(p.trials,1)*isi/1000/60;
+    pdur = mean(size(p.trials,1)*isi/1000/60);
     set(h.protocol_dur,'String',sprintf('Protocol Duration: %0.1f min',pdur), ...
         'backgroundcolor','g');
 end
