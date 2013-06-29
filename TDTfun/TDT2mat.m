@@ -2,6 +2,7 @@ function data = TDT2mat(tank, block, varargin)
 %TDT2MAT  TDT tank data extraction.
 %   blocks = TDT2mat(TANK)
 %   data = TDT2mat(TANK, BLOCK) 
+%   data = TDT2mat(TANK, BLOCK,'parameter',value,...) 
 %  
 %   If the TANK name is the only input then a list of blocks will be
 %   returned in a cell array.

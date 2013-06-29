@@ -8,7 +8,6 @@ function varargout = EPhysController(varargin)
 %
 % DJS 2013
 
-% Last Modified by GUIDE v2.5 15-Mar-2013 12:29:17
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -91,55 +90,56 @@ delete(hObj);
 
 %% Tanks
 function activex2_TankChanged(hObj, evnt, h) %#ok<INUSL,DEFNU>
-global G_TT
-
-if ~isa(G_TT,'COM.TTank_X'), G_TT = TDT_SetupTT; end
-
-cfg.server = evnt.ActServer;
-cfg.tank   = evnt.ActTank;
-cfg.TT     = G_TT;
-set(gcf,'Pointer','watch'); 
-fprintf('\nCollecting tank information, please wait ...\n')
+set(h.EPhysController,'Pointer','watch'); 
+fprintf('Collecting tank information, please wait ...')
 drawnow
-blkdata = getTankData(cfg); fprintf('\n');
 
-if isempty(blkdata)
+try
+    blocks = TDT2mat(evnt.ActTank);
+catch %#ok<CTCH>
+    fprintf(' *** UNABLE TO READ TANK ***\n')
+    blocks = [];
+end
+
+if isempty(blocks)
     blkstr = 'NO BLOCKS';
 else
     blkstr = '';
-    for i = 1:length(blkdata)
+    for i = 1:length(blocks)
         try
-            nchans = length(blkdata(i).Wave.channels);
+            td = TDT2mat(evnt.ActTank,blocks{i},'type',2,'silent',true);
         catch %#ok<CTCH>
-            try
-                nchans = length(blkdata(i).Snip.channels);
-            catch %#ok<CTCH>
-                try
-                    nchans = length(blkdata(i).Strm.channels);
-                catch %#ok<CTCH>
-                    nchans = 0;
-                end
-            end
+            blkstr = sprintf('%s%s\t<- CAN''T READ BLOCK\n',blkstr,blocks{i});
+            continue
         end
-        blkstr = sprintf(['%s%d:%s\t%s at %s\n', ...
+        
+        if ~isempty(td.streams)
+            fn = fieldnames(td.streams);
+            nchans = length(td.streams.(fn{1}).chan);
+        elseif ~isempty(td.snips)
+            fn = fieldnames(td.snips);
+            nchans = length(td.snips.(fn{1}).chan);
+        else
+            nchans = 0;
+        end
+        blkstr = sprintf(['%s%s\t%s\n\t%s\n', ...
             '\tDURATION: %s\n', ...
-            '\tPROTOCOL: %s(%d)\n\t# CHANNELS: %d\n\n'], ...
-            blkstr,blkdata(i).id,blkdata(i).name,blkdata(i).date, ...
-            blkdata(i).begintime,blkdata(i).duration, ...
-            blkdata(i).protocolname,blkdata(i).protocol,nchans);
+            '\t# CHANNELS: %d\n\n'], ...
+            blkstr,blocks{i},td.info.date, ...
+           td.info.begintime,td.info.duration,nchans);
     end
 end
 blkstr = sprintf('TANK: %s\n-------\n%s',evnt.ActTank,blkstr);
 set(h.block_info,'String',blkstr,'HorizontalAlignment','left', ...
     'Enable','inactive');
-set(gcf,'Pointer','arrow');
+set(h.EPhysController,'Pointer','arrow');
 
 h.ActTank= evnt.ActTank;
 guidata(h.EPhysController,h);
 
 ChkReady(h);
 
-
+fprintf(' done\n')
 
 
 
@@ -358,14 +358,10 @@ for i = 1:length(mods)
     if G_DA.GetTargetType(sprintf('%s.ZBUSB_OFF',mods{i}))
         G_FLAGS.ZBUSB_OFF   = sprintf('%s.ZBUSB_OFF',mods{i});
     end
-%     if G_DA.GetTargetType(sprintf('%s.ZBUSB',mods{i}))
-%         G_FLAGS.ZBUSB       = sprintf('%s.ZBUSB',mods{i});
-%     end
-    
+   
 end
 
 w = [];
-% if isempty(G_FLAGS.ZBUSB) && ~isempty(G_FLAGS.ZBUSB_ON), w{end+1} = 'ZBUSB';      end
 if isempty(G_FLAGS.ZBUSB_ON),  w{end+1} = 'ZBUSB_ON';   end
 if ~isempty(G_FLAGS.ZBUSB_ON) && isempty(G_FLAGS.ZBUSB_OFF), w{end+1} = 'ZBUSB_OFF';  end
 if isempty(G_FLAGS.trigstate), w{end+1} = '~TrigState'; end
@@ -380,7 +376,6 @@ G_COMPILED.tidx = G_COMPILED.tidx + 1;
 
 % Set monitor channel
 monitor_channel_Callback(h.monitor_channel, [], h);
-
 
 % figure out first timer period
 t = hat;
@@ -403,8 +398,6 @@ T = timer(                                   ...
 
 if strcmp(get(hObj,'String'),'Record')
     % Begin recording
-    G_DA.SetSysMode(1); % Should go to Idle and then Record
-    pause(1);
     G_DA.SetSysMode(3); % Record
     fprintf('Recording session begun at %s\n',datestr(now,'HH:MM:SS PM'))
     ht = G_DA.GetTankName;
@@ -703,7 +696,6 @@ else
     a = min(Opts.ISI);  b = max(Opts.ISI);
     i = (a + (b - a) * rand);
 end
-
 i = fix(i) / 1000; % round to nearest millisecond
 
 
@@ -739,3 +731,23 @@ if ~isfield(h,'progbar') || ~ishandle(h.progbar)
 end
 
 set(h.progbar,'xdata',[0 v]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
