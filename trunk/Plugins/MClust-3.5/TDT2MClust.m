@@ -25,6 +25,11 @@ elseif isnumeric(blocks)
         blocks{i} = sprintf('Block-%d',nblocks(i));
     end
 end
+% make sure blocks are in ascending order
+bidx = cellfun(@(x) str2num(x(find(x=='-',1,'last')+1:end)),blocks); %#ok<ST2NM>
+[~,i] = sort(bidx);
+blocks = blocks(i);
+
 nblocks = cellfun(@(x) str2num(x(find(x=='-',1,'last')+1:end)),blocks); %#ok<ST2NM>
 
 if nargin < 4 || ~exist('targdir','var') || isempty(targdir)
@@ -54,7 +59,9 @@ for i = 1:length(data)
             spikes(c).index             = []; %#ok<AGROW>
             spikes(c).channel           = c; %#ok<AGROW>
         end
-            
+        
+        if isempty(data(i).snips), continue; end
+        
         cind = data(i).snips.(SNIP).chan == c;
         n  = sum(cind);
         ts = data(i).snips.(SNIP).ts(cind);
@@ -87,6 +94,7 @@ for i = 1:length(spikes)
     data.tank = tank;
     data.SnipName = SNIP;
     bstr = num2str(data.validblocks,'%d-'); bstr(end) = [];
+    bstr(bstr == ' ') = [];
     fn = sprintf('%s_[%s]-%d.dat',tank,bstr,data.channel);
     fprintf('\tSaving: ''%s''\t% 8.0f spikes\t...',fn,length(data.spiketimes))
     save(fullfile(targdir,fn),'data','-mat');

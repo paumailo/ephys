@@ -110,6 +110,7 @@ set(h.figure1,'Name',sprintf('Pooling: %s | %s %s (%d of %d)', ...
 
 PlotClasses(h);
 PlotPCA(h);
+PlotTime(h);
 PlotPools(h);
 UpdateClassInfo(h);
 a = get(h.panel_analytics,'Children');
@@ -438,6 +439,7 @@ close(f);
 PlotClasses(h);
 UpdateClassInfo(h);
 PlotPCA(h);
+PlotTime(h);
 set(h.figure1,'Pointer','arrow');
 
 function PlotPools(h)
@@ -678,6 +680,39 @@ iexpvar = lat(1:3)/sum(lat) * 100;
 set(h.panel_pca,'Title',sprintf('PCA (%0.1f%% of variance explained [%0.0f%% | %0.0f%% | %0.0f%%])', ...
     expvar,iexpvar));
 
+
+function PlotTime(h)
+C = h.CLASSLIST;
+uc = h.UCLASSES;
+colors = hsv(length(h.UCLASSES));
+
+suc = GetSelectedUnitClasses(h);
+
+% Plot time panel
+ax = findobj(h.figure1,'tag','timeaxis');
+if isempty(ax)
+    ax = axes('Parent',h.panel_time,'tag','timeaxis');
+end
+cla(ax)
+hold(ax,'on')
+ind = ~ismember(C(2,:),suc);
+if ~all(ind)
+    plot(ax,h.PCA.scores(ind,1),h.TS_UNWRAPPED(ind)/60,'s', ...
+        'color',[0.8 0.8 0.8],'markersize',1);
+else
+    suc = uc;
+end
+for i = suc
+    ind = C(2,:) == i;
+    c = colors(uc==i,:);
+    plot(ax,h.PCA.scores(ind,1),h.TS_UNWRAPPED(ind)/60,'*', ...
+        'color',c,'markersize',4);
+end
+hold(ax,'off')
+axis(ax,'tight');
+xlabel('PC1'); ylabel('time (m)');
+box(ax,'on');
+
 function PlotAnalytics(h,results)
 % following a call to to ComputeAnalytics
 delete(get(h.panel_analytics,'Children'));
@@ -727,11 +762,7 @@ xlim(ax,[min(AUTOCORR.lags) max(AUTOCORR.lags)]);
 ylim(ax,[0 max(ylim(ax))]);
 set(ax,'XTick',[]);
 
-axc = get(h.panel_classes,'Children');
-um  = cell2mat(get(axc,'UIContextMenu'));
-umc = findall(um,'Tag','Select_Class','Checked','on');
-suc = get(umc,'UserData');
-if iscell(suc), suc = cell2mat(suc); end
+suc = GetSelectedUnitClasses(h);
 
 ax = subplot(1,4,3);
 cla(ax)
@@ -744,7 +775,9 @@ end
 axis tight
 box on
 hold(ax,'off')
-set(ax,'ylim',[min(ylim) 0],'XTick',[]);
+y = min(ylim);
+if y >= 0, y = -1; end
+set(ax,'ylim',[y 0],'XTick',[]);
 
 ax = subplot(1,4,4);
 % bar(ax,TIMESEQUENCE.bins,TIMESEQUENCE.firingrate,'BarWidth',1,'EdgeColor','none');
@@ -766,7 +799,7 @@ for i = 1:length(suc)
 
     switch op
         case 'lines'
-            % if lots of spikes, then just display a random sampling
+            % if lots of spikes, then just display a random subsample
             if sum(ind) > 1000, ind = find(ind); ind = ind(randperm(1000)); end
             plot(ax,1:size(W,2),W(ind,:)','Color',colors(uc==suc(i),:))
         case 'bands'
@@ -781,6 +814,9 @@ hold(ax,'off');
 box(ax,'on');
 xlim(ax,[1 size(W,2)]);
 % ylim(ax,[-maxV maxV]);
+
+
+
 
 function ChangePlotOrder(hObj,evnt,hl,ax) %#ok<INUSL>
 c = get(ax,'Children');
@@ -820,7 +856,14 @@ set(ax,'Children',t);
 
 
 
-
+%% Helpers
+function suc = GetSelectedUnitClasses(h)
+axc = get(h.panel_classes,'Children');
+um  = cell2mat(get(axc,'UIContextMenu'));
+umc = findall(um,'Tag','Select_Class','Checked','on');
+suc = get(umc,'UserData');
+if iscell(suc), suc = cell2mat(suc); end
+suc = suc(:)';
 
 
 
@@ -961,6 +1004,7 @@ end
 
 % replot based on selections
 PlotPCA(h);
+PlotTime(h);
 
 timestamps = cell(size(selclass));
 for i = 1:length(selclass)
