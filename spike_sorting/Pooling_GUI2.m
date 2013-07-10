@@ -133,7 +133,7 @@ set(h.figure1,'Pointer','arrow');
 
 function t = ChooseClassedData
 % returns tank directory
-h = guidata(gcf);
+h = guidata(gcf); %#ok<NASGU>
 
 % d = GetRegKey(h.regKey,'acdir');
 d = getpref('Pooling_GUI2','acdir',[]);
@@ -323,7 +323,8 @@ ncols = ceil(length(uc) / nrows);
 if nrows < 2, nrows = 2; end
 
 % scale together by maximum absolute voltage
-maxV  = max(max(abs(W)));
+maxV = max(abs(W),[],2);
+maxV = quantile(maxV,0.999);
 
 delete(get(h.panel_classes,'Children'));
 
@@ -386,20 +387,22 @@ h = guidata(hObj);
 W  = h.WAVEFORMS;
 C  = h.CLASSLIST;
 uc = h.UCLASSES;
-colors = hsv(length(h.UCLASSES));
+% colors = hsv(length(h.UCLASSES));
 
 ind = C(2,:) == cid;
 orind = find(ind);
 sW = W(ind,:);
 
-uid = uc == cid;
+% uid = uc == cid;
 
 f = figure('Name',sprintf('Class ID: %d | %d spikes',cid,sum(ind)));
 
 ax = axes('Parent',f,'XGrid','on','YGrid','on','XTickLabel',[]);
 
 hl = line(repmat((1:size(sW,2))',1,size(sW,1)),sW', ...
-    'Parent',ax,'Color',colors(uid,:));
+    'Parent',ax);
+% hl = line(repmat((1:size(sW,2))',1,size(sW,1)),sW', ...
+%     'Parent',ax,'Color',colors(uid,:));
 
 maxV = max(max(abs(sW)));
 ylim(ax,[-maxV maxV]); xlim(ax,[1 size(sW,2)]);
@@ -460,7 +463,8 @@ delete(get(h.panel_pools,'Children'));
 if isempty(P), return; end
 
 ind = ismember(P,up);
-maxV = max(max(abs(W(ind,:))));
+maxV = max(abs(W(ind,:)),[],2);
+maxV = quantile(maxV,0.9999);
 
 if length(up) < 3, ncol = 3; else ncol = length(up); end
 
@@ -471,7 +475,7 @@ for i = 1:length(up)
     nc = sum(ind);
     switch opt
         case 'lines'
-            % if lots of lines, then just display a random sampling
+            % if lots of lines, then just display a random subsample
             if nc > 1000, ind = find(ind); ind = ind(randperm(1000)); end
             plot(ax,1:size(W,2),W(ind,:)','Color',colors(i,:))    
             
@@ -613,28 +617,31 @@ elseif is2d
     for i = 1:length(uc)
         if isempty(hlclass)
             c = colors(i,:);
+            mrk = '*'; msz = 3;
         elseif any(uc(i) == hlclass)
             c = colors(i,:);
+            mrk = '*'; msz = 3;
         else
             c = [0.8 0.8 0.8];
+            mrk = 's'; msz = 1;
         end
         
         ind = C(2,:) == uc(i);
         
         plot(PCAx(ind),PCAy(ind), ...
-            's','MarkerEdgeColor',c, ...
-            'MarkerFaceColor',c,'MarkerSize',2,'Parent',subax(1))
+            mrk,'MarkerEdgeColor',c, ...
+            'MarkerFaceColor',c,'MarkerSize',msz,'Parent',subax(1))
         
         plot(PCAx(ind),PCAz(ind), ...
-            's','MarkerEdgeColor',c, ...
-            'MarkerFaceColor',c,'MarkerSize',2,'Parent',subax(2))
+            mrk,'MarkerEdgeColor',c, ...
+            'MarkerFaceColor',c,'MarkerSize',msz,'Parent',subax(2))
         
         plot(PCAy(ind),PCAz(ind), ...
-            's','MarkerEdgeColor',c, ...
-            'MarkerFaceColor',c,'MarkerSize',2,'Parent',subax(3))
+            mrk,'MarkerEdgeColor',c, ...
+            'MarkerFaceColor',c,'MarkerSize',msz,'Parent',subax(3))
     end
     
-    q = quantile([PCAx PCAy PCAz],[.001 .999]);
+    q = quantile([PCAx PCAy PCAz],[1e-5 1-1e-5]);
     for i = 1:3, hold(subax(i),'off'); end
     if ~all(q)
         q(:,~all(q)) = [-0.1e-4 0.1e-4]; % catch for 0 scales
