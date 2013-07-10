@@ -39,19 +39,20 @@ for iF = 1:length(thisdirfiles)
 end
 
 if CheckSubdirs
-   subdirs = dir;
-   for iD = 1:length(dir)
-      if subdirs(iD).isdir & ...
-            strcmp(subdirs(iD).name,'.')==0 & ...       % is not .
-            strcmp(subdirs(iD).name,'..')==0            % is not ..      
-         pushdir;
-         cd(subdirs(iD).name)
-         % disp(['FindFiles: searching "',subdirs(iD).name,'".']);
-         subfns = FindFiles(globfn);
-         popdir;
-         fns = [fns; subfns];
-      end
-   end
+    subdirs = dir;
+    ind = [subdirs.isdir] & ~ismember({subdirs.name},{'.','..'});
+    subdirs(~ind) = [];
+    for iD = 1:length(subdirs)
+        %       if subdirs(iD).isdir & ...
+        %             strcmp(subdirs(iD).name,'.')==0 & ...       % is not .
+        %             strcmp(subdirs(iD).name,'..')==0            % is not ..
+        pushdir;
+        cd(subdirs(iD).name)
+        % disp(['FindFiles: searching "',subdirs(iD).name,'".']);
+        subfns = FindFiles(globfn);
+        popdir;
+        fns = [fns; subfns];
+    end
 end
 
 popdir;

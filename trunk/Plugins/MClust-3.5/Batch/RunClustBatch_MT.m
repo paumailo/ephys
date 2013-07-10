@@ -403,6 +403,8 @@ if strcmp(Do_AutoClust,'yes')
             end
             pause(1)
         end
+        % close any cmd.exe windows which have completed running Autoclass.exe
+        [~,b] = dos('taskkill /fi "WINDOWTITLE eq Administrator: C:\Windows\SYSTEM32\cmd.exe"');
         % ****************************
         
         CurrTime = datestr(now);
@@ -476,11 +478,16 @@ if strcmp(Do_AutoClust,'yes')
 end %if
 disp(' ')
 
+% Wait until all threads of KlustaKwik are finished
 numthreads = 1;
 while numthreads
     [~,b] = dos('tasklist /fi "IMAGENAME eq KlustaKwik-1_7.exe"');
     numthreads = length(strfind(b,'KlustaKwik-1_7'));
+    % close any cmd.exe windows which have completed running Autoclass.exe
+    [~,b] = dos('taskkill /fi "WINDOWTITLE eq Administrator: C:\Windows\SYSTEM32\cmd.exe"'); %#ok<NASGU>
+    pause(1)
 end
+
 
 disp(' ');
 disp('==================================================');

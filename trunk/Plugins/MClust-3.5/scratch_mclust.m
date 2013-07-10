@@ -22,15 +22,13 @@ for t = tanks
 end
 
 %% Run multithreaded version of batch processing
-RunClustBatch_MT('D:\DataProcessing\MClust\SENSATIONAL\BatchTDT.txt','NThreads',6,'ForceRun',true)
+RunClustBatch_MT('D:\DataProcessing\MClust\SENSATIONAL\BatchTDT.txt','NThreads',7,'ForceRun',true)
 % RunClustBatch_MT('D:\DataProcessing\MClust\BatchTDT-OneCh.txt','ForceRun',true)
 
 %% Run MClust on each channel to be sorted
 MClust;
 
 %% Update tank sort codes based on MClust results
-
-
 datfiles = dir('*.dat');
 ndatfiles = length(datfiles);
 fnames = {datfiles.name};
