@@ -1,0 +1,809 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of EPhysController</title>
+  <meta name="keywords" content="EPhysController">
+  <meta name="description" content="h = EPhysController">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">GUIs</a> &gt; <a href="index.html">Controller</a> &gt; EPhysController.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for GUIs\Controller&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>EPhysController
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>h = EPhysController</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function varargout = EPhysController(varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> h = EPhysController
+
+ Electrophysiology Control Panel.  Handles Matlab integration with TDT
+ OpenProject using OpenDeveloper ActiveX controls.
+ 
+ See also, ProtocolDesign, CalibrationUtil
+
+ DJS 2013</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="GetThresholds.html" class="code" title="function success = GetThresholds(DA)">GetThresholds</a>	success = GetThresholds(DA)</li><li><a href="SetThresholds.html" class="code" title="function hoops = SetThresholds(DA,fn)">SetThresholds</a>	hoops = SetThresholds(DA)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function EPhysController_OpeningFcn(hObj, ~, h, varargin)</a></li><li><a href="#_sub2" class="code">function varargout = EPhysController_OutputFcn(hObj, ~, h)</a></li><li><a href="#_sub3" class="code">function EPhysController_CloseRequestFcn(hObj, ~, h)</a></li><li><a href="#_sub4" class="code">function activex2_TankChanged(hObj, evnt, h)</a></li><li><a href="#_sub5" class="code">function protocol_list_Callback(hObj, ~, h)</a></li><li><a href="#_sub6" class="code">function protocol_locate_dir_Callback(hObj, ~, h)</a></li><li><a href="#_sub7" class="code">function protocol_move_up_Callback(hObj, ~, h)</a></li><li><a href="#_sub8" class="code">function protocol_move_down_Callback(hObj, ~, h)</a></li><li><a href="#_sub9" class="code">function control_record_Callback(hObj, ~, h)</a></li><li><a href="#_sub10" class="code">function control_pause_Callback(hObj, ~, h)</a></li><li><a href="#_sub11" class="code">function control_halt_Callback(hObj, ~, h)</a></li><li><a href="#_sub12" class="code">function monitor_channel_Callback(hObj, ~, h)</a></li><li><a href="#_sub13" class="code">function get_thresholds_Callback(hObj, ~, h)</a></li><li><a href="#_sub14" class="code">function ChkReady(h)</a></li><li><a href="#_sub15" class="code">function DAHalt(h,DA)</a></li><li><a href="#_sub16" class="code">function t = DATrigger(DA,trig_str)</a></li><li><a href="#_sub17" class="code">function t = DAZBUSBtrig(DA,flags)</a></li><li><a href="#_sub18" class="code">function protocol = InitParams(protocol)</a></li><li><a href="#_sub19" class="code">function RuntimeTimer(hObj,evnt)</a></li><li><a href="#_sub20" class="code">function i = ITI(Opts)</a></li><li><a href="#_sub21" class="code">function UpdateProgress(h,v,trem)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function varargout = EPhysController(varargin)</a>
+0002 <span class="comment">% h = EPhysController</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Electrophysiology Control Panel.  Handles Matlab integration with TDT</span>
+0005 <span class="comment">% OpenProject using OpenDeveloper ActiveX controls.</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% See also, ProtocolDesign, CalibrationUtil</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% DJS 2013</span>
+0010 
+0011 
+0012 <span class="comment">% Begin initialization code - DO NOT EDIT</span>
+0013 gui_Singleton = 1;
+0014 gui_State = struct(<span class="string">'gui_Name'</span>,       mfilename, <span class="keyword">...</span>
+0015                    <span class="string">'gui_Singleton'</span>,  gui_Singleton, <span class="keyword">...</span>
+0016                    <span class="string">'gui_OpeningFcn'</span>, @<a href="#_sub1" class="code" title="subfunction EPhysController_OpeningFcn(hObj, ~, h, varargin)">EPhysController_OpeningFcn</a>, <span class="keyword">...</span>
+0017                    <span class="string">'gui_OutputFcn'</span>,  @<a href="#_sub2" class="code" title="subfunction varargout = EPhysController_OutputFcn(hObj, ~, h)  ">EPhysController_OutputFcn</a>, <span class="keyword">...</span>
+0018                    <span class="string">'gui_LayoutFcn'</span>,  [] , <span class="keyword">...</span>
+0019                    <span class="string">'gui_Callback'</span>,   []);
+0020 <span class="keyword">if</span> nargin &amp;&amp; ischar(varargin{1})
+0021     gui_State.gui_Callback = str2func(varargin{1});
+0022 <span class="keyword">end</span>
+0023 
+0024 <span class="keyword">if</span> nargout
+0025     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+0026 <span class="keyword">else</span>
+0027     gui_mainfcn(gui_State, varargin{:});
+0028 <span class="keyword">end</span>
+0029 <span class="comment">% End initialization code - DO NOT EDIT</span>
+0030 
+0031 <span class="comment">% -- Executes just before ephyscontroller is made visible.</span>
+0032 <a name="_sub1" href="#_subfunctions" class="code">function EPhysController_OpeningFcn(hObj, ~, h, varargin)</a>
+0033 <span class="keyword">global</span> G_DA G_TT
+0034 
+0035 <span class="comment">% Choose default command line output for ephyscontroller</span>
+0036 h.output = hObj;
+0037 
+0038 <span class="comment">% Instantiate TDT ActiveX Controls</span>
+0039 <span class="keyword">if</span> ~isa(G_DA,<span class="string">'COM.TDevAcc_X'</span>), G_DA = TDT_SetupDA; <span class="keyword">end</span>
+0040 <span class="keyword">if</span> ~isa(G_TT,<span class="string">'COM.TTank_X'</span>),   G_TT = TDT_SetupTT; <span class="keyword">end</span>
+0041 
+0042 <span class="comment">% h.activex2 = actxcontrol('TTankInterfaces.TankSelect', ...</span>
+0043 <span class="comment">%     'parent',h.EPhysController,'position',[35 215 204 350]);</span>
+0044 
+0045 <span class="comment">% Update h structure</span>
+0046 guidata(hObj, h);
+0047 
+0048 <span class="comment">% --- Outputs from this function are returned to the command line.</span>
+0049 <a name="_sub2" href="#_subfunctions" class="code">function varargout = EPhysController_OutputFcn(hObj, ~, h)  </a><span class="comment">%#ok&lt;INUSL&gt;</span>
+0050 varargout{1} = h.output;
+0051 
+0052 <a name="_sub3" href="#_subfunctions" class="code">function EPhysController_CloseRequestFcn(hObj, ~, h) </a><span class="comment">%#ok&lt;INUSD,DEFNU&gt;</span>
+0053 <span class="keyword">global</span> G_DA G_TT
+0054 
+0055 <span class="keyword">if</span> isa(G_DA,<span class="string">'COM.TDevAcc_X'</span>)
+0056     G_DA.CloseConnection;
+0057     delete(G_DA);
+0058 <span class="keyword">end</span>
+0059 
+0060 <span class="keyword">if</span> isa(G_TT,<span class="string">'COM.TTank_X'</span>)
+0061     G_TT.CloseTank;
+0062     G_TT.ReleaseServer;
+0063     delete(G_TT);
+0064 <span class="keyword">end</span>
+0065 
+0066 clear <span class="keyword">global</span> G_DA G_TT
+0067 
+0068 <span class="comment">% find and close TDT background figures</span>
+0069 fh = findobj(<span class="string">'type'</span>,<span class="string">'figure'</span>,<span class="string">'-and'</span>,<span class="string">'name'</span>,<span class="string">'ODevFig'</span>,<span class="string">'-or'</span>,<span class="string">'name'</span>,<span class="string">'TTankFig'</span>);
+0070 close(fh);
+0071 
+0072 <span class="comment">% clear some leftover global variables</span>
+0073 clear <span class="keyword">global</span> G_COMPILED G_FLAGS G_PAUSE
+0074 
+0075 <span class="comment">% Hint: delete(hObj) closes the figure</span>
+0076 delete(hObj);
+0077 
+0078 
+0079 
+0080 
+0081 
+0082 
+0083 
+0084 
+0085 
+0086 
+0087 
+0088 
+0089 
+0090 
+0091 <span class="comment">%% Tanks</span>
+0092 <a name="_sub4" href="#_subfunctions" class="code">function activex2_TankChanged(hObj, evnt, h) </a><span class="comment">%#ok&lt;INUSL,DEFNU&gt;</span>
+0093 set(h.EPhysController,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); 
+0094 fprintf(<span class="string">'Collecting tank information, please wait ...'</span>)
+0095 drawnow
+0096 
+0097 <span class="keyword">try</span>
+0098     blocks = TDT2mat(evnt.ActTank);
+0099 <span class="keyword">catch</span> <span class="comment">%#ok&lt;CTCH&gt;</span>
+0100     fprintf(<span class="string">' *** UNABLE TO READ TANK ***\n'</span>)
+0101     blocks = [];
+0102 <span class="keyword">end</span>
+0103 
+0104 <span class="keyword">if</span> isempty(blocks)
+0105     blkstr = <span class="string">'NO BLOCKS'</span>;
+0106 <span class="keyword">else</span>
+0107     blkstr = <span class="string">''</span>;
+0108     <span class="keyword">for</span> i = 1:length(blocks)
+0109         <span class="keyword">try</span>
+0110             td = TDT2mat(evnt.ActTank,blocks{i},<span class="string">'type'</span>,2,<span class="string">'silent'</span>,true);
+0111         <span class="keyword">catch</span> <span class="comment">%#ok&lt;CTCH&gt;</span>
+0112             blkstr = sprintf(<span class="string">'%s%s\t&lt;- CAN''T READ BLOCK\n'</span>,blkstr,blocks{i});
+0113             <span class="keyword">continue</span>
+0114         <span class="keyword">end</span>
+0115         
+0116         <span class="keyword">if</span> ~isempty(td.streams)
+0117             fn = fieldnames(td.streams);
+0118             nchans = length(td.streams.(fn{1}).chan);
+0119         <span class="keyword">elseif</span> ~isempty(td.snips)
+0120             fn = fieldnames(td.snips);
+0121             nchans = length(td.snips.(fn{1}).chan);
+0122         <span class="keyword">else</span>
+0123             nchans = 0;
+0124         <span class="keyword">end</span>
+0125         blkstr = sprintf([<span class="string">'%s%s\t%s\n\t%s\n'</span>, <span class="keyword">...</span>
+0126             <span class="string">'\tDURATION: %s\n'</span>, <span class="keyword">...</span>
+0127             <span class="string">'\t# CHANNELS: %d\n\n'</span>], <span class="keyword">...</span>
+0128             blkstr,blocks{i},td.info.date, <span class="keyword">...</span>
+0129            td.info.begintime,td.info.duration,nchans);
+0130     <span class="keyword">end</span>
+0131 <span class="keyword">end</span>
+0132 blkstr = sprintf(<span class="string">'TANK: %s\n-------\n%s'</span>,evnt.ActTank,blkstr);
+0133 set(h.block_info,<span class="string">'String'</span>,blkstr,<span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>, <span class="keyword">...</span>
+0134     <span class="string">'Enable'</span>,<span class="string">'inactive'</span>);
+0135 set(h.EPhysController,<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);
+0136 
+0137 h.ActTank= evnt.ActTank;
+0138 guidata(h.EPhysController,h);
+0139 
+0140 <a href="#_sub14" class="code" title="subfunction ChkReady(h)">ChkReady</a>(h);
+0141 
+0142 fprintf(<span class="string">' done\n'</span>)
+0143 
+0144 
+0145 
+0146 
+0147 
+0148 
+0149 
+0150 
+0151 
+0152 
+0153 
+0154 
+0155 
+0156 
+0157 <span class="comment">%% Protocol List</span>
+0158 <a name="_sub5" href="#_subfunctions" class="code">function protocol_list_Callback(hObj, ~, h)</a>
+0159 pinfo = get(hObj,<span class="string">'UserData'</span>); <span class="comment">% originally set by call to locate_protocol_dir_Calback</span>
+0160 i = get(hObj,<span class="string">'value'</span>);
+0161 <span class="keyword">if</span> isempty(i), <span class="keyword">return</span>; <span class="keyword">end</span>
+0162 
+0163 load(fullfile(pinfo.dir,[pinfo.name{i} <span class="string">'.prot'</span>]),<span class="string">'-mat'</span>)
+0164 
+0165 set(h.protocol_info,<span class="string">'String'</span>,protocol.INFO);
+0166 
+0167 h.PROTOCOL = protocol;
+0168 
+0169 guidata(h.EPhysController,h);
+0170 
+0171 <a href="#_sub14" class="code" title="subfunction ChkReady(h)">ChkReady</a>(h);
+0172 
+0173 <a name="_sub6" href="#_subfunctions" class="code">function protocol_locate_dir_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;DEFNU,INUSL&gt;</span>
+0174 <span class="comment">% locate directory containing protocols</span>
+0175 dn = getpref(<span class="string">'EPHYS2'</span>,<span class="string">'ProtDir'</span>,cd);
+0176 <span class="keyword">if</span> ~ischar(dn), dn = cd; <span class="keyword">end</span>
+0177 dn = uigetdir(dn,<span class="string">'Locate Protocol Directory'</span>);
+0178 
+0179 <span class="keyword">if</span> ~dn, <span class="keyword">return</span>; <span class="keyword">end</span>
+0180 
+0181 p = dir([dn,<span class="string">'\*.prot'</span>]);
+0182 
+0183 <span class="keyword">if</span> isempty(p)
+0184     warndlg(<span class="string">'No protocols were found in the selected directory.'</span>, <span class="keyword">...</span>
+0185         <span class="string">'Locate Protocols'</span>);
+0186     <span class="keyword">return</span>
+0187 <span class="keyword">end</span>
+0188 
+0189 pn = cell(size(p));
+0190 <span class="keyword">for</span> i = 1:length(p)
+0191      [~,pn{i}] = fileparts(p(i).name);
+0192 <span class="keyword">end</span>
+0193 
+0194 pinfo.dir  = dn;
+0195 pinfo.name = pn;
+0196 pinfo.info = p;
+0197 
+0198 set(h.protocol_list,<span class="string">'String'</span>,pn,<span class="string">'Value'</span>,1,<span class="string">'UserData'</span>,pinfo);
+0199 
+0200 setpref(<span class="string">'EPHYS2'</span>,<span class="string">'ProtDir'</span>,dn);
+0201 
+0202 <a name="_sub7" href="#_subfunctions" class="code">function protocol_move_up_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;DEFNU,INUSL&gt;</span>
+0203 pinfo = get(h.protocol_list,<span class="string">'UserData'</span>);
+0204 <span class="keyword">if</span> isempty(pinfo) || length(pinfo.name) == 1, <span class="keyword">return</span>; <span class="keyword">end</span>
+0205 
+0206 ind = get(h.protocol_list,<span class="string">'Value'</span>);
+0207 <span class="keyword">if</span> ind == 1, <span class="keyword">return</span>; <span class="keyword">end</span>
+0208 
+0209 v = 1:length(pinfo.name);
+0210 v(ind-1) = ind;
+0211 v(ind) = ind - 1;
+0212 
+0213 pinfo.name = pinfo.name(v);
+0214 set(h.protocol_list,<span class="string">'String'</span>,pinfo.name,<span class="string">'UserData'</span>,pinfo);
+0215 <a href="#_sub5" class="code" title="subfunction protocol_list_Callback(hObj, ~, h)">protocol_list_Callback</a>(h.protocol_list, [], h);
+0216 
+0217 <a name="_sub8" href="#_subfunctions" class="code">function protocol_move_down_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;DEFNU,INUSL&gt;</span>
+0218 pinfo = get(h.protocol_list,<span class="string">'UserData'</span>);
+0219 <span class="keyword">if</span> isempty(pinfo) || length(pinfo.name) == 1, <span class="keyword">return</span>; <span class="keyword">end</span>
+0220 
+0221 ind = get(h.protocol_list,<span class="string">'Value'</span>);
+0222 <span class="keyword">if</span> ind == length(pinfo.name), <span class="keyword">return</span>; <span class="keyword">end</span>
+0223 
+0224 v = 1:length(pinfo.name);
+0225 v(ind+1) = ind;
+0226 v(ind) = ind + 1;
+0227 
+0228 pinfo.name = pinfo.name(v);
+0229 set(h.protocol_list,<span class="string">'String'</span>,pinfo.name,<span class="string">'UserData'</span>,pinfo);
+0230 <a href="#_sub5" class="code" title="subfunction protocol_list_Callback(hObj, ~, h)">protocol_list_Callback</a>(h.protocol_list, [], h);
+0231 
+0232 
+0233 
+0234 
+0235 
+0236 
+0237 
+0238 
+0239 
+0240 
+0241 
+0242 
+0243 
+0244 
+0245 
+0246 
+0247 
+0248 
+0249 
+0250 
+0251 
+0252 
+0253 
+0254 
+0255 
+0256 
+0257 
+0258 
+0259 
+0260 
+0261 
+0262 
+0263 
+0264 
+0265 
+0266 
+0267 
+0268 <span class="comment">%% Session Control</span>
+0269 <a name="_sub9" href="#_subfunctions" class="code">function control_record_Callback(hObj, ~, h) </a>
+0270 clear <span class="keyword">global</span> G_DA G_TT G_COMPILED
+0271 
+0272 <span class="keyword">global</span> G_DA G_COMPILED G_PAUSE G_FLAGS
+0273 
+0274 G_PAUSE = false;
+0275 
+0276 <span class="comment">% Select and load current protocol</span>
+0277 ind = get(h.protocol_list,<span class="string">'Value'</span>);
+0278 pinfo = get(h.protocol_list,<span class="string">'UserData'</span>);
+0279 <span class="keyword">if</span> isempty(pinfo)
+0280     errordlg(<span class="string">'No protocol selected.'</span>,<span class="string">'Record'</span>,<span class="string">'modal'</span>);
+0281     <span class="keyword">return</span>
+0282 <span class="keyword">end</span>
+0283 
+0284 <span class="comment">% Update control panel GUI</span>
+0285 set(hObj,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0286 set(h.control_pause,  <span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0287 set(h.control_preview,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0288 set(h.get_thresholds, <span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0289 set(h.control_halt,   <span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0290 ph = findobj(h.EPhysController,<span class="string">'-regexp'</span>,<span class="string">'tag'</span>,<span class="string">'protocol\w'</span>);
+0291 set(ph,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0292 set(h.EPhysController,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); drawnow
+0293 
+0294 <span class="comment">% load selected protocol file</span>
+0295 fprintf(<span class="string">'Loading Protocol file: %s\n'</span>,pinfo.name{ind})
+0296 load(fullfile(pinfo.dir,[pinfo.name{ind} <span class="string">'.prot'</span>]),<span class="string">'-mat'</span>)
+0297 
+0298 <span class="comment">% Check if protocol needs to be compiled before running</span>
+0299 <span class="keyword">if</span> protocol.OPTIONS.compile_at_runtime &amp;&amp; ~isequal(protocol.OPTIONS.trialfunc,<span class="string">'&lt; default &gt;'</span>)<span class="comment">%#ok&lt;NODEF&gt;</span>
+0300     protocol.COMPILED = feval(protocol.OPTIONS.trialfunc,G_DA,protocol,true);
+0301 <span class="keyword">elseif</span> protocol.OPTIONS.compile_at_runtime
+0302     <span class="comment">% Initialize parameters</span>
+0303     <span class="keyword">try</span>
+0304         protocol = <a href="#_sub18" class="code" title="subfunction protocol = InitParams(protocol)">InitParams</a>(protocol);
+0305     <span class="keyword">catch</span> ME
+0306         set(h.get_thresholds,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0307         set(h.control_halt,  <span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0308         rethrow(ME)
+0309     <span class="keyword">end</span>
+0310     [protocol,fail] = CompileProtocol(protocol);
+0311     <span class="keyword">if</span> fail
+0312         errordlg(sprintf(<span class="string">'Unable to compile protocol: %s'</span>,pinfo.name{ind}), <span class="keyword">...</span>
+0313             <span class="string">'Can''t Compile Protocol'</span>,<span class="string">'modal'</span>);
+0314         <span class="keyword">return</span>
+0315     <span class="keyword">end</span>
+0316 <span class="keyword">end</span>
+0317 
+0318 <span class="comment">% Copy COMPILED protocol to global variable (G_COMPILED)</span>
+0319 G_COMPILED = protocol.COMPILED;
+0320 
+0321 <span class="comment">% update progress bar</span>
+0322 trem = mean(protocol.COMPILED.OPTIONS.ISI)/1000 * size(protocol.COMPILED.trials,1);
+0323 <a href="#_sub21" class="code" title="subfunction UpdateProgress(h,v,trem)">UpdateProgress</a>(h,0,trem);
+0324 
+0325 <span class="comment">% Instantiate OpenDeveloper ActiveX control and select active tank</span>
+0326 <span class="keyword">if</span> ~isa(G_DA,<span class="string">'COM.TDevAcc_X'</span>), G_DA = TDT_SetupDA; <span class="keyword">end</span>
+0327 G_DA.SetTankName(h.ActTank);
+0328 
+0329 <span class="comment">% Prepare OpenWorkbench</span>
+0330 G_DA.SetSysMode(0); pause(0.5); <span class="comment">% Idle</span>
+0331 G_DA.SetSysMode(1); pause(0.5); <span class="comment">% Standby</span>
+0332 G_DA.SetSysMode(2); pause(0.5); <span class="comment">% Preview</span>
+0333 
+0334 <span class="comment">% Load and set thresholds (and filters)</span>
+0335 <a href="SetThresholds.html" class="code" title="function hoops = SetThresholds(DA,fn)">SetThresholds</a>(G_DA);
+0336 
+0337 <span class="comment">% If custom trial selection function is not specified, set to empty and use</span>
+0338 <span class="comment">% default trial selection function</span>
+0339 <span class="keyword">if</span> ~isfield(G_COMPILED,<span class="string">'trialfunc'</span>), G_COMPILED.OPTIONS.trialfunc = []; <span class="keyword">end</span>
+0340 
+0341 <span class="comment">% Find modules with requisite parameters</span>
+0342 mods = fieldnames(protocol.MODULES);
+0343 G_FLAGS = struct(<span class="string">'updated'</span>,[],<span class="string">'trigstate'</span>,[],<span class="string">'update'</span>,[],<span class="string">'ZBUSB_ON'</span>,[],<span class="string">'ZBUSB_OFF'</span>,[],<span class="string">'ZBUSB'</span>,[]);
+0344 <span class="keyword">for</span> i = 1:length(mods)
+0345     <span class="keyword">if</span> strcmp(mods{i}(1:3),<span class="string">'PA5'</span>), <span class="keyword">continue</span>; <span class="keyword">end</span>
+0346     <span class="keyword">if</span> G_DA.GetTargetType(sprintf(<span class="string">'%s.~Updated'</span>,mods{i}))
+0347         G_FLAGS.updated     = sprintf(<span class="string">'%s.~Updated'</span>,mods{i});
+0348     <span class="keyword">end</span>
+0349     <span class="keyword">if</span> G_DA.GetTargetType(sprintf(<span class="string">'%s.~TrigState'</span>,mods{i}))
+0350         G_FLAGS.trigstate   = sprintf(<span class="string">'%s.~TrigState'</span>,mods{i});
+0351     <span class="keyword">end</span>
+0352     <span class="keyword">if</span> G_DA.GetTargetType(sprintf(<span class="string">'%s.~Update'</span>,mods{i}))
+0353         G_FLAGS.update      = sprintf(<span class="string">'%s.~Update'</span>,mods{i});
+0354     <span class="keyword">end</span>
+0355     <span class="keyword">if</span> G_DA.GetTargetType(sprintf(<span class="string">'%s.ZBUSB_ON'</span>,mods{i}))
+0356         G_FLAGS.ZBUSB_ON    = sprintf(<span class="string">'%s.ZBUSB_ON'</span>,mods{i});
+0357     <span class="keyword">end</span>
+0358     <span class="keyword">if</span> G_DA.GetTargetType(sprintf(<span class="string">'%s.ZBUSB_OFF'</span>,mods{i}))
+0359         G_FLAGS.ZBUSB_OFF   = sprintf(<span class="string">'%s.ZBUSB_OFF'</span>,mods{i});
+0360     <span class="keyword">end</span>
+0361    
+0362 <span class="keyword">end</span>
+0363 
+0364 w = [];
+0365 <span class="keyword">if</span> isempty(G_FLAGS.ZBUSB_ON),  w{end+1} = <span class="string">'ZBUSB_ON'</span>;   <span class="keyword">end</span>
+0366 <span class="keyword">if</span> ~isempty(G_FLAGS.ZBUSB_ON) &amp;&amp; isempty(G_FLAGS.ZBUSB_OFF), w{end+1} = <span class="string">'ZBUSB_OFF'</span>;  <span class="keyword">end</span>
+0367 <span class="keyword">if</span> isempty(G_FLAGS.trigstate), w{end+1} = <span class="string">'~TrigState'</span>; <span class="keyword">end</span>
+0368 <span class="keyword">for</span> i = 1:length(w)
+0369     fprintf(<span class="string">'WARNING: ''%s'' was not discovered on any module\n'</span>,w{i})
+0370 <span class="keyword">end</span>
+0371 
+0372 <span class="comment">% Set first trial parameters</span>
+0373 G_COMPILED.tidx = 1;
+0374 DAUpdateParams(G_DA,G_COMPILED);
+0375 G_COMPILED.tidx = G_COMPILED.tidx + 1;
+0376 
+0377 <span class="comment">% Set monitor channel</span>
+0378 <a href="#_sub12" class="code" title="subfunction monitor_channel_Callback(hObj, ~, h) ">monitor_channel_Callback</a>(h.monitor_channel, [], h);
+0379 
+0380 <span class="comment">% figure out first timer period</span>
+0381 t = hat;
+0382 per = t + <a href="#_sub20" class="code" title="subfunction i = ITI(Opts)">ITI</a>(G_COMPILED.OPTIONS);
+0383 
+0384 <span class="comment">% Create new timer to control experiment</span>
+0385 T = timerfind(<span class="string">'Name'</span>,<span class="string">'EPhysTimer'</span>);
+0386 <span class="keyword">if</span> ~isempty(T), stop(T); delete(T); <span class="keyword">end</span>
+0387 T = timer(                                   <span class="keyword">...</span>
+0388     <span class="string">'BusyMode'</span>,     <span class="string">'queue'</span>,                 <span class="keyword">...</span>
+0389     <span class="string">'ExecutionMode'</span>,<span class="string">'fixedRate'</span>,             <span class="keyword">...</span>
+0390     <span class="string">'TasksToExecute'</span>,inf,                    <span class="keyword">...</span>
+0391     <span class="string">'Period'</span>,        0.01,                   <span class="keyword">...</span>
+0392     <span class="string">'Name'</span>,         <span class="string">'EPhysTimer'</span>,            <span class="keyword">...</span>
+0393     <span class="string">'TimerFcn'</span>,     {@<a href="#_sub19" class="code" title="subfunction RuntimeTimer(hObj,evnt)  ">RuntimeTimer</a>},  <span class="keyword">...</span>
+0394     <span class="string">'StartDelay'</span>,   1,                       <span class="keyword">...</span>
+0395     <span class="string">'UserData'</span>,     {h.EPhysController t per});
+0396 <span class="comment">% 'ErrorFcn',{@StartTrialError,G_DA}, ...</span>
+0397 
+0398 
+0399 <span class="keyword">if</span> strcmp(get(hObj,<span class="string">'String'</span>),<span class="string">'Record'</span>)
+0400     <span class="comment">% Begin recording</span>
+0401     G_DA.SetSysMode(3); <span class="comment">% Record</span>
+0402     fprintf(<span class="string">'Recording session begun at %s\n'</span>,datestr(now,<span class="string">'HH:MM:SS PM'</span>))
+0403     ht = G_DA.GetTankName;
+0404     [TT,~,TDTfig] = TDT_SetupTT;
+0405     TT.OpenTank(ht,<span class="string">'R'</span>);
+0406     hb = TT.GetHotBlock;
+0407     TT.CloseTank;
+0408     TT.ReleaseServer;
+0409     delete(TT);
+0410     close(TDTfig);
+0411     fprintf(<span class="string">'\tTank: ''%s''\n\tBlock: ''%s''\n'</span>,ht,hb)
+0412 <span class="keyword">else</span>
+0413     G_DA.SetSysMode(2); <span class="comment">% Preview</span>
+0414     fprintf(<span class="string">'* Previewing data ... data is not being recorded to tank *\n'</span>)
+0415 <span class="keyword">end</span>
+0416 
+0417 <span class="comment">% Start timer</span>
+0418 start(T);
+0419 
+0420 set(h.control_pause,  <span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0421 set(h.EPhysController,<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>); drawnow
+0422 
+0423 
+0424 <a name="_sub10" href="#_subfunctions" class="code">function control_pause_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;INUSD,DEFNU&gt;</span>
+0425 <span class="keyword">global</span> G_PAUSE
+0426 
+0427 <span class="keyword">if</span> isempty(G_PAUSE) || ~G_PAUSE, G_PAUSE = true; <span class="keyword">end</span>
+0428 
+0429 <span class="keyword">if</span> G_PAUSE
+0430     h = msgbox(<span class="string">'PAUSED  Click ''OK'' to resume.'</span>,<span class="string">'Paused'</span>,<span class="string">'warn'</span>,<span class="string">'modal'</span>);
+0431     uiwait(h);
+0432     G_PAUSE = false;
+0433 <span class="keyword">end</span>
+0434 
+0435 <a name="_sub11" href="#_subfunctions" class="code">function control_halt_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;INUSL,DEFNU&gt;</span>
+0436 <span class="keyword">global</span> G_DA
+0437 
+0438 r = questdlg(<span class="string">'Are you sure you would like to end this recording session early?'</span>, <span class="keyword">...</span>
+0439     <span class="string">'HALT'</span>,<span class="string">'Halt'</span>,<span class="string">'Cancel'</span>,<span class="string">'Cancel'</span>);
+0440 <span class="keyword">if</span> strcmp(r,<span class="string">'Cancel'</span>), <span class="keyword">return</span>; <span class="keyword">end</span>
+0441 <a href="#_sub15" class="code" title="subfunction DAHalt(h,DA)">DAHalt</a>(h,G_DA);
+0442 
+0443 <a name="_sub12" href="#_subfunctions" class="code">function monitor_channel_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;INUSD&gt;</span>
+0444 <span class="keyword">global</span> G_DA
+0445 <span class="keyword">if</span> ~isa(G_DA,<span class="string">'COM.TDevAcc_X'</span>), G_DA = TDT_SetupDA; <span class="keyword">end</span>
+0446 
+0447 state = G_DA.GetSysMode;
+0448 <span class="keyword">if</span> state &lt; 2, <span class="keyword">return</span>; <span class="keyword">end</span>
+0449 
+0450 ch = str2num(get(hObj,<span class="string">'String'</span>)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0451 G_DA.SetTargetVal(<span class="string">'Acq.monitor_ch'</span>,ch);
+0452 
+0453 <a name="_sub13" href="#_subfunctions" class="code">function get_thresholds_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0454 <span class="keyword">global</span> G_DA
+0455 <span class="keyword">if</span> ~isa(G_DA,<span class="string">'COM.TDevAcc_X'</span>), G_DA = TDT_SetupDA; <span class="keyword">end</span>
+0456 
+0457 set(hObj,<span class="string">'String'</span>,<span class="string">'Wait...'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>); drawnow
+0458 
+0459 <span class="comment">% Attempt to retrieve voltage thresholds for online spike detection</span>
+0460 <span class="keyword">if</span> <a href="GetThresholds.html" class="code" title="function success = GetThresholds(DA)">GetThresholds</a>(G_DA)
+0461     <span class="comment">%hoops saved successfully</span>
+0462     set(hObj,<span class="string">'BackgroundColor'</span>,<span class="string">'green'</span>);
+0463 <span class="keyword">else</span>
+0464     <span class="comment">%error</span>
+0465     set(hObj,<span class="string">'BackgroundColor'</span>,<span class="string">'red'</span>);
+0466     errordlg(<span class="string">'Unable to retrieve threshold data from OpenEx!'</span>);
+0467 <span class="keyword">end</span>
+0468 
+0469 set(hObj,<span class="string">'String'</span>,<span class="string">'Get Thresholds'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>)
+0470 
+0471 <a href="#_sub14" class="code" title="subfunction ChkReady(h)">ChkReady</a>(h);
+0472 
+0473 <a name="_sub14" href="#_subfunctions" class="code">function ChkReady(h)</a>
+0474 <span class="comment">% Check if protocol is set and tank is selected</span>
+0475 <span class="keyword">if</span> isfield(h,<span class="string">'PROTOCOL'</span>) &amp;&amp; isfield(h,<span class="string">'ActTank'</span>)
+0476     set(h.control_record, <span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0477     set(h.control_preview,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0478 <span class="keyword">else</span>
+0479     set(h.control_record, <span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0480     set(h.control_preview,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0481 <span class="keyword">end</span>
+0482     
+0483 
+0484 
+0485 
+0486 
+0487 
+0488 
+0489 
+0490 
+0491 
+0492 
+0493 
+0494 
+0495 
+0496 
+0497 
+0498 
+0499 
+0500 
+0501 
+0502 
+0503 
+0504 
+0505 
+0506 <span class="comment">%% DA Open Developer Functions</span>
+0507 <a name="_sub15" href="#_subfunctions" class="code">function DAHalt(h,DA)</a>
+0508 <span class="comment">% Stop recording and update GUI</span>
+0509 set(h.get_thresholds, <span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0510 set(h.control_record, <span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0511 set(h.control_preview,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0512 set(h.control_pause,  <span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0513 set(h.control_halt,   <span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0514 ph = findobj(h.EPhysController,<span class="string">'-regexp'</span>,<span class="string">'tag'</span>,<span class="string">'protocol\w'</span>);
+0515 set(ph,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0516 
+0517 <span class="keyword">if</span> ~isa(DA,<span class="string">'COM.TDevAcc_X'</span>), DA = TDT_SetupDA; <span class="keyword">end</span>
+0518 
+0519 DA.SetSysMode(0); <span class="comment">% Halt system</span>
+0520 
+0521 <span class="comment">% Stop the timer</span>
+0522 T = timerfind(<span class="string">'Name'</span>,<span class="string">'EPhysTimer'</span>);
+0523 <span class="keyword">if</span> ~isempty(T)
+0524     stop(T);
+0525     <span class="keyword">try</span> delete(T); <span class="keyword">end</span> <span class="comment">%#ok&lt;TRYNC&gt;</span>
+0526 <span class="keyword">end</span>
+0527 
+0528 <a name="_sub16" href="#_subfunctions" class="code">function t = DATrigger(DA,trig_str)</a>
+0529 <span class="comment">% Trigger a trial during OpenEx session by setting a parameter tag called</span>
+0530 <span class="comment">% SoftTrg high for a brief period and then off.  The trig_str parameter</span>
+0531 <span class="comment">% should be linked to a constant logic (ConsL) component which should run</span>
+0532 <span class="comment">% through an rising edge detect (EdgeDetect) component.  There is no way to</span>
+0533 <span class="comment">% trigger using DevAcc.X control like with RPco.X SoftTrg component.</span>
+0534 DA.SetTargetVal(trig_str,1);
+0535 t = hat; <span class="comment">% start timer for next trial</span>
+0536 DA.SetTargetVal(trig_str,0);
+0537 
+0538 <a name="_sub17" href="#_subfunctions" class="code">function t = DAZBUSBtrig(DA,flags)</a>
+0539 <span class="comment">% This will trigger zBusB synchronously across modules</span>
+0540 <span class="comment">%   Note: Two ScriptTag components must be included in one of the RPvds</span>
+0541 <span class="comment">%   circuits.</span>
+0542 <span class="comment">%       The ZBUS_ON ScriptTag should have the following code:</span>
+0543 <span class="comment">%           Sub main</span>
+0544 <span class="comment">%               TDT.ZTrgOn(Asc(&quot;B&quot;))</span>
+0545 <span class="comment">%           End Sub</span>
+0546 <span class="comment">%</span>
+0547 <span class="comment">%       The ZBUS_OFF ScriptTag should have the following code:</span>
+0548 <span class="comment">%           Sub main</span>
+0549 <span class="comment">%               TDT.ZTrgOff(Asc(&quot;B&quot;))</span>
+0550 <span class="comment">%           End Sub</span>
+0551 
+0552 <span class="keyword">if</span> isempty(flags.ZBUSB_ON), t = hat; <span class="keyword">return</span>; <span class="keyword">end</span>
+0553 DA.SetTargetVal(flags.ZBUSB_ON,1);
+0554 t = hat; <span class="comment">% start timer for next trial</span>
+0555 DA.SetTargetVal(flags.ZBUSB_OFF,1);
+0556 
+0557 
+0558 
+0559 
+0560 <a name="_sub18" href="#_subfunctions" class="code">function protocol = InitParams(protocol)</a>
+0561 <span class="comment">% look for parameters starting with the $ flag.  These will be used at</span>
+0562 <span class="comment">% startup to launch an input dialog (inputdlg)</span>
+0563 <span class="comment">%</span>
+0564 <span class="comment">% Modify protocol values based on user-defined input</span>
+0565 
+0566 mods = protocol.MODULES;
+0567 fldn = fieldnames(mods);
+0568 
+0569 prompt = []; dftval = [];
+0570 <span class="keyword">for</span> i = 1:length(fldn)
+0571     dt = mods.(fldn{i}).data;
+0572     mtmp.(fldn{i}) = find(cell2mat(cellfun(@(x) x(1)==<span class="string">'$'</span>, dt(:,1), <span class="string">'UniformOutput'</span>,false)));
+0573     <span class="keyword">for</span> j = 1:length(mtmp.(fldn{i}))
+0574         prompt{end+1} = sprintf(<span class="string">'%s.%s'</span>,fldn{i},dt{mtmp.(fldn{i})(j),1}); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0575         dftval{end+1} = dt{mtmp.(fldn{i})(j),4}; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0576     <span class="keyword">end</span>
+0577 <span class="keyword">end</span>
+0578 <span class="keyword">if</span> isempty(prompt), <span class="keyword">return</span>; <span class="keyword">end</span>
+0579 
+0580 options.Resize = <span class="string">'on'</span>;
+0581 options.WindowStyle = <span class="string">'modal'</span>;
+0582 options.Interpreter = <span class="string">'none'</span>;
+0583 
+0584 resp = inputdlg(prompt,<span class="string">'Enter Values'</span>,1,dftval,options);
+0585 <span class="keyword">if</span> isempty(resp)
+0586     error(<span class="string">'Must specify value!'</span>)
+0587 <span class="keyword">end</span>
+0588 
+0589 <span class="keyword">for</span> i = 1:length(resp)
+0590     tk = tokenize(prompt{i},<span class="string">'.'</span>);
+0591     ind = strcmp(tk{2},mods.(tk{1}).data(:,1));
+0592     mods.(tk{1}).data(ind,4) = resp(i);
+0593 <span class="keyword">end</span>
+0594 protocol.MODULES = mods;
+0595 
+0596 
+0597 
+0598 
+0599 
+0600 
+0601 
+0602 
+0603 
+0604 
+0605 
+0606 <span class="comment">%% Timer</span>
+0607 <a name="_sub19" href="#_subfunctions" class="code">function RuntimeTimer(hObj,evnt)  </a><span class="comment">%#ok&lt;INUSD&gt;</span>
+0608 <span class="keyword">global</span> G_COMPILED G_DA G_FLAGS G_PAUSE
+0609 
+0610 <span class="keyword">if</span> G_PAUSE, <span class="keyword">return</span>; <span class="keyword">end</span>
+0611 
+0612 ud = get(hObj,<span class="string">'UserData'</span>);
+0613 <span class="comment">% ud{1} = figure handle; ud{2} = last trigger ; ud{3} = next trigger</span>
+0614 <span class="keyword">if</span> hat &lt; ud{3} - 0.025, <span class="keyword">return</span>; <span class="keyword">end</span>
+0615 
+0616 <span class="comment">% hold computer hostage for a few milliseconds until the next trigger time</span>
+0617 <span class="keyword">while</span> hat &lt; ud{3}; <span class="keyword">end</span>
+0618 
+0619 <span class="comment">% ZBus Trigger on modules</span>
+0620 ud{2} = <a href="#_sub17" class="code" title="subfunction t = DAZBUSBtrig(DA,flags)">DAZBUSBtrig</a>(G_DA,G_FLAGS);
+0621 <span class="comment">% fprintf('Trig Time Discrepancy = %0.5f\n',ud{2}-ud{3})</span>
+0622 
+0623 <span class="comment">% Figure out time of next trigger</span>
+0624 ud{3} = ud{2}+<a href="#_sub20" class="code" title="subfunction i = ITI(Opts)">ITI</a>(G_COMPILED.OPTIONS);
+0625 
+0626 set(hObj,<span class="string">'UserData'</span>,ud);
+0627 
+0628 <span class="comment">% retrieve up-to-date GUI object handles</span>
+0629 h = guidata(ud{1});
+0630 
+0631 <span class="comment">% make sure trigger is finished before updating parameters for next trial</span>
+0632 <span class="keyword">if</span> ~isempty(G_FLAGS.trigstate)
+0633     <span class="keyword">while</span> G_DA.GetTargetVal(G_FLAGS.trigstate), pause(0.005); <span class="keyword">end</span>
+0634 <span class="keyword">end</span>
+0635 
+0636 <span class="comment">% Check if session has been completed (or user has manually halted session)</span>
+0637 G_COMPILED.FINISHED = G_COMPILED.tidx &gt; size(G_COMPILED.trials,1) <span class="keyword">...</span>
+0638                       || G_DA.GetSysMode &lt; 2;
+0639 <span class="keyword">if</span> G_COMPILED.FINISHED
+0640     fprintf(<span class="string">'Finishing recording '</span>)
+0641     <span class="comment">% give some time before actually halting the recording</span>
+0642     <span class="keyword">for</span> i = 1:5, fprintf(<span class="string">'.'</span>); pause(1); <span class="keyword">end</span>
+0643     <a href="#_sub15" class="code" title="subfunction DAHalt(h,DA)">DAHalt</a>(h,G_DA);
+0644     fprintf(<span class="string">' done\n'</span>)
+0645     fprintf(<span class="string">'Presented %d trials.\nTime is now %s.\n\n'</span>,G_COMPILED.tidx-1, <span class="keyword">...</span>
+0646         datestr(now,<span class="string">'HH:MM:SS PM'</span>))
+0647     
+0648     idx = get(h.protocol_list,<span class="string">'Value'</span>);
+0649     v   = get(h.protocol_list,<span class="string">'String'</span>);
+0650     
+0651     <span class="comment">% the 'Fall Through' feature semi-automates the recording protocol</span>
+0652     <span class="keyword">if</span> get(h.fall_through_record,<span class="string">'Value'</span>) &amp;&amp; idx &lt; length(v)
+0653         r = questdlg(<span class="string">'Continue when ready'</span>,<span class="string">'Next Protocol'</span>,<span class="string">'Continue'</span>,<span class="string">'Cancel'</span>,<span class="string">'Continue'</span>);
+0654         <span class="keyword">if</span> strcmp(r,<span class="string">'Continue'</span>)
+0655             set(h.protocol_list,<span class="string">'Value'</span>,idx+1);
+0656             <a href="#_sub9" class="code" title="subfunction control_record_Callback(hObj, ~, h)">control_record_Callback</a>(h.control_record, [], h)
+0657         <span class="keyword">end</span>
+0658     <span class="keyword">end</span>
+0659     <span class="keyword">return</span>
+0660 <span class="keyword">end</span>
+0661 
+0662 <span class="comment">% Call user-defined trial select function</span>
+0663 <span class="keyword">if</span> isfield(G_COMPILED,<span class="string">'trialfunc'</span>)
+0664     G_COMPILED = feval(G_COMPILED.trialfunc,G_DA,G_COMPILED);
+0665 <span class="keyword">end</span>
+0666 
+0667 <span class="comment">% Update parameters</span>
+0668 DAUpdateParams(G_DA,G_COMPILED);
+0669 
+0670 <span class="comment">% Optional: Trigger '~Update' tag on module following DAUpdateParams</span>
+0671 <span class="comment">%     &gt; confirms to Stim module that parameters have been updated</span>
+0672 <span class="keyword">if</span> G_FLAGS.update, <a href="#_sub16" class="code" title="subfunction t = DATrigger(DA,trig_str)">DATrigger</a>(G_DA,G_FLAGS.update); <span class="keyword">end</span>
+0673 
+0674 <span class="comment">% Update progress bar</span>
+0675 trem = mean(G_COMPILED.OPTIONS.ISI)/1000 * (size(G_COMPILED.trials,1)-G_COMPILED.tidx);
+0676 <a href="#_sub21" class="code" title="subfunction UpdateProgress(h,v,trem)">UpdateProgress</a>(h,G_COMPILED.tidx/size(G_COMPILED.trials,1),trem);
+0677 
+0678 <span class="comment">% Increment trial index</span>
+0679 G_COMPILED.tidx = G_COMPILED.tidx + 1;
+0680 
+0681 
+0682 <a name="_sub20" href="#_subfunctions" class="code">function i = ITI(Opts)</a>
+0683 <span class="comment">% Genereate next inter-trigger-interval</span>
+0684 <span class="comment">% Set delay to next trigger (approximate)</span>
+0685 <span class="keyword">if</span> Opts.ISI == -1
+0686     <span class="comment">% ISI is specified by custom function (or not at all)</span>
+0687     <span class="keyword">if</span> ~isfield(Opts,<span class="string">'cISI'</span>) || isempty(Opts.cISI), <span class="keyword">return</span>; <span class="keyword">end</span>
+0688     i = Opts.cISI;
+0689     
+0690 <span class="keyword">elseif</span> length(Opts.ISI) == 1
+0691     <span class="comment">% static ISI</span>
+0692     i = Opts.ISI;
+0693     
+0694 <span class="keyword">else</span>
+0695     <span class="comment">% ISI is determined from a flat distribution between a and b</span>
+0696     a = min(Opts.ISI);  b = max(Opts.ISI);
+0697     i = (a + (b - a) * rand);
+0698 <span class="keyword">end</span>
+0699 i = fix(i) / 1000; <span class="comment">% round to nearest millisecond</span>
+0700 
+0701 
+0702 
+0703 
+0704 
+0705 
+0706 
+0707 
+0708 
+0709 
+0710 
+0711 
+0712 
+0713 
+0714 
+0715 
+0716 
+0717 
+0718 
+0719 
+0720 <span class="comment">%% GUI Functions</span>
+0721 <a name="_sub21" href="#_subfunctions" class="code">function UpdateProgress(h,v,trem)</a>
+0722 <span class="comment">% Update progress bar</span>
+0723 set(h.progress_status,<span class="string">'String'</span>, <span class="keyword">...</span>
+0724     sprintf(<span class="string">'Progress: %0.1f%% | Time Remaining: %0.1f min'</span>,v*100,trem/60));
+0725 
+0726 <span class="keyword">if</span> ~isfield(h,<span class="string">'progbar'</span>) || ~ishandle(h.progbar)
+0727     <span class="comment">% set handle to progress bar line object</span>
+0728     h.progbar = plot(h.progress_bar,[0 v],[0 0],<span class="string">'-r'</span>,<span class="string">'linewidth'</span>,15);
+0729     set(h.progress_bar,<span class="string">'xlim'</span>,[0 1],<span class="string">'ylim'</span>,[-0.9 1],<span class="string">'xtick'</span>,[],<span class="string">'ytick'</span>,[]);
+0730     guidata(h.EPhysController,h);
+0731 <span class="keyword">end</span>
+0732 
+0733 set(h.progbar,<span class="string">'xdata'</span>,[0 v]);
+0734 
+0735 
+0736 
+0737 
+0738 
+0739 
+0740 
+0741 
+0742 
+0743 
+0744 
+0745 
+0746 
+0747 
+0748 
+0749 
+0750 
+0751 
+0752 
+0753</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

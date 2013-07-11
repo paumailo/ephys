@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of plot_evLFP</title>
+  <meta name="keywords" content="plot_evLFP">
+  <meta name="description" content="plot_evLFP(W,P,param,cfg)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">db</a> &gt; <a href="index.html">db_plotters</a> &gt; plot_evLFP.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for db\db_plotters&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>plot_evLFP
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>plot_evLFP(W,P,param,cfg)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function plot_evLFP(W,P,param,cfg) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> plot_evLFP(W,P,param,cfg)
+ 
+ For use with DB_QuickPlot
+
+ DJS 2013</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function plot_evLFP(W,P,param,cfg)</a>
+0002 <span class="comment">% plot_evLFP(W,P,param,cfg)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% For use with DB_QuickPlot</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% DJS 2013</span>
+0007 
+0008 
+0009 win  = [cfg.win_on cfg.win_off] / 1000; <span class="comment">% ms -&gt; s</span>
+0010 svec = floor(win(1)*P.wave_fs):round(win(2)*P.wave_fs);
+0011 
+0012 
+0013 <span class="comment">% Organize by stimulus onsets</span>
+0014 onsamp = round(P.VALS.onset * P.wave_fs);
+0015 
+0016 
+0017 <span class="comment">% Reorganize by stimulus type</span>
+0018 largestdim = 1;
+0019 <span class="keyword">for</span> i = 1:length(param)
+0020     st{i} = sort(P.lists.(param{i}),<span class="string">'descend'</span>); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0021     <span class="keyword">if</span> length(st{i}) &gt; length(st{largestdim})
+0022         largestdim = i;
+0023     <span class="keyword">end</span>
+0024 <span class="keyword">end</span>
+0025 <span class="keyword">if</span> largestdim == 1, smallestdim = 2; <span class="keyword">else</span> smallestdim = 1; <span class="keyword">end</span>
+0026 
+0027 <span class="comment">% Won: {stim1}(reps X samples)</span>
+0028 Won = cell(size(st{largestdim}));
+0029 <span class="keyword">for</span> i = 1:length(st{largestdim})
+0030     ind = P.VALS.(param{largestdim}) == st{largestdim}(i);
+0031     <span class="keyword">if</span> length(param) &gt; 1
+0032         ind = ind &amp; P.VALS.(param{smallestdim}) == st{smallestdim};
+0033     <span class="keyword">end</span>
+0034     idx = find(ind);
+0035     Won{i} = zeros(length(idx),length(svec));
+0036     <span class="keyword">for</span> j = 1:length(idx)
+0037         Won{i}(j,:) = W(onsamp(idx(j))+svec);
+0038     <span class="keyword">end</span>
+0039 <span class="keyword">end</span>
+0040 
+0041 mWon = cellfun(@mean,Won,<span class="string">'UniformOutput'</span>,false);
+0042 eWon = cellfun(@std,Won,<span class="string">'UniformOutput'</span>,false); <span class="comment">%#ok&lt;NASGU&gt;</span>
+0043 
+0044 tvec = svec ./ P.wave_fs;
+0045 <span class="keyword">for</span> i = 1:length(mWon)
+0046     pax = subplot(cfg.nrows,cfg.ncols,i);
+0047     
+0048     hold(pax,cfg.hold);
+0049     
+0050     plot(tvec,mWon{i},<span class="string">'linewidth'</span>,1,<span class="string">'color'</span>,cfg.color);
+0051     
+0052     
+0053     [c,r] = ind2sub([cfg.ncols cfg.nrows],i);
+0054     
+0055     <span class="keyword">if</span> r &lt; cfg.nrows
+0056         set(pax,<span class="string">'xticklabel'</span>,[]);
+0057     <span class="keyword">end</span>
+0058     
+0059     <span class="keyword">if</span> c &gt; 1
+0060         set(pax,<span class="string">'yticklabel'</span>,[]);
+0061     <span class="keyword">end</span>
+0062     
+0063     set(pax,<span class="string">'tag'</span>,num2str(st{largestdim}(i)), <span class="keyword">...</span>
+0064         <span class="string">'xlim'</span>,[win(1) win(2)],<span class="string">'ytick'</span>,[]);
+0065 
+0066     ax_data.trials    = Won{i};
+0067     ax_data.stim_type = param;
+0068     ax_data.stim_val  = st{largestdim}(i);
+0069     ax_data.P         = P;
+0070     ax_data.cfg       = cfg;
+0071     <span class="keyword">if</span> strcmp(cfg.hold,<span class="string">'on'</span>) <span class="comment">% append to existing ax_data</span>
+0072         ax_data = [get(pax,<span class="string">'UserData'</span>) ax_data]; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0073     <span class="keyword">end</span>
+0074     set(pax,<span class="string">'UserData'</span>,ax_data);
+0075     clear ax_data
+0076     
+0077     hold(pax,<span class="string">'off'</span>); 
+0078 <span class="keyword">end</span>
+0079 ch = get(gcf,<span class="string">'children'</span>);
+0080 y = cell2mat(get(ch,<span class="string">'ylim'</span>));
+0081 set(ch,<span class="string">'ylim'</span>,[-max(abs(y(:))) max(abs(y(:)))]);
+0082 
+0083</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

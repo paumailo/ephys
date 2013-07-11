@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of DB_GetElectrode</title>
+  <meta name="keywords" content="DB_GetElectrode">
+  <meta name="description" content="elect = DB_GetElectrode(tank_id)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">db</a> &gt; <a href="index.html">db_helpers</a> &gt; DB_GetElectrode.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for db\db_helpers&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>DB_GetElectrode
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>elect = DB_GetElectrode(tank_id)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function elect = DB_GetElectrode(tank_id) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> elect = DB_GetElectrode(tank_id)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function elect = DB_GetElectrode(tank_id)</a>
+0002 <span class="comment">% elect = DB_GetElectrode(tank_id)</span>
+0003 
+0004 
+0005 
+0006 elect = mym([<span class="keyword">...</span>
+0007     <span class="string">'SELECT e.target,e.depth,e.tank_id, '</span>, <span class="keyword">...</span>
+0008     <span class="string">'t.manufacturer,t.pid,t.product_id,t.map,t.col_space,t.row_space,t.site_area '</span>, <span class="keyword">...</span>
+0009     <span class="string">'FROM electrodes e '</span>, <span class="keyword">...</span>
+0010     <span class="string">'INNER JOIN db_util.electrode_types t '</span>, <span class="keyword">...</span>
+0011     <span class="string">'ON e.type = t.pid '</span>, <span class="keyword">...</span>
+0012     <span class="string">'WHERE e.tank_id = {Si}'</span>],tank_id);
+0013 
+0014 elect.map = str2num(char(elect.map));
+0015 
+0016</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

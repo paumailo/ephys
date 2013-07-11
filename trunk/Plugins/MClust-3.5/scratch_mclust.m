@@ -23,7 +23,7 @@ end
 
 %% Run multithreaded version of batch processing
 RunClustBatch_MT('D:\DataProcessing\MClust\SENSATIONAL\BatchTDT.txt','NThreads',7,'ForceRun',true)
-% RunClustBatch_MT('D:\DataProcessing\MClust\BatchTDT-OneCh.txt','ForceRun',true)
+% RunClustBatch_MT('D:\DataProcessing\MClust\SENSATIONAL\BatchTDT-OneCh.txt','ForceRun',true)
 
 %% Run MClust on each channel to be sorted
 MClust;

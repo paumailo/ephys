@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of plot_spike_rf</title>
+  <meta name="keywords" content="plot_spike_rf">
+  <meta name="description" content="plot_spike_rf(S,P,param,cfg)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">db</a> &gt; <a href="index.html">db_plotters</a> &gt; plot_spike_rf.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for db\db_plotters&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>plot_spike_rf
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>plot_spike_rf(S,P,param,cfg)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function plot_spike_rf(S,P,param,cfg) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> plot_spike_rf(S,P,param,cfg)
+ 
+ For use with DB_QuickPlot
+
+ DJS 2013</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function plot_spike_rf(S,P,param,cfg)</a>
+0002 <span class="comment">% plot_spike_rf(S,P,param,cfg)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% For use with DB_QuickPlot</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% DJS 2013</span>
+0007 
+0008 
+0009 win = [cfg.win_on cfg.win_off] / 1000; <span class="comment">% ms -&gt; s</span>
+0010 
+0011 <span class="comment">% Organize by stimulus onsets</span>
+0012 ons = P.VALS.onset;
+0013 
+0014 TS = cell(size(ons));
+0015 <span class="keyword">for</span> i = 1:length(ons)
+0016     ind = S &gt;= ons(i) + win(1) &amp; S &lt; ons(i) + win(2);
+0017     TS{i} = S(ind) - ons(i);
+0018 <span class="keyword">end</span>
+0019 
+0020 <span class="comment">% Reorganize by stimulus type</span>
+0021 <span class="keyword">for</span> i = 1:length(param)
+0022     stims{i} = P.lists.(param{i}); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0023 <span class="keyword">end</span>
+0024 RFraster = cell(numel(stims{1}),numel(stims{2}));
+0025 <span class="keyword">for</span> i = 1:numel(stims{1})
+0026     <span class="keyword">for</span> j = 1:numel(stims{2})
+0027         ind = P.VALS.(param{1}) == stims{1}(i) <span class="keyword">...</span><span class="comment"> </span>
+0028             &amp; P.VALS.(param{2}) == stims{2}(j);
+0029         
+0030         RFraster{i,j} = cell2mat(TS(ind));
+0031         
+0032     <span class="keyword">end</span>
+0033 <span class="keyword">end</span>
+0034 RFcnt = cellfun(@numel,RFraster,<span class="string">'UniformOutput'</span>,true)';
+0035 
+0036 
+0037 <span class="comment">% post processing based on user options</span>
+0038 <span class="keyword">if</span> isfield(cfg,<span class="string">'smooth2d'</span>) &amp;&amp; cfg.smooth2d, RFcnt = sgsmooth2d(RFcnt); <span class="keyword">end</span>
+0039 <span class="keyword">if</span> isfield(cfg,<span class="string">'interpolate'</span>) &amp;&amp; cfg.interpolate &gt; 1
+0040     RFcnt = interp2(RFcnt,cfg.interpolate);
+0041     <span class="keyword">if</span> cfg.xislog
+0042         stims{1} = logspace(log10(stims{1}(1)),log10(stims{1}(end)),size(RFcnt,2));
+0043     <span class="keyword">else</span>
+0044         stims{1} = linspace(stims{1}(1),stims{1}(end),size(RFcnt,2));
+0045     <span class="keyword">end</span>
+0046     stims{2} = linspace(stims{2}(1),stims{2}(end),size(RFcnt,1));
+0047 <span class="keyword">end</span>
+0048 
+0049 set(gcf,<span class="string">'renderer'</span>,<span class="string">'zbuffer'</span>); <span class="comment">% OpenGL doesn't seem to like log axes</span>
+0050 
+0051 surf(stims{1},stims{2},RFcnt);
+0052 view(2)
+0053 <span class="keyword">if</span> isfield(cfg,<span class="string">'interpolate'</span>) &amp;&amp; cfg.interpolate &gt; 1 || isfield(cfg,<span class="string">'smooth2d'</span>) &amp;&amp; cfg.smooth2d
+0054     shading interp
+0055 <span class="keyword">else</span>
+0056     shading flat
+0057 <span class="keyword">end</span>
+0058 <span class="keyword">if</span> cfg.xislog, set(gca,<span class="string">'xscale'</span>,<span class="string">'log'</span>); <span class="keyword">end</span>
+0059 axis tight
+0060 
+0061 xlabel(param{1});
+0062 ylabel(param{2});
+0063 
+0064 ax_data.RFraster = RFraster;
+0065 ax_data.RFcnt = RFcnt;
+0066 ax_data.x_axis = stims{1};
+0067 ax_data.y_axis = stims{2};
+0068 ax_data.P      = P;
+0069 ax_data.cfg    = cfg;
+0070 set(gca,<span class="string">'UserData'</span>,ax_data);
+0071 
+0072 
+0073</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

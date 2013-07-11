@@ -1,0 +1,155 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of spikes</title>
+  <meta name="keywords" content="spikes">
+  <meta name="description" content="">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">OOP</a> &gt; <a href="index.html">@spikes</a> &gt; spikes.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for OOP\@spikes&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>spikes
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong></strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="comp_hist.html" class="code" title="function H = comp_hist(obj,cfg)">comp_hist</a>	Check input------------------</li><li><a href="comp_isi.html" class="code" title="function [H,bins] = comp_isi(obj,unitid,varargin)">comp_isi</a>	H = isi(unitid)</li><li><a href="comp_raster.html" class="code" title="function data = comp_raster(obj,cfg)">comp_raster</a>	data = comp_raster(unitid,cfg)</li><li><a href="comp_receptivefld.html" class="code" title="function [rfld,pars] = comp_receptivefld(obj,ax,unitid,parid,win)">comp_receptivefld</a>	[rfld,pars] = comp_receptivefld(obj,ax,unitid,parid,win)</li><li><a href="comp_spikedensity.html" class="code" title="function [SD,pcfg] = comp_spikedensity(obj,cfg)">comp_spikedensity</a>	[SD,pcfg] = comp_spikedensity(unitid,cfg)</li><li><a href="fieldtrip.html" class="code" title="function ft = fieldtrip(obj)">fieldtrip</a>	ft = fieldtrip</li><li><a href="plot_hist.html" class="code" title="function h = plot_hist(obj,cfg,H)">plot_hist</a>	h = plot_hist(obj,cfg)</li><li><a href="plot_raster.html" class="code" title="function varargout = plot_raster(obj,cfg)">plot_raster</a>	plot_raster(obj,cfg)</li><li><a href="plot_spikedensity.html" class="code" title="function h = plot_spikedensity(obj,cfg,SD)">plot_spikedensity</a>	h = plot_spikedensity(obj,cfg)</li><li><a href="plot_waveforms.html" class="code" title="function varargout = plot_waveforms(obj,varargin)">plot_waveforms</a>	plot_waveforms(unitid)</li><li><a href="spikes.html" class="code" title="">spikes</a>	</li><li><a href="subset.html" class="code" title="function ind = subset(obj,ids)">subset</a>	Returns logical indexes in an array pointing to a subset of</li><li><a href="unit_timestamps.html" class="code" title="function ts = unit_timestamps(obj,unitid)">unit_timestamps</a>	ts = unit_timestamps(obj,unitid)</li><li><a href="update.html" class="code" title="function obj = update(obj)">update</a>	</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="spikes.html" class="code" title="">spikes</a>	</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function obj = spikes(name,block,eventname)</a></li><li><a href="#_sub2" class="code">function obj = set.eventname(obj,name)</a></li><li><a href="#_sub3" class="code">function obj = set.sortname(obj,name)</a></li><li><a href="#_sub4" class="code">function obj = set.get_waveforms(obj,tf)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 classdef <a href="spikes.html" class="code" title="">spikes</a> &lt; tank
+0002     <span class="comment">% Spike data type working off of TDT data tank</span>
+0003     <span class="comment">% S = spikes(TANKNAME)</span>
+0004     <span class="comment">% S = spikes(TANKNAME,BLOCKNUMBER)</span>
+0005     <span class="comment">% S = spikes(TANKNAME,BLOCKNUMBER,EVENTNAME)</span>
+0006     <span class="comment">%</span>
+0007     <span class="comment">% ex:   S = spikes('ROCKSTAR_V_T_A') % open tank 'ROCKSTAR_V_T_A'</span>
+0008     <span class="comment">%       S.blocklist  % get a list of available blocks</span>
+0009     <span class="comment">%       S.block = 4; % change block to 4</span>
+0010     <span class="comment">%       S.block = 'ROCKSTAR_V_T_A-2'; % Alternative method to change block</span>
+0011     <span class="comment">%       S.eventname = 'eNeu'; % change event name; required to retrieve spike data</span>
+0012     <span class="comment">%       S.sortname = 'OfflineSort'; % retrieve sortcodes from OpenSorter</span>
+0013     <span class="comment">%       S.unitstr   % list of available units</span>
+0014     <span class="comment">%</span>
+0015     <span class="comment">%       S.get_waveforms = true; % Set to true to retrieve spike waveforms</span>
+0016     <span class="comment">%</span>
+0017     <span class="comment">% methodsview(S) will get you a list of methods and their parameters.</span>
+0018     <span class="comment">%</span>
+0019     <span class="comment">% In order to clear a spikes object, use:</span>
+0020     <span class="comment">%       delete(S); clear S</span>
+0021     <span class="comment">%</span>
+0022     <span class="comment">% Inherits TANK class</span>
+0023     <span class="comment">%</span>
+0024     <span class="comment">% See also, tank, waves</span>
+0025     
+0026     <span class="comment">% DJS 2013</span>
+0027 
+0028     properties (SetAccess = <span class="string">'public'</span>,GetAccess = <span class="string">'public'</span>)
+0029         eventname               <span class="comment">% Eventname (eg, 'Snip' or 'eNeu')</span>
+0030         sortname                <span class="comment">% Sortname (if using OpenSorter)</span>
+0031         get_waveforms = false;  <span class="comment">% Toggle whether or not spike waveforms are collected on updates</span>
+0032     <span class="keyword">end</span>
+0033     
+0034     properties (SetAccess = <span class="string">'private'</span>,GetAccess = <span class="string">'public'</span>)
+0035         Fs                  <span class="comment">% Sampling frequency (Hz)</span>
+0036         channels            <span class="comment">% Channel list</span>
+0037         sortcodes           <span class="comment">% Sort codes</span>
+0038         units               <span class="comment">% Unit ids</span>
+0039         timestamps          <span class="comment">% Spike timestamps from block onset</span>
+0040         waveforms           <span class="comment">% Spike waveforms</span>
+0041         unitstr             <span class="comment">% Modifiable unit string identifier</span>
+0042         count               <span class="comment">% Spike count total</span>
+0043     <span class="keyword">end</span>
+0044     
+0045     
+0046     methods
+0047         
+0048         <span class="comment">% class constructor</span>
+0049         <a name="_sub0" href="#_subfunctions" class="code">function obj = spikes(name,block,eventname)</a>
+0050             <span class="keyword">if</span> nargin &gt;= 1, obj.name = name;            <span class="keyword">end</span>
+0051             <span class="keyword">if</span> nargin &gt;= 2, obj.block = block;          <span class="keyword">end</span>
+0052             <span class="keyword">if</span> nargin == 3, obj.eventname = eventname;  <span class="keyword">end</span>            
+0053         <span class="keyword">end</span>
+0054 
+0055         
+0056         
+0057         <span class="comment">%% Set/Get functions ----------------------------------------------</span>
+0058 
+0059         <span class="comment">% Set eventname</span>
+0060         <a name="_sub1" href="#_subfunctions" class="code">function obj = set.eventname(obj,name)</a>
+0061             obj.eventname = name;
+0062             obj = <a href="update.html" class="code" title="function obj = update(obj)">update</a>(obj);
+0063         <span class="keyword">end</span>
+0064         
+0065         <span class="comment">% Set sortname</span>
+0066         <a name="_sub2" href="#_subfunctions" class="code">function obj = set.sortname(obj,name)</a>
+0067             obj.sortname = name;
+0068             obj = <a href="update.html" class="code" title="function obj = update(obj)">update</a>(obj);
+0069         <span class="keyword">end</span>
+0070         
+0071         <span class="comment">% Set get_waveforms</span>
+0072         <a name="_sub3" href="#_subfunctions" class="code">function obj = set.get_waveforms(obj,tf)</a>
+0073             obj.get_waveforms = tf;
+0074             <span class="keyword">if</span> tf, obj = <a href="update.html" class="code" title="function obj = update(obj)">update</a>(obj); <span class="keyword">end</span>                
+0075         <span class="keyword">end</span>
+0076         
+0077         
+0078         <span class="comment">% @methods</span>
+0079         obj             = <a href="update.html" class="code" title="function obj = update(obj)">update</a>(obj);
+0080         varargout       = <a href="plot_waveforms.html" class="code" title="function varargout = plot_waveforms(obj,varargin)">plot_waveforms</a>(obj,varargin);
+0081         varargout       = <a href="plot_raster.html" class="code" title="function varargout = plot_raster(obj,cfg)">plot_raster</a>(obj,cfg);
+0082         h               = plot_inoutfun(obj,cfg);
+0083         h               = <a href="plot_hist.html" class="code" title="function h = plot_hist(obj,cfg,H)">plot_hist</a>(obj,cfg);
+0084         h               = <a href="plot_spikedensity.html" class="code" title="function h = plot_spikedensity(obj,cfg,SD)">plot_spikedensity</a>(obj,cfg)
+0085         [h,pars]        = <a href="comp_isi.html" class="code" title="function [H,bins] = comp_isi(obj,unitid,varargin)">comp_isi</a>(obj,cfg);
+0086         [raster,cfg]    = <a href="comp_raster.html" class="code" title="function data = comp_raster(obj,cfg)">comp_raster</a>(obj,cfg);
+0087         [rfld,pars]     = <a href="comp_receptivefld.html" class="code" title="function [rfld,pars] = comp_receptivefld(obj,ax,unitid,parid,win)">comp_receptivefld</a>(obj,cfg);
+0088         [H,cfg]         = <a href="comp_hist.html" class="code" title="function H = comp_hist(obj,cfg)">comp_hist</a>(obj,cfg);
+0089         [SD,cfg]        = <a href="comp_spikedensity.html" class="code" title="function [SD,pcfg] = comp_spikedensity(obj,cfg)">comp_spikedensity</a>(obj,cfg);
+0090         ind             = <a href="subset.html" class="code" title="function ind = subset(obj,ids)">subset</a>(obj,ids);
+0091         ts              = <a href="unit_timestamps.html" class="code" title="function ts = unit_timestamps(obj,unitid)">unit_timestamps</a>(obj,unitid);
+0092         ft              = <a href="fieldtrip.html" class="code" title="function ft = fieldtrip(obj)">fieldtrip</a>(obj);
+0093         
+0094     <span class="keyword">end</span>
+0095         
+0096 <span class="keyword">end</span>
+0097 
+0098 
+0099 
+0100 
+0101 
+0102 
+0103 
+0104 
+0105 
+0106</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of mym</title>
+  <meta name="keywords" content="mym">
+  <meta name="description" content="MYM - Interact with a MySQL database server">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">db</a> &gt; <a href="index.html">mym</a> &gt; mym.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for db\mym&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>mym
+&nbsp;&nbsp;<img src="../../c++.png" alt="Windows 64" border="0" title="Windows 64"></h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>MYM - Interact with a MySQL database server</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> MYM - Interact with a MySQL database server 
+
+ Copyright notice: this code is a heavily modified version of the original
+ work of R. Almgren from University of Toronto. Up to V1.0.9 the code was 
+ made by Y. Maret (during his work at EPFL). Version 1.36 was updated
+ by J.T. Marsh and provided by J. Erlich.
+
+ If no output arguments are given, then display results. Otherwise returns
+ requested data silently.
+ mym() or mym
+ ------------
+   shows status of all open connections (returns nothing).
+ mym('open', host, user, password)
+ ---------------------------------
+   Open a connection with specified parameters, or defaults if none
+     host:     default is local host. Use colon for port number
+     user:     default is Unix login name.
+     password: default says connect without password.
+   Examples: mym('open','arkiv')     %  connect on default port
+             mym('open','arkiv:2215')
+   If successful, open returns 0 if successful, and throw an error
+   otherwise. The program can maintain up to 20 independent connections.
+   Any command may be preceded by a connection handle -- an integer from 0
+   to 10 -- to apply the command to that connection.
+   Examples: mym(5,'open','host2')  %  connection 5 to host 2
+             mym                    %  status of all connections
+   When no connection handle is given, mym use 0 by default. If the
+   corresponding connection is open, it is closed and opened again.
+   It is possible to ask mym to look for an available connection
+   handle by using -1. The used connection handle is then returned.
+   Example:  cid = mym(-1, 'open', 'host2')  %  cid contains the used
+                                                connection handle
+ mym('close')
+ ------------
+   Close the current connection. Use mym('closeall') to closes all open 
+   connections.
+ mym('use',db)  or   mym('use db')
+ ---------------------------------
+   Set the current database to db   
+   Example:  mym('use cme')
+ mym('status')
+ -------------
+   Display information about the connection and the server.
+   Return  0  if connection is open and functioning
+           1  if connection is closed
+           2  if should be open but we cannot ping the server
+ mym(query)
+ ----------
+   Send the given query or command to the MySQL server. If arguments are
+   given on the left, then each argument is set to the column of the
+   returned query. Dates and times in result are converted to Matlab 
+   format: dates are serial day number, and times are fraction of day. 
+   String variables are returned as cell arrays.
+   Example: p = mym('select price from contract where date=&quot;1997-04-30&quot;');
+            % Returns price for contract that occured on April 30, 1997.
+   Note: All string comparisons are case-insensitive
+   Placeholders: in a query the following placeholders can be used: {S}, 
+   {Si}, {M}, {F}, and {B}.
+   Example: i = 1000;
+            B = [1 2; 3 4];
+            mym('INSERT INTO test(id,value) VALUES(&quot;{Si}&quot;,&quot;{M}&quot;)',i,B);
+            A = mym('SELECT value FROM test WHERE id =&quot;{Si}&quot;)', 1000);
+            % Insert the array B into table test with id=1000. Then the 
+            % value is retrieved and put into A.
+   {S}  is remplaced by a string given by the corresponding argument arg. 
+        Arg can be a matlab string or a scalar. The format of the string
+        for double scalars is [sign]d.ddddddEddd; for integers the format 
+        is [sign]dddddd.
+   {Sn} is the same as {S} but for double scalar only. The format of the
+        string is [sign]d.ddddEddd, where the number of decimal after the 
+        dot is given by n.
+   {Si} is the same as {S} but for double scalar only. The corresponding 
+        double is first converted to an integer (using floor).
+   {M}  is replaced by the binary representation of the corresponding
+        argument (it can be a scalar, cell, numeric or cell array, or a 
+        structure).
+   {B}  is replaced by the binary representation of the uint8 vector
+        given in the corresponding argument.
+   {F}  is the same as {B} but for the file whose name is given in the
+        corresponding argument.
+   Note: 1) {M}, {B} and {F} need to be put in fields of type BLOB
+         2) {M}, {B} and {F} binary representations are compressed -- only 
+            if the space gain is larger than 10% --. We use zlib v1.2.3!
+            The compression can be switched off by using  {uM}, {uB} and
+            {uF}, instead.
+         3) {M} does not work if the endian of the client used to store
+            the BLOB is different than that used to fetch it.
+         4) time fields are returned as string dump
+         5) this kind of insert does not work properly:
+             mym(INSERT INTO tbl(id,txt) VALUES(1000,&quot;abc{dfg}h&quot;)');
+            as the &quot;abc{dfg}h&quot; is mistaken for a mYm command. A possible
+            solution is to use the following command:
+             mym(INSERT INTO tbl(id,txt) VALUES(1000,&quot;{S}&quot;)','abc{dfg}h');</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="dbadd.html" class="code" title="function dbadd(dbname)">dbadd</a>	dbadd    Create MySQL database          [mym utilities]</li><li><a href="dbcurr.html" class="code" title="function[name] = dbcurr">dbcurr</a>	dbcurr   Current MySQL database         [mym utilities]</li><li><a href="dbdrop.html" class="code" title="function dbdrop(name)">dbdrop</a>	dbdrop   Delete MySQL database          [mym utilities]</li><li><a href="dblist.html" class="code" title="function[names] = dblist">dblist</a>	dblist   List MySQL databases           [mym utilities]</li><li><a href="dbopen.html" class="code" title="function dbopen(name)">dbopen</a>	dbopen   Make MySQL database current    [mym utilities]</li><li><a href="isdbase.html" class="code" title="function[i] = isdbase(name)">isdbase</a>	isdbase  True if MySQL database exists  [mym utilities]</li><li><a href="myclose.html" class="code" title="function myclose">myclose</a>	myclose  Disconnect from MySQL          [mym utilities]</li><li><a href="mydemo.html" class="code" title="">mydemo</a>	% MYDEMO: Demonstrate usage of mym utilities</li><li><a href="myisopen.html" class="code" title="function[i] = myisopen">myisopen</a>	myisopen True if MySQL instance active  [mym utilities]</li><li><a href="myopen.html" class="code" title="function myopen(host,user,pwd)">myopen</a>	myopen   Connect to MySQL               [mym utilities]</li><li><a href="tbadd.html" class="code" title="function tbadd(table,names,types,varargin)">tbadd</a>	tbadd    Create MySQL table             [mym utilities]</li><li><a href="tbattr.html" class="code" title="function[varargout] = tbattr(table)">tbattr</a>	tbattr   List columns of MySQL table    [mym utilities]</li><li><a href="tbdrop.html" class="code" title="function tbdrop(table)">tbdrop</a>	tbdrop   Delete MySQL table             [mym utilities]</li><li><a href="tblist.html" class="code" title="function[tables] = tblist(varargin)">tblist</a>	tblist   List tables of MySQL database  [mym utilities]</li><li><a href="tbprint.html" class="code" title="function tbprint(table)">tbprint</a>	tbprint  List a few rows of MySQL table [mym utilities]</li><li><a href="tbrename.html" class="code" title="function tbrename(old,new)">tbrename</a>	tbrename Rename MySQL table             [mym utilities]</li><li><a href="tbsize.html" class="code" title="function[size] = tbsize(table,varargin)">tbsize</a>	tbsize   Size of MySQL table            [mym utilities]</li><li><a href="tbwrite.html" class="code" title="function tbwrite(table,cols,vecs,varargin)">tbwrite</a>	tbwrite  Write to MySQL table           [mym utilities]</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% MYM - Interact with a MySQL database server</span>
+0002 <span class="comment">%</span>
+0003 <span class="comment">% Copyright notice: this code is a heavily modified version of the original</span>
+0004 <span class="comment">% work of R. Almgren from University of Toronto. Up to V1.0.9 the code was</span>
+0005 <span class="comment">% made by Y. Maret (during his work at EPFL). Version 1.36 was updated</span>
+0006 <span class="comment">% by J.T. Marsh and provided by J. Erlich.</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% If no output arguments are given, then display results. Otherwise returns</span>
+0009 <span class="comment">% requested data silently.</span>
+0010 <span class="comment">% mym() or mym</span>
+0011 <span class="comment">% ------------</span>
+0012 <span class="comment">%   shows status of all open connections (returns nothing).</span>
+0013 <span class="comment">% mym('open', host, user, password)</span>
+0014 <span class="comment">% ---------------------------------</span>
+0015 <span class="comment">%   Open a connection with specified parameters, or defaults if none</span>
+0016 <span class="comment">%     host:     default is local host. Use colon for port number</span>
+0017 <span class="comment">%     user:     default is Unix login name.</span>
+0018 <span class="comment">%     password: default says connect without password.</span>
+0019 <span class="comment">%   Examples: mym('open','arkiv')     %  connect on default port</span>
+0020 <span class="comment">%             mym('open','arkiv:2215')</span>
+0021 <span class="comment">%   If successful, open returns 0 if successful, and throw an error</span>
+0022 <span class="comment">%   otherwise. The program can maintain up to 20 independent connections.</span>
+0023 <span class="comment">%   Any command may be preceded by a connection handle -- an integer from 0</span>
+0024 <span class="comment">%   to 10 -- to apply the command to that connection.</span>
+0025 <span class="comment">%   Examples: mym(5,'open','host2')  %  connection 5 to host 2</span>
+0026 <span class="comment">%             mym                    %  status of all connections</span>
+0027 <span class="comment">%   When no connection handle is given, mym use 0 by default. If the</span>
+0028 <span class="comment">%   corresponding connection is open, it is closed and opened again.</span>
+0029 <span class="comment">%   It is possible to ask mym to look for an available connection</span>
+0030 <span class="comment">%   handle by using -1. The used connection handle is then returned.</span>
+0031 <span class="comment">%   Example:  cid = mym(-1, 'open', 'host2')  %  cid contains the used</span>
+0032 <span class="comment">%                                                connection handle</span>
+0033 <span class="comment">% mym('close')</span>
+0034 <span class="comment">% ------------</span>
+0035 <span class="comment">%   Close the current connection. Use mym('closeall') to closes all open</span>
+0036 <span class="comment">%   connections.</span>
+0037 <span class="comment">% mym('use',db)  or   mym('use db')</span>
+0038 <span class="comment">% ---------------------------------</span>
+0039 <span class="comment">%   Set the current database to db</span>
+0040 <span class="comment">%   Example:  mym('use cme')</span>
+0041 <span class="comment">% mym('status')</span>
+0042 <span class="comment">% -------------</span>
+0043 <span class="comment">%   Display information about the connection and the server.</span>
+0044 <span class="comment">%   Return  0  if connection is open and functioning</span>
+0045 <span class="comment">%           1  if connection is closed</span>
+0046 <span class="comment">%           2  if should be open but we cannot ping the server</span>
+0047 <span class="comment">% mym(query)</span>
+0048 <span class="comment">% ----------</span>
+0049 <span class="comment">%   Send the given query or command to the MySQL server. If arguments are</span>
+0050 <span class="comment">%   given on the left, then each argument is set to the column of the</span>
+0051 <span class="comment">%   returned query. Dates and times in result are converted to Matlab</span>
+0052 <span class="comment">%   format: dates are serial day number, and times are fraction of day.</span>
+0053 <span class="comment">%   String variables are returned as cell arrays.</span>
+0054 <span class="comment">%   Example: p = mym('select price from contract where date=&quot;1997-04-30&quot;');</span>
+0055 <span class="comment">%            % Returns price for contract that occured on April 30, 1997.</span>
+0056 <span class="comment">%   Note: All string comparisons are case-insensitive</span>
+0057 <span class="comment">%   Placeholders: in a query the following placeholders can be used: {S},</span>
+0058 <span class="comment">%   {Si}, {M}, {F}, and {B}.</span>
+0059 <span class="comment">%   Example: i = 1000;</span>
+0060 <span class="comment">%            B = [1 2; 3 4];</span>
+0061 <span class="comment">%            mym('INSERT INTO test(id,value) VALUES(&quot;{Si}&quot;,&quot;{M}&quot;)',i,B);</span>
+0062 <span class="comment">%            A = mym('SELECT value FROM test WHERE id =&quot;{Si}&quot;)', 1000);</span>
+0063 <span class="comment">%            % Insert the array B into table test with id=1000. Then the</span>
+0064 <span class="comment">%            % value is retrieved and put into A.</span>
+0065 <span class="comment">%   {S}  is remplaced by a string given by the corresponding argument arg.</span>
+0066 <span class="comment">%        Arg can be a matlab string or a scalar. The format of the string</span>
+0067 <span class="comment">%        for double scalars is [sign]d.ddddddEddd; for integers the format</span>
+0068 <span class="comment">%        is [sign]dddddd.</span>
+0069 <span class="comment">%   {Sn} is the same as {S} but for double scalar only. The format of the</span>
+0070 <span class="comment">%        string is [sign]d.ddddEddd, where the number of decimal after the</span>
+0071 <span class="comment">%        dot is given by n.</span>
+0072 <span class="comment">%   {Si} is the same as {S} but for double scalar only. The corresponding</span>
+0073 <span class="comment">%        double is first converted to an integer (using floor).</span>
+0074 <span class="comment">%   {M}  is replaced by the binary representation of the corresponding</span>
+0075 <span class="comment">%        argument (it can be a scalar, cell, numeric or cell array, or a</span>
+0076 <span class="comment">%        structure).</span>
+0077 <span class="comment">%   {B}  is replaced by the binary representation of the uint8 vector</span>
+0078 <span class="comment">%        given in the corresponding argument.</span>
+0079 <span class="comment">%   {F}  is the same as {B} but for the file whose name is given in the</span>
+0080 <span class="comment">%        corresponding argument.</span>
+0081 <span class="comment">%   Note: 1) {M}, {B} and {F} need to be put in fields of type BLOB</span>
+0082 <span class="comment">%         2) {M}, {B} and {F} binary representations are compressed -- only</span>
+0083 <span class="comment">%            if the space gain is larger than 10% --. We use zlib v1.2.3!</span>
+0084 <span class="comment">%            The compression can be switched off by using  {uM}, {uB} and</span>
+0085 <span class="comment">%            {uF}, instead.</span>
+0086 <span class="comment">%         3) {M} does not work if the endian of the client used to store</span>
+0087 <span class="comment">%            the BLOB is different than that used to fetch it.</span>
+0088 <span class="comment">%         4) time fields are returned as string dump</span>
+0089 <span class="comment">%         5) this kind of insert does not work properly:</span>
+0090 <span class="comment">%             mym(INSERT INTO tbl(id,txt) VALUES(1000,&quot;abc{dfg}h&quot;)');</span>
+0091 <span class="comment">%            as the &quot;abc{dfg}h&quot; is mistaken for a mYm command. A possible</span>
+0092 <span class="comment">%            solution is to use the following command:</span>
+0093 <span class="comment">%             mym(INSERT INTO tbl(id,txt) VALUES(1000,&quot;{S}&quot;)','abc{dfg}h');</span></pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

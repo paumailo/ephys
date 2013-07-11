@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of tbread</title>
+  <meta name="keywords" content="tbread">
+  <meta name="description" content="tbread   Read from MySQL table          [mym utilities]">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">db</a> &gt; <a href="index.html">mym</a> &gt; tbread.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for db\mym&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>tbread
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>tbread   Read from MySQL table          [mym utilities]</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function tbread(table,cols,vecs,sql) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> tbread   Read from MySQL table          [mym utilities]
+ Inputs   table - table name, string
+          cols  - list of input columns,  (m*1) cell array of strings 
+          vecs  - list of output vectors, (m*1) cell array of strings
+          sql   - SQL 'select' statement clause(s), string
+ Example  cols = {'order','date','price'};
+          tbread('orders',cols,cols,'where date &gt; ''1995-01-31''')
+ Notes    1. Use 'mym('select ..'' for queries with few columns
+          2. vecs elements are case-sensitive, cols elements are not 
+ Author   Dimitri Shvorob, dimitri.shvorob@vanderbilt.edu, 7/12/07</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="istable.html" class="code" title="function[i] = istable(name)">istable</a>	istable  True if MySQL table exists     [mym utilities]</li><li><a href="tbattr.html" class="code" title="function[varargout] = tbattr(table)">tbattr</a>	tbattr   List columns of MySQL table    [mym utilities]</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="mydemo.html" class="code" title="">mydemo</a>	% MYDEMO: Demonstrate usage of mym utilities</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function checkInputs(table,cols,vecs)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function tbread(table,cols,vecs,sql)</a>
+0002 <span class="comment">% tbread   Read from MySQL table          [mym utilities]</span>
+0003 <span class="comment">% Inputs   table - table name, string</span>
+0004 <span class="comment">%          cols  - list of input columns,  (m*1) cell array of strings</span>
+0005 <span class="comment">%          vecs  - list of output vectors, (m*1) cell array of strings</span>
+0006 <span class="comment">%          sql   - SQL 'select' statement clause(s), string</span>
+0007 <span class="comment">% Example  cols = {'order','date','price'};</span>
+0008 <span class="comment">%          tbread('orders',cols,cols,'where date &gt; ''1995-01-31''')</span>
+0009 <span class="comment">% Notes    1. Use 'mym('select ..'' for queries with few columns</span>
+0010 <span class="comment">%          2. vecs elements are case-sensitive, cols elements are not</span>
+0011 <span class="comment">% Author   Dimitri Shvorob, dimitri.shvorob@vanderbilt.edu, 7/12/07</span>
+0012 
+0013 <a href="#_sub1" class="code" title="subfunction checkInputs(table,cols,vecs)">checkInputs</a>(table,cols,vecs)
+0014 <span class="keyword">for</span> i = 1:length(cols)
+0015     <span class="keyword">try</span>
+0016        s = sprintf(<span class="string">'select %s from %s %s'</span>,cols{i},table,sql);
+0017        evalin(<span class="string">'base'</span>,sprintf(<span class="string">'%s = mym(''%s'');'</span>,vecs{i},s))
+0018     <span class="keyword">catch</span>
+0019        error(<span class="string">'Error in submitted SQL statement: %s'</span>,s)   <span class="comment">%#ok</span>
+0020     <span class="keyword">end</span>     
+0021 <span class="keyword">end</span>
+0022 
+0023 <a name="_sub1" href="#_subfunctions" class="code">function checkInputs(table,cols,vecs)</a>
+0024 <span class="keyword">if</span> ~<a href="istable.html" class="code" title="function[i] = istable(name)">istable</a>(table)
+0025    error(<span class="string">'Table %s not found; use ''tblist'' to list available tables'</span>,table)
+0026 <span class="keyword">end</span>
+0027 <span class="keyword">if</span> ~(iscellstr(cols) &amp;&amp; isvector(cols))
+0028    error(<span class="string">'''cols'' must be a cell vector of strings'</span>)
+0029 <span class="keyword">end</span>
+0030 <span class="keyword">if</span> ~(iscellstr(vecs) &amp;&amp; isvector(vecs))
+0031    error(<span class="string">'''vecs'' must be a cell vector of strings'</span>)
+0032 <span class="keyword">end</span>
+0033 <span class="keyword">if</span> length(cols) ~= length(vecs)
+0034    error(<span class="string">'''cols'' and ''vecs'' must have the same length'</span>)
+0035 <span class="keyword">end</span>
+0036 n = <a href="tbattr.html" class="code" title="function[varargout] = tbattr(table)">tbattr</a>(table);
+0037 <span class="keyword">for</span> i = 1:length(cols)
+0038     <span class="keyword">if</span> ~any(strcmpi(n,cols{i}))
+0039        error(<span class="string">'Column %s not found in table %s'</span>,cols{i},table)
+0040     <span class="keyword">end</span>
+0041 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

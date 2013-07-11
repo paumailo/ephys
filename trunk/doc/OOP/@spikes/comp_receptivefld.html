@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of comp_receptivefld</title>
+  <meta name="keywords" content="comp_receptivefld">
+  <meta name="description" content="[rfld,pars] = comp_receptivefld(obj,ax,unitid,parid,win)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">OOP</a> &gt; <a href="index.html">@spikes</a> &gt; comp_receptivefld.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for OOP\@spikes&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>comp_receptivefld
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>[rfld,pars] = comp_receptivefld(obj,ax,unitid,parid,win)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function [rfld,pars] = comp_receptivefld(obj,ax,unitid,parid,win) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> [rfld,pars] = comp_receptivefld(obj,ax,unitid,parid,win)
+
+ Compute 2D receptive field of spikes object</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="comp_raster.html" class="code" title="function data = comp_raster(obj,cfg)">comp_raster</a>	data = comp_raster(unitid,cfg)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="spikes.html" class="code" title="">spikes</a>	</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [rfld,pars] = comp_receptivefld(obj,ax,unitid,parid,win)</a>
+0002 <span class="comment">% [rfld,pars] = comp_receptivefld(obj,ax,unitid,parid,win)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Compute 2D receptive field of spikes object</span>
+0005 
+0006 <span class="keyword">if</span> length(parid) ~= 2
+0007     error(<span class="string">'comp_receptivefld:Must include 2 parameter ids'</span>)
+0008 <span class="keyword">end</span>
+0009 
+0010 <span class="keyword">if</span> isempty(ax), ax = gca; <span class="keyword">end</span>
+0011 
+0012 [raster,rpars] = <a href="comp_raster.html" class="code" title="function data = comp_raster(obj,cfg)">comp_raster</a>(obj,unitid,parid,win);
+0013 
+0014 c = cellfun(@cell2mat,raster,<span class="string">'UniformOutput'</span>,false);
+0015 c = cellfun(@length,c,<span class="string">'UniformOutput'</span>,true);
+0016 
+0017 upars1 = unique(rpars(:,1));
+0018 upars2 = unique(rpars(:,2));
+0019 
+0020 rfld = reshape(c,length(upars1),length(upars2));
+0021 pars = {upars1, upars2};
+0022</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

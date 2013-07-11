@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of plot_spikedensity</title>
+  <meta name="keywords" content="plot_spikedensity">
+  <meta name="description" content="h = plot_spikedensity(obj,cfg)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">OOP</a> &gt; <a href="index.html">@spikes</a> &gt; plot_spikedensity.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for OOP\@spikes&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>plot_spikedensity
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>h = plot_spikedensity(obj,cfg)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function h = plot_spikedensity(obj,cfg,SD) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> h = plot_spikedensity(obj,cfg)
+ h = plot_spikedensity(obj,cfg,SD)
+
+
+ ----- required -----
+ unitid ... unit id as a unit id in obj.units or a string from obj.unitstr
+ parid  ... parameter id(s) as an index from obj.params or an event name or
+               names
+ parval ... parameter value(s) corresponding to obj.params.uvals
+               - there should be a parval correspondind to each parid
+ win    ... window to view data as [onset offset], eg: [-0.025 0.2] (in seconds)
+
+ ----- optional -----
+ ax        ... handle of axis to plot on
+ linecolor ... see linespec
+ bandcolor ... color of confidence interval or error bands behind mean
+
+ DJS 2013</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="comp_spikedensity.html" class="code" title="function [SD,pcfg] = comp_spikedensity(obj,cfg)">comp_spikedensity</a>	[SD,pcfg] = comp_spikedensity(unitid,cfg)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="spikes.html" class="code" title="">spikes</a>	</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function h = plot_spikedensity(obj,cfg,SD)</a>
+0002 <span class="comment">% h = plot_spikedensity(obj,cfg)</span>
+0003 <span class="comment">% h = plot_spikedensity(obj,cfg,SD)</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% ----- required -----</span>
+0007 <span class="comment">% unitid ... unit id as a unit id in obj.units or a string from obj.unitstr</span>
+0008 <span class="comment">% parid  ... parameter id(s) as an index from obj.params or an event name or</span>
+0009 <span class="comment">%               names</span>
+0010 <span class="comment">% parval ... parameter value(s) corresponding to obj.params.uvals</span>
+0011 <span class="comment">%               - there should be a parval correspondind to each parid</span>
+0012 <span class="comment">% win    ... window to view data as [onset offset], eg: [-0.025 0.2] (in seconds)</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% ----- optional -----</span>
+0015 <span class="comment">% ax        ... handle of axis to plot on</span>
+0016 <span class="comment">% linecolor ... see linespec</span>
+0017 <span class="comment">% bandcolor ... color of confidence interval or error bands behind mean</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% DJS 2013</span>
+0020 
+0021 
+0022 <span class="comment">% Check input------------------</span>
+0023 optflds = {<span class="string">'ax'</span>,<span class="string">'facealpha'</span>,<span class="string">'facecolor'</span>,<span class="string">'linewidth'</span>,<span class="string">'linecolor'</span>, <span class="keyword">...</span>
+0024     <span class="string">'binvec'</span>,<span class="string">'krnldur'</span>,<span class="string">'krnlfcn'</span>};
+0025 optdeft = {gca,0.6,[0.6 0.6 0.6],2,<span class="string">'k'</span>, <span class="keyword">...</span>
+0026     0:0.001:0.2,0.005,@gausswin};
+0027 opttype = {@ishandle,@isscalar,@ismatrix,@isscalar,@ismatrix, <span class="keyword">...</span>
+0028     @isvector,@isscalar,@(x)isa(x,<span class="string">'function_handle'</span>)};
+0029 <span class="keyword">if</span> nargin &lt; 3
+0030     reqflds = {<span class="string">'unitid'</span>,<span class="string">'parid'</span>,<span class="string">'parval'</span>,<span class="string">'win'</span>};
+0031     reqvald = {@ismatrix,@ismatrix,@ismatrix,@(x) isnumeric(x) &amp; length(x)==2};
+0032     SD = <a href="comp_spikedensity.html" class="code" title="function [SD,pcfg] = comp_spikedensity(obj,cfg)">comp_spikedensity</a>(obj,cfg);
+0033 <span class="keyword">else</span>
+0034     reqflds = [];
+0035     reqvald = [];
+0036 <span class="keyword">end</span>
+0037 pcfg = cfgcheck(cfg,reqflds,reqvald,optflds,optdeft,opttype);
+0038 
+0039 
+0040 <span class="comment">%------------------------------</span>
+0041 
+0042 ax = pcfg.ax;
+0043 
+0044 tvec = linspace(SD.cfg.win(1),SD.cfg.win(2),length(SD.mean))';
+0045 x = [tvec; flipud(tvec)];
+0046 <span class="comment">% y = [SD.mean + SD.sem; flipud(SD.mean - SD.sem)];</span>
+0047 y = [SD.norm.muci(1,:)'; flipud(SD.norm.muci(2,:)')];
+0048 fill(x,y,pcfg.facecolor,<span class="string">'FaceAlpha'</span>,pcfg.facealpha, <span class="keyword">...</span>
+0049          <span class="string">'LineStyle'</span>,<span class="string">'none'</span>,<span class="string">'Parent'</span>,ax);
+0050 hold(ax,<span class="string">'on'</span>);
+0051 plot(ax,tvec,SD.mean,<span class="string">'linewidth'</span>,pcfg.linewidth,<span class="string">'color'</span>,pcfg.linecolor);
+0052 hold(ax,<span class="string">'off'</span>);
+0053 
+0054 axis(ax,<span class="string">'tight'</span>);
+0055 grid(ax,<span class="string">'on'</span>);
+0056 box(ax,<span class="string">'on'</span>);
+0057 
+0058 xlabel(ax,<span class="string">'time (s)'</span>);
+0059 ylabel(ax,<span class="string">'amplitude'</span>);
+0060 
+0061 
+0062 
+0063 
+0064 
+0065 
+0066</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

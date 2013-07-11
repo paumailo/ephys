@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of RunAutoClassReport</title>
+  <meta name="keywords" content="RunAutoClassReport">
+  <meta name="description" content="RunAutoClassReport(TANKS)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">spike_sorting</a> &gt; RunAutoClassReport.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for spike_sorting&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>RunAutoClassReport
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>RunAutoClassReport(TANKS)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function RunAutoClassReport(TANKS) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> RunAutoClassReport(TANKS)
+ 
+ Where TANKS is a cell array of tanks names or paths
+ 
+ IMPOARTANT: Only run after all channels have finished being processed 
+             with AutoClass (such as after a call to RunAutoClass)
+ 
+ DJS 2013
+
+ See also, <a href="RunAutoClass.html" class="code" title="function TANKS = RunAutoClass(TANKS)">RunAutoClass</a>, <a href="Pooling_GUI2.html" class="code" title="function varargout = Pooling_GUI2(varargin)">Pooling_GUI2</a></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="AutoClassReport2.html" class="code" title="function result = AutoClassReport2(SnipFile)">AutoClassReport2</a>	result = AutoClassReport2(SnipFile)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function RunAutoClassReport(TANKS)</a>
+0002 <span class="comment">% RunAutoClassReport(TANKS)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Where TANKS is a cell array of tanks names or paths</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% IMPOARTANT: Only run after all channels have finished being processed</span>
+0007 <span class="comment">%             with AutoClass (such as after a call to RunAutoClass)</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% DJS 2013</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% See also, RunAutoClass, Pooling_GUI2</span>
+0012 
+0013 
+0014 
+0015 <span class="keyword">for</span> i = 1:length(TANKS)
+0016     
+0017     [~,T,~] = fileparts(TANKS{i});
+0018     
+0019     resultsdir = [<span class="string">'C:\AutoClass_Files\AC2_RESULTS\'</span> T <span class="string">'\'</span>];
+0020     
+0021     d = dir(resultsdir);
+0022     k = findincell(strfind({d.name},<span class="string">'SNIP'</span>));
+0023     d = d(k);
+0024     
+0025     <span class="keyword">for</span> j = 1:length(d)
+0026         f = fullfile(resultsdir,d(j).name);
+0027         <a href="AutoClassReport2.html" class="code" title="function result = AutoClassReport2(SnipFile)">AutoClassReport2</a>(f);
+0028     <span class="keyword">end</span>    
+0029 <span class="keyword">end</span>
+0030 fprintf(<span class="string">'*** We''re all done here ***'</span>\n)
+0031 
+0032 
+0033</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

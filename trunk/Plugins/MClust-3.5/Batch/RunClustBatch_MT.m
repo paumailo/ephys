@@ -5,8 +5,11 @@ function RunClustBatch_MT(batchfile,varargin)
 % RunClustBatch_MT(batchfile,'prevRunMat','batchfilename.mat')
 %
 % *** MODIFIED VERSION OF RunClustBatch ***
-% * Opens multiple instances of KlustKwick at a time (modify NThreads in
-% * code below). Only works with KlustaKwik  DJS 5/2013
+% * Opens multiple instances of KlustKwick at a time. 
+% * Use the varargin parameter/value pair 'NThreads',scalar value to
+% * specify the maximum number of threads of KlustaKwick to run at a time.
+% * Default NThreads == 1, but can be any scalar value.  It is recommended
+% * to use N CPUs - 1 threads.
 % *
 % * Removed BBClust code because MClust no longer supports it. DJS 5/2013
 % *******************************************
@@ -388,7 +391,7 @@ if strcmp(Do_AutoClust,'yes')
     
     %  max number of threads to run at a time DJS 5/2013
     if ~exist('NThreads','var')
-        NThreads = 3;
+        NThreads = 1;
     end
     
     for i = 1:nFiles

@@ -1,0 +1,346 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ss_detect</title>
+  <meta name="keywords" content="ss_detect">
+  <meta name="description" content="UltraMegaSort2000 by Hill DN, Mehta SB, &amp; Kleinfeld D  - 07/12/2010">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">spike_sorting</a> &gt; ss_detect.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for spike_sorting&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>ss_detect
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>UltraMegaSort2000 by Hill DN, Mehta SB, &amp; Kleinfeld D  - 07/12/2010</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function spikes = ss_detect( data, spikes ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> UltraMegaSort2000 by Hill DN, Mehta SB, &amp; Kleinfeld D  - 07/12/2010
+
+ ss_detect - Detection of spikes in multi-channel data over multiple trials
+
+ Usage:
+      spikes = ss_detect( data, spikes )
+
+ Description:  
+     SPIKES = SS_DETECT_SPIKES(data, params) takes a matrix of data
+     and returns a spikes object containing the waveforms and spike times 
+     embedded in that signal.  This is determined by observing threshold
+     crossings on all channels.  The threshold can be determined in &quot;auto&quot;
+     mode (see below) where the user simply specifies how many standard
+     deviations should be used for threshold, or in &quot;manual&quot; mode where
+     the actual value is used.  All threshold crossings on any channel are 
+     events as long as they are not preceeded too closely be another 
+     event.  See SPIKES.PARAMS.SHADOW below. 
+
+     NOTE: it is assumed that the data has been previously filtered and 
+     that there is no voltage offset to the signal so that the mean signal 
+      is 0.
+
+     Input data can either be in a matrix format [trials X samples X
+     channels] or as a cell {trials}[samples x channels]. If a data set is 
+     too large to fit in memory, ss_detect can be called multiple times 
+     with different data sets.  The new spikes will be appended to the 
+     data for the previously detected spikes.  However, the threshold for 
+     spike detection will always be the one calculated from the first data 
+     set.
+
+     This function saves a window of data samples from each channel for 
+     each detected event.  This window is determined by parameters in 
+     spikes.params and described below.  In brief, the user specifies
+     (1) how long a window to extract, (2) where in the window the
+     threshold crossing shuld appear, and (3) a minimum separation time
+     between detected events.
+
+     The function places the following fields in the spikes object:
+       SPIKES.WAVEFORMS : [events X SAMPLES X CHANNELS] matrix of event waveforms
+       SPIKES.TRIALS:  array containing which trial the event was observed
+       SPIKES.SPIKETIMES: array containing time within trial of each event
+       SPIKES.UNWRAPPED_TIMES: array of time within experiments (assumes a short, specified delay between trials)
+
+  Inputs:
+     data  -- matrix of data {trials}[ samples X channels ]
+
+     spikes -- should contain 1 field &quot;params&quot;
+
+     &quot;params&quot; is a parameter structure that should contain the following
+        fields:
+           params.Fs       -- sampling rate of signal (Hz)
+         
+           params.detect_method -- determines interpretation of thresh
+                       &quot;auto&quot; ==&gt; thresh is how many standard deviations
+                       to set the threshold below 0
+                        &quot;manual&quot; ==&gt; thresh is actual threshold to use
+ 
+           params.thresh   -- threshold for spike detection
+                           -- note that in manual mode, a threshold must be 
+                              specified as an array giving a value for each 
+                              channel but in auto mode, only 1 number should 
+                              be given
+ 
+           params.window_size -- length of data to extract for   
+                                   each spike (ms)
+ 
+           params.shadow   -- minimum spacing between spikes (ms)
+ 
+           params.cross_time  -- time of threshold crossing to use in 
+                               each spike window (ms)
+ 
+ 
+   OUTPUT:
+           spikes --  a spike data structure containing time and data
+                   window for each spike
+   
+           thresh  -- the actual threshold value used</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function c = get_covs( data, samples )</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function spikes = ss_detect( data, spikes )</a>
+0002 <span class="comment">% UltraMegaSort2000 by Hill DN, Mehta SB, &amp; Kleinfeld D  - 07/12/2010</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% ss_detect - Detection of spikes in multi-channel data over multiple trials</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Usage:</span>
+0007 <span class="comment">%      spikes = ss_detect( data, spikes )</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% Description:</span>
+0010 <span class="comment">%     SPIKES = SS_DETECT_SPIKES(data, params) takes a matrix of data</span>
+0011 <span class="comment">%     and returns a spikes object containing the waveforms and spike times</span>
+0012 <span class="comment">%     embedded in that signal.  This is determined by observing threshold</span>
+0013 <span class="comment">%     crossings on all channels.  The threshold can be determined in &quot;auto&quot;</span>
+0014 <span class="comment">%     mode (see below) where the user simply specifies how many standard</span>
+0015 <span class="comment">%     deviations should be used for threshold, or in &quot;manual&quot; mode where</span>
+0016 <span class="comment">%     the actual value is used.  All threshold crossings on any channel are</span>
+0017 <span class="comment">%     events as long as they are not preceeded too closely be another</span>
+0018 <span class="comment">%     event.  See SPIKES.PARAMS.SHADOW below.</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">%     NOTE: it is assumed that the data has been previously filtered and</span>
+0021 <span class="comment">%     that there is no voltage offset to the signal so that the mean signal</span>
+0022 <span class="comment">%      is 0.</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">%     Input data can either be in a matrix format [trials X samples X</span>
+0025 <span class="comment">%     channels] or as a cell {trials}[samples x channels]. If a data set is</span>
+0026 <span class="comment">%     too large to fit in memory, ss_detect can be called multiple times</span>
+0027 <span class="comment">%     with different data sets.  The new spikes will be appended to the</span>
+0028 <span class="comment">%     data for the previously detected spikes.  However, the threshold for</span>
+0029 <span class="comment">%     spike detection will always be the one calculated from the first data</span>
+0030 <span class="comment">%     set.</span>
+0031 <span class="comment">%</span>
+0032 <span class="comment">%     This function saves a window of data samples from each channel for</span>
+0033 <span class="comment">%     each detected event.  This window is determined by parameters in</span>
+0034 <span class="comment">%     spikes.params and described below.  In brief, the user specifies</span>
+0035 <span class="comment">%     (1) how long a window to extract, (2) where in the window the</span>
+0036 <span class="comment">%     threshold crossing shuld appear, and (3) a minimum separation time</span>
+0037 <span class="comment">%     between detected events.</span>
+0038 <span class="comment">%</span>
+0039 <span class="comment">%     The function places the following fields in the spikes object:</span>
+0040 <span class="comment">%       SPIKES.WAVEFORMS : [events X SAMPLES X CHANNELS] matrix of event waveforms</span>
+0041 <span class="comment">%       SPIKES.TRIALS:  array containing which trial the event was observed</span>
+0042 <span class="comment">%       SPIKES.SPIKETIMES: array containing time within trial of each event</span>
+0043 <span class="comment">%       SPIKES.UNWRAPPED_TIMES: array of time within experiments (assumes a short, specified delay between trials)</span>
+0044 <span class="comment">%</span>
+0045 <span class="comment">%  Inputs:</span>
+0046 <span class="comment">%     data  -- matrix of data {trials}[ samples X channels ]</span>
+0047 <span class="comment">%</span>
+0048 <span class="comment">%     spikes -- should contain 1 field &quot;params&quot;</span>
+0049 <span class="comment">%</span>
+0050 <span class="comment">%     &quot;params&quot; is a parameter structure that should contain the following</span>
+0051 <span class="comment">%        fields:</span>
+0052 <span class="comment">%           params.Fs       -- sampling rate of signal (Hz)</span>
+0053 <span class="comment">%</span>
+0054 <span class="comment">%           params.detect_method -- determines interpretation of thresh</span>
+0055 <span class="comment">%                       &quot;auto&quot; ==&gt; thresh is how many standard deviations</span>
+0056 <span class="comment">%                       to set the threshold below 0</span>
+0057 <span class="comment">%                        &quot;manual&quot; ==&gt; thresh is actual threshold to use</span>
+0058 <span class="comment">%</span>
+0059 <span class="comment">%           params.thresh   -- threshold for spike detection</span>
+0060 <span class="comment">%                           -- note that in manual mode, a threshold must be</span>
+0061 <span class="comment">%                              specified as an array giving a value for each</span>
+0062 <span class="comment">%                              channel but in auto mode, only 1 number should</span>
+0063 <span class="comment">%                              be given</span>
+0064 <span class="comment">%</span>
+0065 <span class="comment">%           params.window_size -- length of data to extract for</span>
+0066 <span class="comment">%                                   each spike (ms)</span>
+0067 <span class="comment">%</span>
+0068 <span class="comment">%           params.shadow   -- minimum spacing between spikes (ms)</span>
+0069 <span class="comment">%</span>
+0070 <span class="comment">%           params.cross_time  -- time of threshold crossing to use in</span>
+0071 <span class="comment">%                               each spike window (ms)</span>
+0072 <span class="comment">%</span>
+0073 <span class="comment">%</span>
+0074 <span class="comment">%   OUTPUT:</span>
+0075 <span class="comment">%           spikes --  a spike data structure containing time and data</span>
+0076 <span class="comment">%                   window for each spike</span>
+0077 <span class="comment">%</span>
+0078 <span class="comment">%           thresh  -- the actual threshold value used</span>
+0079 <span class="comment">%</span>
+0080 
+0081 
+0082 <span class="comment">% if the input is not a cell, convert it to one</span>
+0083 <span class="keyword">if</span> ~iscell(data)
+0084     data = num2cell( data, [2 3] );
+0085     data = cellfun(@squeeze,data,<span class="string">'UniformOutput'</span>,false);
+0086 <span class="keyword">end</span>
+0087 
+0088 append = isfield( spikes, <span class="string">'waveforms'</span> );
+0089 <span class="keyword">if</span> append, disp( <span class="string">'Appending spikes in data using previous threshold.'</span>);<span class="keyword">end</span>
+0090 <span class="comment">% determine which trial we are on if appending</span>
+0091 <span class="keyword">if</span> append
+0092     pre_trials = length( spikes.info.detect.dur);
+0093 <span class="keyword">else</span>
+0094     pre_trials = 0;
+0095 <span class="keyword">end</span>
+0096 
+0097 <span class="comment">% set some constants</span>
+0098 params = spikes.params;
+0099 num_trials      = length(data); 
+0100 num_channels    = size( data{1}, 2);
+0101 window_samples  = round( params.Fs * params.window_size / 1000);
+0102 shadow          = round( params.Fs * params.shadow /1000);
+0103 samples_before  = round( params.Fs * params.cross_time /1000);
+0104 samples_after   = round( params.Fs * params.max_jitter / 1000)+ window_samples - (1+samples_before);
+0105 jitter_range    = samples_before - 1 + [1:round(spikes.params.max_jitter * spikes.params.Fs/1000)];
+0106  
+0107 <span class="keyword">if</span> ~isfield(spikes.params,<span class="string">'rejectthresh'</span>), spikes.params.rejectthresh = false; <span class="keyword">end</span> <span class="comment">% DJS 11/2010</span>
+0108 
+0109 <span class="comment">% determine threshold</span>
+0110 <span class="keyword">if</span> append <span class="comment">% use old threshold</span>
+0111     thresh = spikes.info.detect.thresh;
+0112 <span class="keyword">else</span> <span class="comment">% calculate from standard deviation</span>
+0113     spikes.info.detect.cov = <a href="#_sub1" class="code" title="subfunction c = get_covs( data, samples )">get_covs</a>( data, window_samples );
+0114     stds = zeros([1 num_channels]);
+0115     <span class="keyword">for</span> j = 1:num_trials
+0116       stds = stds + std(data{j});
+0117     <span class="keyword">end</span>
+0118   
+0119     spikes.info.detect.stds = stds / num_trials;
+0120     
+0121       <span class="keyword">if</span> isequal( spikes.params.detect_method, <span class="string">'auto'</span> )
+0122         thresh =  stds/num_trials * -params.thresh;
+0123       <span class="keyword">elseif</span> isequal( spikes.params.detect_method, <span class="string">'manual'</span> )
+0124         thresh = params.thresh;
+0125       <span class="keyword">else</span>
+0126           error( <span class="string">'Unknown spike detection method.'</span>)
+0127       <span class="keyword">end</span>
+0128      spikes.info.detect.thresh = thresh;
+0129    
+0130 <span class="keyword">end</span>
+0131 
+0132 <span class="comment">% find all threshold crossings</span>
+0133 <span class="keyword">if</span> ~append
+0134     spikes.waveforms  = [];
+0135     spikes.spiketimes = [];
+0136     spikes.trials     = [];
+0137     spikes.info.detect.event_channel = [];
+0138 <span class="keyword">end</span>
+0139 progress_bar(0, max(floor(num_trials/100),1), [<span class="string">'Extracting Spikes . . . Thresh: '</span>, num2str(thresh,2)] )
+0140 <span class="keyword">for</span> j = 1:num_trials
+0141         progress_bar(j/num_trials); <span class="comment">% BA</span>
+0142 
+0143     <span class="comment">% get crossings on all channels for this trial</span>
+0144     crossings = [];
+0145     channel = [];
+0146     <span class="keyword">for</span> k = 1:num_channels
+0147         crossings = [crossings find( data{j}(1:end-1,k) &gt; thresh(k) &amp;  data{j}(2:<span class="keyword">end</span>,k) &lt;= thresh(k) )' ];
+0148         channel( end+1:length(crossings) ) =  k;
+0149     <span class="keyword">end</span>
+0150     
+0151     [crossings, i] = sort(crossings);
+0152     channel = channel(i);
+0153     
+0154     <span class="comment">% remove  bad crossings, but remove them from channel first</span>
+0155     channel( 1+ find( diff(crossings) &lt;= shadow )) = [];    crossings( 1+ find( diff(crossings) &lt;= shadow ) ) = [];
+0156     channel( crossings &lt; samples_before  ) = [];    crossings(  crossings &lt;= samples_before ) = [];
+0157     channel(  crossings &gt; size(data{j},1) - samples_after   ) = [];    crossings(  crossings &gt; size(data{j},1) - samples_after ) = [];
+0158 
+0159     <span class="comment">% update spiketimes, trials, and waveforms</span>
+0160     spikes.spiketimes   =  [spikes.spiketimes crossings / params.Fs];
+0161     spikes.trials       =  [spikes.trials pre_trials + (j * ones( [1 length(crossings)] ))];
+0162     w = zeros( [length(crossings) samples_before+1+samples_after num_channels], <span class="string">'single'</span> );
+0163  
+0164     <span class="keyword">for</span> k = 1:length(crossings)
+0165         indices = crossings(k) + [-samples_before:samples_after];
+0166         w(k,:,:) = data{j}(indices, :) ;
+0167     <span class="keyword">end</span>
+0168     <span class="keyword">if</span> isnumeric(spikes.params.rejectthresh) <span class="comment">% DJS 11/2010</span>
+0169         rejind = false(size(w,1),size(w,3));
+0170         <span class="keyword">for</span> k = 1:size(w,3)
+0171             rejind(:,k) = any(w(:,:,k) &lt; spikes.params.rejectthresh(k),2);
+0172         <span class="keyword">end</span>
+0173         w(any(rejind,2),:,:) = [];
+0174         spikes.spiketimes(any(rejind,2)) = [];
+0175         spikes.trials(any(rejind,2))     = [];
+0176         
+0177     <span class="keyword">end</span>
+0178     spikes.waveforms    =  [spikes.waveforms; w ];
+0179 
+0180     spikes.info.detect.dur( j + pre_trials ) = size( data{j}, 1) / params.Fs;
+0181 <span class="keyword">end</span>
+0182 
+0183 clear data
+0184 <span class="comment">% save everything</span>
+0185 spikes.waveforms = single(spikes.waveforms);
+0186 spikes.spiketimes = single(spikes.spiketimes);
+0187 spikes.trials = single(spikes.trials);
+0188 spikes.unwrapped_times = single( unwrap_time( spikes.spiketimes, spikes.trials, spikes.info.detect.dur, spikes.params.display.trial_spacing ) ); 
+0189 
+0190 <span class="comment">% identify which channel the event occurred on</span>
+0191 [junk,  spikes.info.detect.event_channel] = min( squeeze( min( spikes.waveforms(:,jitter_range,:), [], 2 ) ), [], 2 );
+0192 spikes.info.detect.event_channel = single(spikes.info.detect.event_channel);
+0193 
+0194 <span class="comment">% save some more data that will be useful later</span>
+0195 spikes.info.detect.align_sample = samples_before + 1;
+0196 [pca.u,pca.s,pca.v] = svd(detrend(spikes.waveforms(:,:),<span class="string">'constant'</span>), 0);             <span class="comment">% SVD the data matrix</span>
+0197 spikes.info.pca = pca;
+0198 
+0199 <span class="comment">% report detection rate</span>
+0200 detect_rate = length(spikes.spiketimes) / sum(spikes.info.detect.dur);
+0201 disp( [<span class="string">'Detected on average '</span> num2str( detect_rate ) <span class="string">' events per second of data '</span>] );
+0202 
+0203 
+0204 <span class="comment">% get covariance matrix of background nosie by randomly sampling 10000 timepoints</span>
+0205 <a name="_sub1" href="#_subfunctions" class="code">function c = get_covs( data, samples )</a>
+0206 
+0207     num_trials = length(data);
+0208     num_channels = size(data{1},2);
+0209     <span class="keyword">for</span> j = 1:num_trials, num_samples(j) = size(data{j},1); <span class="keyword">end</span>
+0210 
+0211     max_samples = 10000;
+0212     waves = zeros( [max_samples samples num_channels] );
+0213     tr_index = ceil( num_trials * rand([1 max_samples]) );
+0214     data_index = ceil( (num_samples(tr_index)-samples) .* rand([1 max_samples]) );
+0215     <span class="keyword">for</span> j = 1:max_samples
+0216        waves(j,:,:) = data{tr_index(j)}(data_index(j)+[0:samples-1],:);  
+0217     <span class="keyword">end</span>
+0218         
+0219    c = cov( waves(:,:) );
+0220 
+0221</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

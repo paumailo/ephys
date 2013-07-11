@@ -1,0 +1,611 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of getTankData</title>
+  <meta name="keywords" content="getTankData">
+  <meta name="description" content="varargout = getTankData(cfg)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">TDTfun</a> &gt; getTankData.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for TDTfun&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>getTankData
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>varargout = getTankData(cfg)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function varargout = getTankData(cfg) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> varargout = getTankData(cfg)
+
+ cfg fields (default):  server    ('Local')
+                           - enumerated server as char string
+                        tank      (no default)
+                           - if tank is registered then only the tank name
+                           is required, otherwise the full path must be
+                           specified.
+                        blocks    ('all')
+                           - scalar or vector with block numbers, or 'all'
+                           as a char string
+                        blockroot ('Block-')
+                           - specifies a root for the tank blocks
+                        channel   ('all')
+                           - scalar or vector with channel numbers, or
+                           'all' as a char string
+                        datatype  ('BlockInfo')
+                           - char string indicating one of the following
+                           to be returned as the first output:
+                               'BlockInfo' - protocol information about
+                               each block of the tank as well as some
+                               general information
+                               'Spikes'    - returns spike times and
+                               spike waveforms
+                               'Waves'     - returns continuously sampled
+                               wave data
+                       event    ('Snip' if datatype is 'Spikes' or 'Wave'
+                                   if datatype is 'Waves')
+                           - char string of the event name
+                       sortname    (no default)
+                           - char string naming the sortname if using
+                           TDT OpenSorter.
+                       protocol    ('PROT')
+                           - parameter name from RPvds with an ID of the
+                           protocol or experiment type.
+                       downfs  (no default)
+                           - for downsampling continuous data.  Set this
+                           value to a target sampling rate.  If the actual
+                           sampling rate is greater than this value, the
+                           data will be downsampled to approximately this
+                           value.  The final sampling rate will be
+                           returned with the output structure.
+                       usemym (true)
+                           - indicates whether or not to use mym to look
+                           for protocol info on the database
+                       silently (false)
+                           - if true then data wil be retrieved without
+                           printing information to the command window
+                       TT
+                           - can be used to pass a reference to an
+                           a TTank ActiveX control object which already
+                           has an establisehd connectionn to the TTank
+                           server.  If not specified, then a temporary
+                           connection to the TTank server will be
+                           established.
+
+ OUTPUT:   [data] = getTankData(cfg);
+                           - retrieves data of the type specified in
+                           cfg.datatype field.
+                           - the data output will be organized into a
+                           structured array of N blocks with a fields
+                           corresponding to the desired output data type.
+           [data,cfg] = getTankData(cfg);
+                           - returns cfg structure as well as data.
+
+  DJS (c) 2009</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="TDT_BlockSelect.html" class="code" title="function varargout = TDT_BlockSelect(TT,tank,varargin)">TDT_BlockSelect</a>	varargout = TDT_BlockSelect(TT,tank,varargin)</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [dataout,cfg] = get_blockinfo(TT,cfg,blocklist)</a></li><li><a href="#_sub2" class="code">function [DO,cfg] = get_spikes(TT,cfg,blocklist)</a></li><li><a href="#_sub3" class="code">function [dataout,cfg] = get_waves(TT,cfg,blocklist)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function varargout = getTankData(cfg)</a>
+0002 <span class="comment">% varargout = getTankData(cfg)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% cfg fields (default):  server    ('Local')</span>
+0005 <span class="comment">%                           - enumerated server as char string</span>
+0006 <span class="comment">%                        tank      (no default)</span>
+0007 <span class="comment">%                           - if tank is registered then only the tank name</span>
+0008 <span class="comment">%                           is required, otherwise the full path must be</span>
+0009 <span class="comment">%                           specified.</span>
+0010 <span class="comment">%                        blocks    ('all')</span>
+0011 <span class="comment">%                           - scalar or vector with block numbers, or 'all'</span>
+0012 <span class="comment">%                           as a char string</span>
+0013 <span class="comment">%                        blockroot ('Block-')</span>
+0014 <span class="comment">%                           - specifies a root for the tank blocks</span>
+0015 <span class="comment">%                        channel   ('all')</span>
+0016 <span class="comment">%                           - scalar or vector with channel numbers, or</span>
+0017 <span class="comment">%                           'all' as a char string</span>
+0018 <span class="comment">%                        datatype  ('BlockInfo')</span>
+0019 <span class="comment">%                           - char string indicating one of the following</span>
+0020 <span class="comment">%                           to be returned as the first output:</span>
+0021 <span class="comment">%                               'BlockInfo' - protocol information about</span>
+0022 <span class="comment">%                               each block of the tank as well as some</span>
+0023 <span class="comment">%                               general information</span>
+0024 <span class="comment">%                               'Spikes'    - returns spike times and</span>
+0025 <span class="comment">%                               spike waveforms</span>
+0026 <span class="comment">%                               'Waves'     - returns continuously sampled</span>
+0027 <span class="comment">%                               wave data</span>
+0028 <span class="comment">%                       event    ('Snip' if datatype is 'Spikes' or 'Wave'</span>
+0029 <span class="comment">%                                   if datatype is 'Waves')</span>
+0030 <span class="comment">%                           - char string of the event name</span>
+0031 <span class="comment">%                       sortname    (no default)</span>
+0032 <span class="comment">%                           - char string naming the sortname if using</span>
+0033 <span class="comment">%                           TDT OpenSorter.</span>
+0034 <span class="comment">%                       protocol    ('PROT')</span>
+0035 <span class="comment">%                           - parameter name from RPvds with an ID of the</span>
+0036 <span class="comment">%                           protocol or experiment type.</span>
+0037 <span class="comment">%                       downfs  (no default)</span>
+0038 <span class="comment">%                           - for downsampling continuous data.  Set this</span>
+0039 <span class="comment">%                           value to a target sampling rate.  If the actual</span>
+0040 <span class="comment">%                           sampling rate is greater than this value, the</span>
+0041 <span class="comment">%                           data will be downsampled to approximately this</span>
+0042 <span class="comment">%                           value.  The final sampling rate will be</span>
+0043 <span class="comment">%                           returned with the output structure.</span>
+0044 <span class="comment">%                       usemym (true)</span>
+0045 <span class="comment">%                           - indicates whether or not to use mym to look</span>
+0046 <span class="comment">%                           for protocol info on the database</span>
+0047 <span class="comment">%                       silently (false)</span>
+0048 <span class="comment">%                           - if true then data wil be retrieved without</span>
+0049 <span class="comment">%                           printing information to the command window</span>
+0050 <span class="comment">%                       TT</span>
+0051 <span class="comment">%                           - can be used to pass a reference to an</span>
+0052 <span class="comment">%                           a TTank ActiveX control object which already</span>
+0053 <span class="comment">%                           has an establisehd connectionn to the TTank</span>
+0054 <span class="comment">%                           server.  If not specified, then a temporary</span>
+0055 <span class="comment">%                           connection to the TTank server will be</span>
+0056 <span class="comment">%                           established.</span>
+0057 <span class="comment">%</span>
+0058 <span class="comment">% OUTPUT:   [data] = getTankData(cfg);</span>
+0059 <span class="comment">%                           - retrieves data of the type specified in</span>
+0060 <span class="comment">%                           cfg.datatype field.</span>
+0061 <span class="comment">%                           - the data output will be organized into a</span>
+0062 <span class="comment">%                           structured array of N blocks with a fields</span>
+0063 <span class="comment">%                           corresponding to the desired output data type.</span>
+0064 <span class="comment">%           [data,cfg] = getTankData(cfg);</span>
+0065 <span class="comment">%                           - returns cfg structure as well as data.</span>
+0066 <span class="comment">%</span>
+0067 <span class="comment">%  DJS (c) 2009</span>
+0068 
+0069 
+0070 <span class="comment">%% Set Defaults</span>
+0071 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'tank'</span>) || ~ischar(cfg.tank)
+0072     error(<span class="string">'Tank must be specified as a char string'</span>);
+0073 <span class="keyword">end</span>
+0074 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'server'</span>),      cfg.server    = <span class="string">'Local'</span>;        <span class="keyword">end</span>
+0075 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'blockroot'</span>),   cfg.blockroot = <span class="string">'Block-'</span>;       <span class="keyword">end</span>
+0076 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'blocks'</span>),      cfg.blocks    = <span class="string">'all'</span>;          <span class="keyword">end</span>
+0077 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'channel'</span>),     cfg.channel   = <span class="string">'all'</span>;          <span class="keyword">end</span>
+0078 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'datatype'</span>),    cfg.datatype  = <span class="string">'BlockInfo'</span>;    <span class="keyword">end</span>
+0079 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'sortname'</span>),    cfg.sortname  = [];             <span class="keyword">end</span>
+0080 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'silently'</span>),    cfg.silently  = false;          <span class="keyword">end</span>
+0081 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'usemym'</span>),      cfg.usemym    = true;           <span class="keyword">end</span>
+0082 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'protocol'</span>),    cfg.protocol  = <span class="string">'PROT'</span>;         <span class="keyword">end</span>
+0083 <span class="keyword">if</span> isfield(cfg,<span class="string">'block'</span>),        cfg.blocks    = cfg.block;      <span class="keyword">end</span> <span class="comment">% because I can never remember it's blocks and not block</span>
+0084 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'event'</span>)
+0085     <span class="keyword">if</span> strcmpi(cfg.datatype,<span class="string">'Waves'</span>)
+0086         cfg.event = <span class="string">'Wave'</span>;
+0087     <span class="keyword">else</span>
+0088         cfg.event = <span class="string">'Snip'</span>;
+0089     <span class="keyword">end</span>
+0090 <span class="keyword">end</span>
+0091 
+0092 <span class="keyword">if</span> ~any(strcmpi(cfg.datatype,{<span class="string">'Spikes'</span>,<span class="string">'BlockInfo'</span>,<span class="string">'Waves'</span>}))
+0093     error(<span class="string">'''%s'' is an invalid datatype.'</span>,cfg.datatype);
+0094 <span class="keyword">end</span>
+0095 
+0096 <span class="comment">%% Connect Tank</span>
+0097 <span class="keyword">if</span> ~isfield(cfg,<span class="string">'TT'</span>) || isempty(cfg.TT)
+0098     TDTwindow = figure(<span class="string">'Visible'</span>,<span class="string">'off'</span>);
+0099     TT = actxcontrol(<span class="string">'TTank.X'</span>,[0 0 1 1],TDTwindow);
+0100     EXTTT = false;
+0101 <span class="keyword">else</span>
+0102     TT = cfg.TT;
+0103     EXTTT = true;
+0104 <span class="keyword">end</span>
+0105 cfg.tank = strtrim(cfg.tank);
+0106 TT.ConnectServer(cfg.server,<span class="string">'Me'</span>);
+0107 TT.OpenTank(cfg.tank, <span class="string">'R'</span>);
+0108 <span class="keyword">if</span> ~cfg.silently, fprintf(<span class="string">'\nLoading %s from Tank: ''%s'''</span>,cfg.datatype,cfg.tank); <span class="keyword">end</span>
+0109 
+0110 <span class="comment">%% Retrieve Block List</span>
+0111 <span class="keyword">if</span> strcmpi(cfg.blocks,<span class="string">'all'</span>)
+0112     
+0113     blocklist{1} = [];
+0114     bidx = 2;
+0115     TT.QueryBlockName(0);   <span class="comment">%initialize block query</span>
+0116     <span class="keyword">while</span> ~strcmp(blocklist{bidx-1},<span class="string">''</span>)
+0117         blocklist{bidx} = TT.QueryBlockName(bidx-1); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0118         bidx = bidx + 1;
+0119     <span class="keyword">end</span>
+0120     
+0121     blocklist([1 end])   = [];    <span class="comment">% erase first and last empties</span>
+0122     
+0123     
+0124     [~,id] = strtok(blocklist,<span class="string">'-'</span>);
+0125     [~,id] = sort(str2num(char(id)),<span class="string">'descend'</span>); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0126     blocklist = blocklist(id);
+0127     <span class="comment">%     blocklist = sort(blocklist);</span>
+0128     
+0129     cfg.blocks = 1:length(blocklist);
+0130 <span class="keyword">else</span>
+0131     <span class="keyword">if</span> iscell(cfg.blocks)
+0132         blocklist = cfg.blocks;
+0133     <span class="keyword">elseif</span> ischar(cfg.blocks)
+0134         blocklist = {cfg.blocks};
+0135     <span class="keyword">else</span>
+0136         <span class="keyword">for</span> i = 1:length(cfg.blocks)
+0137             blocklist{i} = [cfg.blockroot num2str(cfg.blocks(i))]; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0138         <span class="keyword">end</span>
+0139     <span class="keyword">end</span>
+0140 <span class="keyword">end</span>
+0141 
+0142 
+0143 <span class="keyword">for</span> i = 1:nargout
+0144     varargout{i} = []; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0145 <span class="keyword">end</span>
+0146 
+0147 <span class="keyword">if</span> isempty(blocklist)
+0148     fprintf(<span class="string">'  NO BLOCKS FOUND **\n'</span>);
+0149     <span class="keyword">return</span>
+0150 <span class="keyword">end</span>
+0151 cfg.blocklist = blocklist;
+0152 
+0153 
+0154 TT.ResetGlobals;
+0155 TT.SetGlobalV(<span class="string">'MaxReturn'</span>,5*10^8);
+0156 
+0157 <span class="keyword">try</span>
+0158     [dataout,cfg] = feval(sprintf(<span class="string">'get_%s'</span>,lower(cfg.datatype)),TT,cfg,blocklist);
+0159 <span class="keyword">catch</span> ME
+0160     <span class="keyword">if</span> strcmp(ME.message,<span class="string">'Unable to select block: asdf10'</span>)
+0161         warning(<span class="string">'\n%s\n* Trying to use tank name as a block root *\n'</span>,ME.message)
+0162         <span class="comment">% well that didn't work.  maybe we can try using the tank name as the</span>
+0163         <span class="comment">% block root.</span>
+0164         blocklist = cell(size(cfg.blocks));
+0165         <span class="keyword">for</span> i = 1:length(cfg.blocks)
+0166             blocklist{i} = [cfg.tank <span class="string">'-'</span> num2str(cfg.blocks(i))];
+0167         <span class="keyword">end</span>
+0168         [dataout,cfg] = feval(sprintf(<span class="string">'get_%s'</span>,lower(cfg.datatype)),TT,cfg,blocklist);
+0169     <span class="keyword">else</span>
+0170         rethrow(ME)
+0171     <span class="keyword">end</span>
+0172 <span class="keyword">end</span>
+0173 
+0174 
+0175 legacy   = str2num(TT.GetTankItem(cfg.tank,<span class="string">'VERSION'</span>)) == 10; <span class="comment">%#ok&lt;ST2NM&gt;;</span>
+0176 tankpath = TT.GetTankItem(cfg.tank,<span class="string">'PT'</span>);
+0177 
+0178 <span class="keyword">for</span> i = 1:length(dataout)
+0179     dataout(i).legacy   = legacy;
+0180     dataout(i).tankpath = tankpath;
+0181     
+0182     <span class="comment">% it's also usefull to send out all sampling rates from across data types</span>
+0183     fn = fieldnames(dataout);
+0184     fsamples = [];
+0185     <span class="keyword">for</span> j = 1:length(fn)
+0186         <span class="keyword">if</span> isfield(dataout(i).(fn{j}),<span class="string">'fsample'</span>)
+0187             fsamples(end+1) = dataout(i).(fn{j}).fsample; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0188         <span class="keyword">end</span>
+0189     <span class="keyword">end</span>
+0190     dataout(i).allfsamples = unique(fsamples);
+0191 <span class="keyword">end</span>
+0192 
+0193 
+0194 
+0195 
+0196 <span class="comment">%% Close Connection</span>
+0197 TT.CloseTank;
+0198 <span class="keyword">if</span> ~EXTTT &amp;&amp; nargout &lt; 3
+0199     TT.ReleaseServer;
+0200     close(TDTwindow);
+0201 <span class="keyword">end</span>
+0202 
+0203 <span class="comment">%% Handle Outputs</span>
+0204 <span class="keyword">if</span> nargout &gt;= 1, varargout{1} = dataout;    <span class="keyword">end</span>
+0205 <span class="keyword">if</span> nargout &gt;= 2, varargout{2} = cfg;        <span class="keyword">end</span>
+0206 <span class="keyword">if</span> nargout == 3, varargout{3} = TT;         <span class="keyword">end</span>
+0207 
+0208 
+0209 
+0210 <a name="_sub1" href="#_subfunctions" class="code">function [dataout,cfg] = get_blockinfo(TT,cfg,blocklist) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0211 <span class="keyword">if</span> ~cfg.silently, fprintf(<span class="string">'\n'</span>); <span class="keyword">end</span>
+0212 <span class="keyword">for</span> bidx = 1:length(cfg.blocks)
+0213     DO.id   = cfg.blocks(bidx);
+0214     DO.name = blocklist{bidx};
+0215     DO.tank = cfg.tank;
+0216     
+0217 <span class="comment">%     DO.Wave = [];</span>
+0218 <span class="comment">%     DO.Snip = [];</span>
+0219 <span class="comment">%     DO.Strm = [];</span>
+0220 <span class="comment">%     DO.eNeu = [];</span>
+0221     
+0222     <span class="keyword">if</span> ~cfg.silently, fprintf(<span class="string">'Retrieving Block info %d of %d ... '</span>,bidx,length(cfg.blocks)); <span class="keyword">end</span>
+0223     
+0224     <span class="keyword">if</span> ~TT.SelectBlock(blocklist{bidx})
+0225         error([<span class="string">'Unable to select block: '</span>, blocklist{bidx}]);
+0226     <span class="keyword">end</span>
+0227     
+0228     TT.CreateEpocIndexing;
+0229         
+0230     lStores = TT.GetEventCodes(0);
+0231     <span class="keyword">for</span> i = 1:length(lStores)
+0232         TT.GetCodeSpecs(lStores(i));
+0233         type = TT.EvTypeToString(TT.EvType);
+0234         
+0235         <span class="keyword">if</span> ~any(ismember(type,{<span class="string">'Snip'</span>,<span class="string">'Stream'</span>})), <span class="keyword">continue</span>; <span class="keyword">end</span>
+0236         
+0237         name = TT.CodeToString(lStores(i));
+0238         n = TT.ReadEventsV(10000,name,0,0,0,0,<span class="string">'NODATA'</span>);
+0239         DO.(name).fsample = TT.EvSampFreq;
+0240         DO.(name).type    = type;
+0241         
+0242         <span class="comment">% make sure there is actually data on the channel</span>
+0243         c = unique(TT.ParseEvInfoV(0,n,4));
+0244         k = 1;
+0245         TT.SetGlobalV(<span class="string">'T1'</span>,0);  TT.SetGlobalV(<span class="string">'T2'</span>,1);
+0246         <span class="keyword">for</span> j = 1:length(c)
+0247             TT.SetGlobalV(<span class="string">'Channel'</span>,c(j));
+0248             w = TT.ReadWavesV(name);
+0249             <span class="keyword">if</span> any(w)
+0250                 DO.(name).channels(k) = c(j);
+0251                 k = k + 1;
+0252             <span class="keyword">end</span>
+0253         <span class="keyword">end</span>
+0254         TT.SetGlobalV(<span class="string">'T1'</span>,0);  TT.SetGlobalV(<span class="string">'T2'</span>,0);
+0255     <span class="keyword">end</span>
+0256     
+0257     <span class="comment">% get general block info</span>
+0258     t1 = TT.CurBlockStartTime;
+0259     DO.date      = TT.FancyTime(t1,<span class="string">'Y-O-D'</span>);
+0260     DO.begintime = TT.FancyTime(t1,<span class="string">'H:M:S'</span>);
+0261     t2 = TT.CurBlockStopTime;
+0262     DO.endtime   = TT.FancyTime(t2,   <span class="string">'H:M:S'</span>);
+0263     DO.duration  = TT.FancyTime(t2-t1,<span class="string">'H:M:S'</span>);
+0264     
+0265     
+0266     
+0267     <span class="comment">% retrieve protocol ID #</span>
+0268     protocol = -1;
+0269     n = TT.ReadEventsV(1,cfg.protocol,0,0,0,0,<span class="string">'NODATA'</span>);
+0270     <span class="keyword">if</span> n, protocol = TT.ParseEvV(0,1); <span class="keyword">end</span>
+0271     DO.protocol = protocol;
+0272     
+0273     DO.protocolname = <span class="string">'UNKNOWN'</span>;
+0274     
+0275     <span class="keyword">if</span> cfg.usemym
+0276         <span class="keyword">try</span> <span class="comment">%#ok&lt;TRYNC&gt; % not critical to function</span>
+0277             <span class="comment">% look on db_util.protocol_types table</span>
+0278             <span class="keyword">if</span> ~myisopen, DB_Connect; <span class="keyword">end</span>
+0279             DO.protocolname = char(myms(sprintf(<span class="string">'SELECT alias FROM db_util.protocol_types WHERE pid = %d'</span>,protocol)));
+0280             <span class="keyword">if</span> isempty(DO.protocolname)
+0281                 <span class="keyword">while</span> 1
+0282                     pstr = inputdlg({sprintf([ <span class="keyword">...</span>
+0283                         <span class="string">'Protocol ID %d was not found on the database (db_util.protocol_types).\n\n'</span>, <span class="keyword">...</span>
+0284                         <span class="string">'Enter an alias for the protocol (between 3 and 5 characters; eg. eFRA; required):'</span>], protocol), <span class="keyword">...</span>
+0285                         <span class="string">'Enter a more descriptive name (up to 50 characters; optional):'</span>, <span class="keyword">...</span>
+0286                         <span class="string">'Enter a longer description if desired (up to 200 characters; optional):'</span>}, <span class="keyword">...</span>
+0287                         sprintf(<span class="string">'Tank: %s, %s'</span>,DO.tank,DO.name), <span class="keyword">...</span>
+0288                         [1 50; 1 50; 3 50]);
+0289                     
+0290                     <span class="keyword">if</span> ~isempty(pstr) &amp;&amp; (length(pstr{1}) &lt; 3 || length(pstr{1}) &gt; 5)
+0291                         uiwait(errordlg(<span class="string">'Protocol alias must be between 3 and 5 characters.  Try again, bozo!'</span>,<span class="string">'getTankData'</span>,<span class="string">'modal'</span>));
+0292                         
+0293                     <span class="keyword">elseif</span> ~isempty(pstr) &amp;&amp; length(pstr{1}) &lt;= 5
+0294                         mym([<span class="string">'INSERT db_util.protocol_types (pid,alias,name,description) '</span>, <span class="keyword">...</span>
+0295                             <span class="string">'VALUES ({Si},&quot;{S}&quot;,&quot;{S}&quot;,&quot;{S}&quot;)'</span>],protocol,pstr{1},pstr{2},pstr{3})
+0296                         fprintf(<span class="string">'Added Protocol ID %d %s to the database (db_util.protocol_types)\n'</span>,protocol,pstr{1})
+0297                         DO.protocolname = char(pstr{1});
+0298                         <span class="keyword">break</span>
+0299                         
+0300                     <span class="keyword">elseif</span> isempty(pstr)
+0301                         <span class="keyword">break</span>
+0302                     <span class="keyword">end</span>
+0303                 <span class="keyword">end</span>
+0304             <span class="keyword">end</span>
+0305         <span class="keyword">end</span>
+0306     <span class="keyword">end</span>
+0307     
+0308     
+0309     
+0310     TT.ResetFilters;
+0311     
+0312     <span class="comment">% get Event names</span>
+0313     i = 1;
+0314     <span class="keyword">while</span> true
+0315         DO.events{i} = TT.GetEpocCode(i-1);
+0316         <span class="keyword">if</span> isempty(DO.events{i})
+0317             DO.events(i) = [];
+0318             <span class="keyword">break</span>
+0319         <span class="keyword">end</span>
+0320         i = i + 1;
+0321     <span class="keyword">end</span>
+0322     
+0323     DO.epochs = [];
+0324     DO.paramspec = {[]};
+0325     
+0326     <span class="comment">% To get a list of param types use:</span>
+0327     <span class="comment">%     mym('SELECT * FROM db_util.param_types')</span>
+0328     
+0329     <span class="comment">% generalized for any protocol</span>
+0330     DO.paramspec = DO.events(~ismember(DO.events,{<span class="string">'Tick'</span>,<span class="string">'Tock'</span>,<span class="string">'Swep'</span>,<span class="string">'PROT'</span>}));
+0331     <span class="keyword">if</span> isempty(DO.paramspec)
+0332         dataout(bidx) = DO; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0333         clear DO;
+0334         fprintf(<span class="string">'* NO PARAMETERS FOUND *\n'</span>)
+0335         <span class="keyword">continue</span>
+0336     <span class="keyword">end</span>
+0337     <span class="keyword">for</span> i = 1:length(DO.paramspec)
+0338         t = TT.GetEpocsV(DO.paramspec{i},0,0,10^6)';
+0339         <span class="keyword">if</span> i &gt; 1 &amp;&amp; size(t,1) ~= size(DO.epochs,1)
+0340             error(<span class="string">'Unequal number of events'</span>)
+0341         <span class="keyword">end</span>
+0342         DO.epochs(:,i) = t(:,1);
+0343     <span class="keyword">end</span>
+0344     DO.paramspec{end+1} = <span class="string">'onset'</span>;
+0345     DO.epochs(:,end+1)  = t(:,2); <span class="comment">% append onset times</span>
+0346     
+0347     dataout(bidx) = DO; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0348     clear DO
+0349     
+0350     <span class="keyword">if</span> ~cfg.silently, fprintf(<span class="string">'done\n'</span>); <span class="keyword">end</span>
+0351 <span class="keyword">end</span> <span class="comment">% bidx</span>
+0352 
+0353 <a name="_sub2" href="#_subfunctions" class="code">function [DO,cfg] = get_spikes(TT,cfg,blocklist) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0354 TT.SetGlobalV(<span class="string">'WavesMemLimit'</span>,10^8);
+0355 
+0356 nblocks = length(blocklist);
+0357 <span class="keyword">for</span> bidx = 1:nblocks
+0358     TT.ResetFilters;
+0359     <span class="keyword">if</span> ~cfg.silently, fprintf(<span class="string">'\nGrabbing %s from %s...'</span>, <span class="keyword">...</span>
+0360             cfg.event,blocklist{bidx}); <span class="keyword">end</span>
+0361     
+0362     <span class="keyword">if</span> ~TT.SelectBlock(blocklist{bidx})
+0363         error([<span class="string">'Unable to select block: '</span>, blocklist{bidx}]);
+0364     <span class="keyword">end</span>
+0365     
+0366     TT.CreateEpocIndexing;
+0367     
+0368     <span class="keyword">if</span> ~isfield(cfg,<span class="string">'channel'</span>) || isempty(cfg.channel) || strcmpi(cfg.channel,<span class="string">'all'</span>)
+0369         n = TT.ReadEventsV(10^6,cfg.event,0,0,0,0,<span class="string">'NODATA'</span>);
+0370         cfg.channel = unique(TT.ParseEvInfoV(0,n,4));
+0371     <span class="keyword">end</span>
+0372         
+0373     cfg.fsample(bidx) = TT.ParseEvInfoV(0,1,9);
+0374     
+0375     <span class="keyword">if</span> ~isempty(cfg.sortname) &amp;&amp; ~TT.SetUseSortName(cfg.sortname)
+0376         error(<span class="string">'The sortname ''%s'' was not found in block ''%s'' of tank ''%s'''</span>, <span class="keyword">...</span>
+0377             cfg.sortname,cfg.tank,cfg.blocks{bidx});
+0378     <span class="keyword">end</span>
+0379     
+0380     k = 0;
+0381     <span class="keyword">for</span> cidx = cfg.channel
+0382         k = k + 1;
+0383         <span class="keyword">if</span> ~cfg.silently, fprintf(<span class="string">'\n\tChannel: %d\t(%d of %d) '</span>,cidx,k,length(cfg.channel)); <span class="keyword">end</span>
+0384         
+0385         <span class="comment">% GRAB SPIKES FROM BLOCKS</span>
+0386         nSnips = TT.ReadEventsV(10^6,cfg.event,cidx,0,0,0,<span class="string">'ALL'</span>);
+0387         <span class="keyword">if</span> ~cfg.silently, fprintf(<span class="string">'\t#spikes = %d'</span>,nSnips); <span class="keyword">end</span>
+0388         
+0389         DO(cidx).totalspikes = 0; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0390         DO(cidx).blockspikes(bidx) = nSnips; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0391         DO(cidx).channel = cidx; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0392 
+0393         <span class="keyword">if</span> nSnips &gt; 1
+0394             DO(cidx).timestamps{bidx} = TT.ParseEvInfoV(0,nSnips,6)'; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0395             DO(cidx).waveforms{bidx}  = TT.ParseEvV(0,nSnips)'; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0396             DO(cidx).sortcode{bidx}   = TT.ParseEvInfoV(0,nSnips,5)'; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0397         <span class="keyword">else</span>
+0398             DO(cidx).timestamps{bidx} = []; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0399             DO(cidx).waveforms{bidx}  = []; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0400             DO(cidx).sortcode{bidx}   = []; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0401         <span class="keyword">end</span>
+0402         
+0403         uids = unique(DO(cidx).sortcode{bidx});
+0404         uids(uids==31) = -1; <span class="comment">% outliers</span>
+0405         DO(cidx).sortcode{bidx}(DO(cidx).sortcode{bidx}==31) = -1; <span class="comment">%#ok&lt;AGROW&gt; % outliers</span>
+0406         <span class="keyword">if</span> isempty(uids), uids = 0; <span class="keyword">end</span>
+0407         DO(cidx).units(bidx).classid = uids; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0408         <span class="keyword">for</span> u = 1:length(uids)
+0409             cnt = sum(DO(cidx).sortcode{bidx} == uids(u));
+0410             <span class="keyword">if</span> isempty(cnt), cnt = 0; <span class="keyword">end</span>
+0411             DO(cidx).units(bidx).count(u) = cnt; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0412             fprintf(<span class="string">'\t% 3.0f: %d;'</span>,uids(u),DO(cidx).units(bidx).count(u))
+0413         <span class="keyword">end</span>
+0414         DO(cidx).totalspikes = sum([DO(cidx).units(bidx).count]); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0415         DO(cidx).fsample(bidx) = cfg.fsample(bidx); <span class="comment">%#ok&lt;AGROW&gt; % I know these are all the same, but the strucuture is an array</span>
+0416     <span class="keyword">end</span> <span class="comment">% cidx</span>
+0417     
+0418 <span class="keyword">end</span> <span class="comment">% bidx</span>
+0419 cfg.tankcreation = TT.FancyTime(TT.CurBlockStartTime,<span class="string">'Y-O-D'</span>);
+0420 
+0421 <span class="keyword">if</span> ~cfg.silently, fprintf(<span class="string">'\n'</span>); <span class="keyword">end</span>
+0422 
+0423 <a name="_sub3" href="#_subfunctions" class="code">function [dataout,cfg] = get_waves(TT,cfg,blocklist) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0424 TT.SetGlobalV(<span class="string">'WavesMemLimit'</span>,10^9);
+0425 
+0426 <span class="keyword">for</span> bidx = 1:length(blocklist)
+0427     TT.ResetFilters;
+0428     <span class="keyword">if</span> ~cfg.silently, fprintf(<span class="string">'\nGrabbing %s from %s...'</span>,cfg.event,blocklist{bidx}); <span class="keyword">end</span>
+0429     
+0430     <span class="keyword">if</span> ~TT.SelectBlock(blocklist{bidx})
+0431         error([<span class="string">'Unable to select block: '</span>, blocklist{bidx}]);
+0432     <span class="keyword">end</span>
+0433     
+0434     TT.CreateEpocIndexing;
+0435     
+0436     <span class="keyword">if</span> strcmpi(cfg.channel,<span class="string">'all'</span>) || all(isnan(cfg.channel))
+0437         n = TT.ReadEventsV(256,cfg.event,0,0,0,0,<span class="string">'NODATA'</span>);
+0438         cfg.channel = unique(TT.ParseEvInfoV(0,n,4));
+0439     <span class="keyword">end</span>
+0440     
+0441     <span class="keyword">for</span> cidx = 1:length(cfg.channel)
+0442         <span class="keyword">if</span> ~cfg.silently, fprintf(<span class="string">'\n\tChannel: %d\t(%d of %d) '</span>,cfg.channel(cidx),cidx,length(cfg.channel)); <span class="keyword">end</span>
+0443         
+0444         TT.SetGlobals(sprintf(<span class="string">'Channel=%d'</span>,cfg.channel(cidx)));
+0445         w = TT.ReadWavesV(cfg.event);
+0446         
+0447         cfg.fsample(bidx) = TT.ParseEvInfoV(0,1,9);
+0448         DO.fsample        = cfg.fsample(bidx);
+0449 
+0450         <span class="keyword">if</span> (any(isnan(w)) || all(w == 0)) &amp;&amp; ~cfg.silently
+0451             fprintf(<span class="string">' ... no data'</span>)
+0452         <span class="keyword">end</span>
+0453         
+0454         DO.waves(:,cidx) = w;
+0455     <span class="keyword">end</span> <span class="comment">% cidx</span>
+0456     clear w
+0457     
+0458     <span class="keyword">if</span> isfield(cfg,<span class="string">'downfs'</span>) &amp;&amp; cfg.downfs &lt; DO.fsample
+0459         sstep = round(DO.fsample/cfg.downfs);
+0460         <span class="keyword">if</span> sstep &gt; 1
+0461             <span class="comment">% convert sampling rate</span>
+0462             DO.fsample = DO.fsample/sstep;
+0463             fprintf(<span class="string">'\nDownsampling from %0.2f Hz to %0.2f Hz ...'</span>, <span class="keyword">...</span>
+0464                 cfg.fsample(bidx),DO.fsample)
+0465             cfg.fsample(bidx) = DO.fsample;
+0466             
+0467             <span class="comment">% run anti-aliasing filter before downsampling</span>
+0468             nyquist = DO.fsample/2;
+0469             lppb    = nyquist * 0.90;
+0470             [z,p,k] = butter(6,lppb/nyquist,<span class="string">'low'</span>);
+0471             [sos,~] = zp2sos(z,p,k);   
+0472             DO.waves = single(sosfilt(sos,double(DO.waves)));
+0473             
+0474             <span class="comment">% downsample</span>
+0475             DO.waves = DO.waves(1:sstep:<span class="keyword">end</span>,:);
+0476             fprintf(<span class="string">' done\n'</span>)
+0477         <span class="keyword">end</span>
+0478     <span class="keyword">end</span>
+0479     ind = logical(all(DO.waves==0));
+0480     DO.channels = cfg.channel(~ind);
+0481     DO.waves(:,ind) = [];
+0482     
+0483     <span class="keyword">if</span> any(ind) &amp;&amp; ~cfg.silently
+0484         fprintf(<span class="string">'\n%d channels had no activity, so there were really %d channels'</span>,sum(ind),length(DO.channels));
+0485     <span class="keyword">end</span>
+0486     
+0487     
+0488     dataout(bidx) = DO; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0489     clear DO
+0490 <span class="keyword">end</span> <span class="comment">% bidx</span>
+0491 
+0492 cfg.tankcreation = TT.FancyTime(TT.CurBlockStartTime,<span class="string">'Y-O-D'</span>);
+0493 
+0494 <span class="keyword">if</span> ~cfg.silently, fprintf(<span class="string">'\n'</span>); <span class="keyword">end</span>
+0495 
+0496 
+0497</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>
