@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of waves</title>
+  <meta name="keywords" content="waves">
+  <meta name="description" content="">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">OOP</a> &gt; <a href="index.html">@waves</a> &gt; waves.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for OOP\@waves&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>waves
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong></strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="deline.html" class="code" title="function obj = deline(obj)">deline</a>	Removes line noise from a signal</li><li><a href="eventrel.html" class="code" title="function data = eventrel(obj,win)">eventrel</a>	data = eventrel(win)</li><li><a href="fieldtrip.html" class="code" title="function ft = fieldtrip(obj)">fieldtrip</a>	ft = fieldtrip</li><li><a href="update.html" class="code" title="function obj = update(obj)">update</a>	</li><li><a href="waves.html" class="code" title="">waves</a>	</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="waves.html" class="code" title="">waves</a>	</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function obj = waves(name,block,eventname)</a></li><li><a href="#_sub2" class="code">function obj = set.eventname(obj,name)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 classdef <a href="waves.html" class="code" title="">waves</a> &lt; tank
+0002     <span class="comment">% waves class</span>
+0003     <span class="comment">% W = waves(TANKNAME)</span>
+0004     <span class="comment">% W = waves(TANKNAME,BLOCKNUMBER)</span>
+0005     <span class="comment">% W = waves(TANKNAME,BLOCKNUMBER,EVENTNAME)</span>
+0006     <span class="comment">%</span>
+0007     <span class="comment">% ex:   W = waves('ROCKSTAR_V_T_A') % open tank 'ROCKSTAR_V_T_A'</span>
+0008     <span class="comment">%       W.blocklist  % get a list of available blocks</span>
+0009     <span class="comment">%       W.block = 4; % change block to 4</span>
+0010     <span class="comment">%       W.block = 'ROCKSTAR_V_T_A-2'; % Alternative method to change block</span>
+0011     <span class="comment">%       W.downFs = 610; % set new sampling rate</span>
+0012     <span class="comment">%       W = update(W); % downsample to w.downFs</span>
+0013     <span class="comment">%       W = deline(W); % remove 60 Hz line noise</span>
+0014     <span class="comment">%</span>
+0015     <span class="comment">%       % Get event-related potentials</span>
+0016     <span class="comment">%       evokedW = eventrel(W,[0 0.25]); % samples X channels X events</span>
+0017     <span class="comment">%</span>
+0018     <span class="comment">%       % close Tank server connection and clear object from workspace</span>
+0019     <span class="comment">%       delete(W); clear W</span>
+0020     <span class="comment">%</span>
+0021     <span class="comment">% methodsview(W) will get you a list of methods and their parameters.</span>
+0022     <span class="comment">%</span>
+0023     <span class="comment">% Inherits TANK class</span>
+0024     <span class="comment">%</span>
+0025     <span class="comment">% See also, tank, spikes</span>
+0026     
+0027     <span class="comment">% DJS 2013</span>
+0028 
+0029     properties (SetAccess = <span class="string">'public'</span>,GetAccess = <span class="string">'public'</span>)
+0030         eventname = <span class="string">'Wave'</span>; <span class="comment">% Eventname (eg, 'Wave')</span>
+0031         downFs    = 1000;   <span class="comment">% Downsample sampling rate</span>
+0032     <span class="keyword">end</span>
+0033     
+0034     properties (SetAccess = <span class="string">'private'</span>,GetAccess = <span class="string">'public'</span>)
+0035         Fs                  <span class="comment">% Sampling frequency (Hz)</span>
+0036         tankFs              <span class="comment">% Original sampling frequency</span>
+0037         channels            <span class="comment">% Channel list</span>
+0038         data                <span class="comment">% Continuously sampled data</span>
+0039         time                <span class="comment">% Time vector</span>
+0040     <span class="keyword">end</span>
+0041 
+0042     
+0043     
+0044     
+0045     methods
+0046        
+0047         <span class="comment">% clas constructor</span>
+0048         <a name="_sub0" href="#_subfunctions" class="code">function obj = waves(name,block,eventname)</a>
+0049             <span class="keyword">if</span> nargin &gt;= 1, obj.name = name;            <span class="keyword">end</span>
+0050             <span class="keyword">if</span> nargin &gt;= 2, obj.block = block;          <span class="keyword">end</span>
+0051             <span class="keyword">if</span> nargin == 3, obj.eventname = eventname;  <span class="keyword">end</span>            
+0052         <span class="keyword">end</span>
+0053         
+0054         <span class="comment">% Set eventname</span>
+0055         <a name="_sub1" href="#_subfunctions" class="code">function obj = set.eventname(obj,name)</a>
+0056             obj.eventname = name;
+0057             obj = <a href="update.html" class="code" title="function obj = update(obj)">update</a>(obj);
+0058         <span class="keyword">end</span>
+0059         
+0060         <span class="comment">% @methods</span>
+0061         obj = <a href="update.html" class="code" title="function obj = update(obj)">update</a>(obj);
+0062         data = <a href="eventrel.html" class="code" title="function data = eventrel(obj,win)">eventrel</a>(obj,win);
+0063         obj = <a href="deline.html" class="code" title="function obj = deline(obj)">deline</a>(obj);
+0064         ft = <a href="fieldtrip.html" class="code" title="function ft = fieldtrip(obj)">fieldtrip</a>(obj);
+0065         
+0066     <span class="keyword">end</span>   
+0067     
+0068 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

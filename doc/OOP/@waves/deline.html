@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of deline</title>
+  <meta name="keywords" content="deline">
+  <meta name="description" content="Removes line noise from a signal">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">OOP</a> &gt; <a href="index.html">@waves</a> &gt; deline.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for OOP\@waves&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>deline
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>Removes line noise from a signal</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function obj = deline(obj) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Removes line noise from a signal</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="waves.html" class="code" title="">waves</a>	</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [newdata] = chunkwiseDeline(data,sr,freqs,freqrange,chunksize,showOutput)</a></li><li><a href="#_sub2" class="code">function [y pss] = delineChunk(dat,sr,showoutput,freqs,freqrange,pss)</a></li><li><a href="#_sub3" class="code">function [y,J] = thefun(p,x,mask)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function obj = deline(obj)</a>
+0002 <span class="comment">% Removes line noise from a signal</span>
+0003 <span class="keyword">for</span> i = 1:size(obj.data,2)
+0004     fprintf(<span class="string">'Removing 60Hz line noise on channel %d of %d ...'</span>,i,size(obj.data,2))
+0005     obj.data(:,i) = <a href="#_sub1" class="code" title="subfunction [newdata] = chunkwiseDeline(data,sr,freqs,freqrange,chunksize,showOutput)">chunkwiseDeline</a>(obj.data(:,i),obj.Fs,[60 180],2,60,false);
+0006     fprintf(<span class="string">' done\n'</span>)
+0007 <span class="keyword">end</span>
+0008 <span class="keyword">end</span>
+0009 
+0010 <a name="_sub1" href="#_subfunctions" class="code">function [newdata] = chunkwiseDeline(data,sr,freqs,freqrange,chunksize,showOutput)</a>
+0011 <span class="comment">%function [newdata] = chunkwiseDeline(data,sr,freqs,chunksize)</span>
+0012 <span class="comment">%Removes line noise from a signal in small chunks of data.</span>
+0013 <span class="comment">%data - an n x 1 vector containing continuous data</span>
+0014 <span class="comment">%sr - scalar, the sampling rate of the signal</span>
+0015 <span class="comment">%freqs - a vector of frequencies around which to remove line noise,</span>
+0016 <span class="comment">%        for example [60,180]</span>
+0017 <span class="comment">%freqrange (optional) - a scalar specifying the range of frequencies</span>
+0018 <span class="comment">%                       to use for fitting a parametric function for</span>
+0019 <span class="comment">%                       line noise (default: 2Hz)</span>
+0020 <span class="comment">%chunksize (optional) - the size of a chunk in seconds (default : 60)</span>
+0021 <span class="comment">%showOutput (opt)     - if true, show plots of fits (default: false)</span>
+0022 <span class="comment">%Algo: for every block of data, take abs(fft(dat)). Then extract the</span>
+0023 <span class="comment">%      vector corresponding to [freq(1)-freqrange, freq(1)+freqrange].</span>
+0024 <span class="comment">%      Fit a function thefun = @(p,x) p(1)*exp(-p(2)*abs(x-p(4)).^(p(5)))+p(3);</span>
+0025 <span class="comment">%      to this range of freqs. Invert the function to obtain a delining</span>
+0026 <span class="comment">%      filter and apply it. Repeat for other frequencies. Repeat for</span>
+0027 <span class="comment">%      all blocks. Reassemble blocks.</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% Source:</span>
+0030 <span class="comment">%   http://xcorr.net/2011/10/03/removing-line-noise-from-lfps-wideband-signals/</span>
+0031 <span class="comment">%</span>
+0032 data = data(:);
+0033 <span class="keyword">if</span> nargin &lt; 4 || isempty(freqrange)
+0034     freqrange = .5;
+0035 <span class="keyword">end</span>
+0036 
+0037 <span class="keyword">if</span> nargin &lt; 5 || isempty(chunksize)
+0038     chunksize = 60;
+0039 <span class="keyword">end</span>
+0040 
+0041 <span class="keyword">if</span> nargin &lt; 6 || isempty(showOutput)
+0042     showOutput = false;
+0043 <span class="keyword">end</span>
+0044 
+0045 <span class="comment">%     chunksize = chunksize*sr;</span>
+0046 chunksize = round(chunksize*sr);
+0047 <span class="keyword">if</span> mod(chunksize,2) == 1, chunksize = chunksize-1; <span class="keyword">end</span>
+0048 lsamp = data(end);
+0049 
+0050 <span class="comment">%zero pad</span>
+0051 origlen = length(data);
+0052 data = [data(chunksize/2:-1:1);data];
+0053 nchunks = ceil((length(data)+chunksize/2)/chunksize);
+0054 padsize = nchunks*chunksize - length(data);
+0055 data = [data;data(end:-1:end-padsize+1)];
+0056 
+0057 newdata = zeros(size(data));
+0058 nchunks = nchunks*2-1;
+0059 thewin = (0:chunksize/2-1)'/(chunksize/2-1);
+0060 thewin = [thewin;thewin(end:-1:1)];
+0061 
+0062 <span class="comment">%Deline each chunk and reassemble</span>
+0063 pss = nan(5,nchunks);
+0064 <span class="keyword">for</span> ii = 1:nchunks
+0065     thechunk = data((ii-1)*chunksize/2+(1:chunksize));
+0066     [delinedchunk,pss] = <a href="#_sub2" class="code" title="subfunction [y pss] = delineChunk(dat,sr,showoutput,freqs,freqrange,pss)">delineChunk</a>(thechunk,sr,showOutput,freqs,freqrange,pss);
+0067     newdata((ii-1)*chunksize/2+(1:chunksize)) = <span class="keyword">...</span>
+0068         newdata((ii-1)*chunksize/2+(1:chunksize)) + <span class="keyword">...</span>
+0069         delinedchunk.*thewin;
+0070 <span class="keyword">end</span>
+0071 
+0072 newdata = newdata(chunksize/2 + (1:origlen));
+0073 <span class="keyword">end</span>
+0074 
+0075 <span class="comment">%Deline a single chunk of data</span>
+0076 <a name="_sub2" href="#_subfunctions" class="code">function [y pss] = delineChunk(dat,sr,showoutput,freqs,freqrange,pss)</a>
+0077 ae = [];
+0078 <span class="keyword">if</span> mod(length(dat),2) == 1
+0079     ae = dat(end);
+0080     dat = dat(1:end-1);
+0081 <span class="keyword">end</span>
+0082 fftdat = fft(double(dat));
+0083 a = abs(fftdat);
+0084 
+0085 <span class="comment">%Now remove line noise from datlo to obtain y</span>
+0086 <span class="comment">%</span>
+0087 <span class="comment">%Eliminate line noise at target frequencies</span>
+0088 thefilt = ones(size(a));
+0089 
+0090 winlen = round(length(dat)/sr*freqrange);
+0091 
+0092 <span class="comment">%Fit a curve to this chunk of frequencies</span>
+0093 opts = optimset(<span class="string">'Display'</span>,<span class="string">'Off'</span>,<span class="string">'Jacobian'</span>,<span class="string">'on'</span>,<span class="string">'Algorithm'</span>,<span class="string">'levenberg-marquardt'</span>);
+0094 
+0095 
+0096 n = 1;
+0097 <span class="keyword">for</span> tgtr = freqs
+0098     
+0099     peak = tgtr/sr*length(dat);
+0100     
+0101     rg = round(((peak-winlen):(peak+winlen)))';
+0102     datrg = a(rg);
+0103     
+0104     x = (-winlen:winlen)'/winlen*freqrange;
+0105     
+0106     
+0107     <span class="comment">%Only adjust a few parameters at a time</span>
+0108     <span class="comment">%convergence is better this way</span>
+0109     <span class="comment">%everything but the exponent</span>
+0110     <span class="comment">%Find the peak</span>
+0111     datrgsm = conv(datrg,ones(21,1),<span class="string">'same'</span>);
+0112     [~,peakloc] = max(datrgsm);
+0113     
+0114     <span class="comment">%Set the initial parameters</span>
+0115     x0 = [max(datrg)-median(datrg),1/.2^2,median(datrg),(peakloc-1-winlen)/winlen*freqrange,1]';
+0116     
+0117     <span class="keyword">if</span> ~any(isnan(pss(:,n)))
+0118         x0([2,4,5]) = pss([2,4,5],n);
+0119     <span class="keyword">end</span>
+0120     
+0121     
+0122     [ps] = lsqcurvefit(@(x,y) <a href="#_sub3" class="code" title="subfunction [y,J] = thefun(p,x,mask)">thefun</a>([x;x0(5)],y,[1;1;1;1;0]),x0(1:4),x,datrg,[],[],opts);
+0123     xd = ps(4);
+0124     
+0125     <span class="comment">%Everything but the center</span>
+0126     [ps] = lsqcurvefit(@(x,y) <a href="#_sub3" class="code" title="subfunction [y,J] = thefun(p,x,mask)">thefun</a>([x(1:3);xd;x(4)],y,[1;1;1;0;1]),[ps(1:3);x0(5)],x,datrg,[],[],opts);
+0127     
+0128     <span class="comment">%Everything</span>
+0129     [ps] = lsqcurvefit(@(x,y) <a href="#_sub3" class="code" title="subfunction [y,J] = thefun(p,x,mask)">thefun</a>(x,y,[1;1;1;1;1]),[ps(1:3);xd;ps(4)],x,datrg,[],[],opts);
+0130     
+0131     pss(:,n) = ps;
+0132     
+0133     <span class="comment">%Good, now adjust the filter in this range accordingly</span>
+0134     thefilt(rg) = ps(3)./<a href="#_sub3" class="code" title="subfunction [y,J] = thefun(p,x,mask)">thefun</a>(ps,x);
+0135     b = thefilt(rg);
+0136     thefilt(end-rg+2) = b;
+0137     
+0138     <span class="keyword">if</span> showoutput
+0139         subplot(length(freqs),1,n);
+0140         plot(x+tgtr,datrg,x+tgtr,<a href="#_sub3" class="code" title="subfunction [y,J] = thefun(p,x,mask)">thefun</a>(ps,x));
+0141         title(sprintf(<span class="string">'%3.1f Hz'</span>,tgtr));
+0142         drawnow;
+0143         
+0144         [ps(2),ps(4),ps(5)]
+0145     <span class="keyword">end</span>
+0146     n=n+1;
+0147 <span class="keyword">end</span>
+0148 
+0149 <span class="comment">% y is datlo with line noise removed</span>
+0150 a = fftdat.*thefilt;
+0151 y = [real(ifft(a));ae];
+0152 
+0153 <span class="keyword">end</span>
+0154 
+0155 <a name="_sub3" href="#_subfunctions" class="code">function [y,J] = thefun(p,x,mask)</a>
+0156 E = abs(x-p(4)).^(p(5));
+0157 M = exp(-p(2)*E);
+0158 y = p(1)*M+p(3);
+0159 <span class="keyword">if</span> nargout &gt; 1
+0160     J = [ M,<span class="keyword">...</span>
+0161         -p(1)*E.*M,<span class="keyword">...</span>
+0162         ones(size(x)),<span class="keyword">...</span>
+0163         p(1)*p(2)*p(5)*sign(x-p(4)).*abs(x-p(4)).^(p(5)-1).*M,<span class="keyword">...</span>
+0164         -p(1)*p(2)*p(5)*E.*log(abs(x-p(4))+1e-6).*M];
+0165     J = J(:,mask==1);
+0166 <span class="keyword">end</span>
+0167 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

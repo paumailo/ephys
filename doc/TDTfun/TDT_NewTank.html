@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of TDT_NewTank</title>
+  <meta name="keywords" content="TDT_NewTank">
+  <meta name="description" content="TDT_NEWTANK M-file for TDT_NewTank.fig">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">TDTfun</a> &gt; TDT_NewTank.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for TDTfun&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>TDT_NewTank
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>TDT_NEWTANK M-file for TDT_NewTank.fig</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function varargout = TDT_NewTank(varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> TDT_NEWTANK M-file for TDT_NewTank.fig</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="addTankToRegistry.html" class="code" title="function result = addTankToRegistry (tank, directory)">addTankToRegistry</a>	AddTankToRegistry Adds a given tank to the TTankEng through the registry</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function TDT_NewTank_OpeningFcn(hObject, eventdata, handles, varargin)</a></li><li><a href="#_sub2" class="code">function varargout = TDT_NewTank_OutputFcn(hObject, eventdata, handles)</a></li><li><a href="#_sub3" class="code">function browse_Callback(hObject, eventdata, handles)</a></li><li><a href="#_sub4" class="code">function ok_Callback(hObject, eventdata, handles)</a></li><li><a href="#_sub5" class="code">function TDT_NewTank_CloseRequestFcn(hObject, eventdata, handles)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function varargout = TDT_NewTank(varargin)</a>
+0002 <span class="comment">% TDT_NEWTANK M-file for TDT_NewTank.fig</span>
+0003 
+0004 <span class="comment">% Last Modified by GUIDE v2.5 22-Mar-2011 11:58:04</span>
+0005 
+0006 <span class="comment">% Begin initialization code - DO NOT EDIT</span>
+0007 gui_Singleton = 1;
+0008 gui_State = struct(<span class="string">'gui_Name'</span>,       mfilename, <span class="keyword">...</span>
+0009                    <span class="string">'gui_Singleton'</span>,  gui_Singleton, <span class="keyword">...</span>
+0010                    <span class="string">'gui_OpeningFcn'</span>, @<a href="#_sub1" class="code" title="subfunction TDT_NewTank_OpeningFcn(hObject, eventdata, handles, varargin) ">TDT_NewTank_OpeningFcn</a>, <span class="keyword">...</span>
+0011                    <span class="string">'gui_OutputFcn'</span>,  @<a href="#_sub2" class="code" title="subfunction varargout = TDT_NewTank_OutputFcn(hObject, eventdata, handles)  ">TDT_NewTank_OutputFcn</a>, <span class="keyword">...</span>
+0012                    <span class="string">'gui_LayoutFcn'</span>,  [] , <span class="keyword">...</span>
+0013                    <span class="string">'gui_Callback'</span>,   []);
+0014 <span class="keyword">if</span> nargin &amp;&amp; ischar(varargin{1})
+0015     gui_State.gui_Callback = str2func(varargin{1});
+0016 <span class="keyword">end</span>
+0017 
+0018 <span class="keyword">if</span> nargout
+0019     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+0020 <span class="keyword">else</span>
+0021     gui_mainfcn(gui_State, varargin{:});
+0022 <span class="keyword">end</span>
+0023 <span class="comment">% End initialization code - DO NOT EDIT</span>
+0024 
+0025 
+0026 <span class="comment">% --- Executes just before TDT_NewTank is made visible.</span>
+0027 <a name="_sub1" href="#_subfunctions" class="code">function TDT_NewTank_OpeningFcn(hObject, eventdata, handles, varargin) </a><span class="comment">%#ok&lt;INUSL&gt;</span>
+0028 handles.regKey = <span class="string">'HKCU\Software\MATHWORKS\MATLAB\TDT_CustomGUI'</span>;
+0029 
+0030 <span class="comment">% tankdir  = GetRegKey(handles.regKey,'tankdir');</span>
+0031 <span class="comment">% tankname = GetRegKey(handles.regKey,'tankname');</span>
+0032 <span class="comment">% regtank  = GetRegKey(handles.regKey,'regtank');</span>
+0033 tankdir = getpref(<span class="string">'TDT_NewTank'</span>,<span class="string">'tankdir'</span>,cd);
+0034 tankname = getpref(<span class="string">'TDT_NewTank'</span>,<span class="string">'tankname'</span>,<span class="string">''</span>);
+0035 <span class="comment">% regtank =</span>
+0036 <span class="keyword">for</span> i = 1:2:length(varargin)
+0037     <span class="keyword">switch</span> lower(varargin{i})
+0038 <span class="comment">%         case 'register'</span>
+0039 <span class="comment">%             regtank = varargin{i+1};</span>
+0040         <span class="keyword">case</span> <span class="string">'tank'</span>
+0041             tankname = varargin{i+1};
+0042         <span class="keyword">case</span> <span class="string">'tankdir'</span>
+0043             tankdir  = varargin{i+1};
+0044     <span class="keyword">end</span>
+0045 <span class="keyword">end</span>
+0046 
+0047 <span class="comment">% if isempty(regtank), regtank = 0; elseif ischar(regtank), regtank = str2num(regtank); end %#ok&lt;ST2NM&gt;</span>
+0048 
+0049 set(handles.tankdir,<span class="string">'String'</span>,tankdir);
+0050 set(handles.tankname,<span class="string">'String'</span>,tankname);
+0051 <span class="comment">% set(handles.registertank,'Value',regtank);</span>
+0052 
+0053 setpref(<span class="string">'TDT_NewTank'</span>,<span class="string">'tankdir'</span>,tankdir);
+0054 setpref(<span class="string">'TDT_NewTank'</span>,<span class="string">'tankname'</span>,tankname)
+0055 
+0056 handles.output = hObject;
+0057 guidata(hObject, handles);
+0058 
+0059 
+0060 
+0061 <span class="comment">% --- Outputs from this function are returned to the command line.</span>
+0062 <a name="_sub2" href="#_subfunctions" class="code">function varargout = TDT_NewTank_OutputFcn(hObject, eventdata, handles)  </a><span class="comment">%#ok&lt;INUSL&gt;</span>
+0063 varargout{1} = handles.output;
+0064 
+0065 
+0066 
+0067 
+0068 
+0069 
+0070 
+0071 
+0072 
+0073 
+0074 
+0075 
+0076 
+0077 
+0078 
+0079 
+0080 
+0081 <span class="comment">%% GUI Callbacks</span>
+0082 <a name="_sub3" href="#_subfunctions" class="code">function browse_Callback(hObject, eventdata, handles) </a><span class="comment">%#ok&lt;DEFNU,INUSL&gt;</span>
+0083 tankdir = uigetdir;
+0084 <span class="keyword">if</span> ~tankdir, <span class="keyword">return</span>; <span class="keyword">end</span>
+0085 
+0086 set(handles.tankdir,<span class="string">'String'</span>,tankdir);
+0087 
+0088 <a name="_sub4" href="#_subfunctions" class="code">function ok_Callback(hObject, eventdata, handles) </a><span class="comment">%#ok&lt;INUSL,DEFNU&gt;</span>
+0089 set(gcf,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); drawnow
+0090 
+0091 tankname = get(handles.tankname,<span class="string">'String'</span>);
+0092 tankdir  = get(handles.tankdir,<span class="string">'String'</span>);
+0093 tankpath = fullfile(tankdir,tankname,<span class="string">''</span>);
+0094 
+0095 <span class="keyword">if</span> ~exist(tankpath,<span class="string">'dir'</span>)
+0096     [s,m,mid] = mkdir(tankdir,tankname); <span class="comment">%#ok&lt;NASGU&gt;</span>
+0097     <span class="keyword">if</span> ~s
+0098         warndlg(m,<span class="string">'Unable to create tank!'</span>,<span class="string">'modal'</span>);
+0099         close(handles.TDT_NewTank);
+0100     <span class="keyword">end</span>
+0101 <span class="keyword">end</span>
+0102 
+0103 regval = get(handles.registertank,<span class="string">'Value'</span>);
+0104 <span class="keyword">if</span> regval
+0105     <span class="keyword">if</span> ~<a href="addTankToRegistry.html" class="code" title="function result = addTankToRegistry (tank, directory)">addTankToRegistry</a>(tankname,tankdir)
+0106         warning(<span class="string">'Unable to Register Tank Propertly!'</span>);
+0107     <span class="keyword">end</span>
+0108 <span class="keyword">end</span>
+0109 
+0110 SetRegKey(handles.regKey,<span class="string">'tankdir'</span>,tankdir);
+0111 SetRegKey(handles.regKey,<span class="string">'tankname'</span>,tankname);
+0112 SetRegKey(handles.regKey,<span class="string">'regtank'</span>,regval);
+0113 
+0114 set(gcf,<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>); drawnow
+0115 close(handles.TDT_NewTank);
+0116 
+0117 
+0118 <a name="_sub5" href="#_subfunctions" class="code">function TDT_NewTank_CloseRequestFcn(hObject, eventdata, handles) </a><span class="comment">%#ok&lt;INUSD,DEFNU&gt;</span>
+0119 
+0120 <span class="comment">% Hint: delete(hObject) closes the figure</span>
+0121 delete(hObject);</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

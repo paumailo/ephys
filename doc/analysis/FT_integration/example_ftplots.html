@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of example_ftplots</title>
+  <meta name="keywords" content="example_ftplots">
+  <meta name="description" content="% Example Plot LFPs">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">analysis</a> &gt; <a href="index.html">FT_integration</a> &gt; example_ftplots.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for analysis\FT_integration&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>example_ftplots
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>% Example Plot LFPs</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Example Plot LFPs</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Example Plot LFPs</span>
+0002 cfg = [];
+0003 cfg.linewidth = 2;
+0004 cfg.channel   = 5;
+0005 cfg.interactive = <span class="string">'no'</span>;
+0006 figure(<span class="string">'windowstyle'</span>,<span class="string">'docked'</span>)
+0007 ft_singleplotER(cfg,visLFP,audLFP);
+0008 
+0009 hold on
+0010 plot([0 0],ylim,<span class="string">'--'</span>,<span class="string">'color'</span>,[0.6 0.6 0.6]);
+0011 hold off
+0012 
+0013 
+0014 
+0015 
+0016 
+0017 
+0018 
+0019 
+0020 <span class="comment">%% Example with SPIKEs</span>
+0021 
+0022 cfg = [];
+0023 cfg.binsize = 0.001;
+0024 cfg.latency  = [0 0.5];
+0025 PSTH = ft_spike_psth(cfg,audSPIKE);
+0026 
+0027 clf
+0028 cfg              = [];
+0029 <span class="comment">% scfg.topplotfunc  = 'line'; % plot as a line</span>
+0030 cfg.spikechannel = {<span class="string">'ch05_00'</span>,<span class="string">'ch05_u01'</span>};
+0031 cfg.latency      = <span class="string">'maxperiod'</span>;
+0032 scfg.errorbars   = <span class="string">'std'</span>; <span class="comment">% plot with the standard deviation</span>
+0033 cfg.interactive  = <span class="string">'no'</span>; <span class="comment">% toggle off interactive mode</span>
+0034 ft_spike_plot_raster(cfg, audSPIKE, PSTH);
+0035 
+0036 <span class="comment">%% Example with Spike Density</span>
+0037 cfg = [];
+0038 cfg.timwin = [-0.01 0.01];
+0039 cfg.winfunc = <span class="string">'gauss'</span>;
+0040 <span class="comment">% scfg.winfuncopt = 0.001;</span>
+0041 cfg.keeptrials = <span class="string">'yes'</span>;
+0042 cfg.timwin = [0 0.4];
+0043 PSTH = ft_spikedensity(cfg,audSPIKE);
+0044 
+0045 clf
+0046 cfg              = [];
+0047 cfg.latency      = [0 0.4]; <span class="comment">% &lt;- this parameter doesn't work</span>
+0048 cfg.topplotfunc  = <span class="string">'line'</span>; <span class="comment">% plot as a line</span>
+0049 cfg.spikechannel = SPIKE.label([5 6]);
+0050 cfg.errorbars    = <span class="string">'sem'</span>; <span class="comment">% plot with the standard deviation</span>
+0051 cfg.interactive  = <span class="string">'no'</span>; <span class="comment">% toggle off interactive mode</span>
+0052 ft_spike_plot_raster(cfg, audSPIKE, PSTH);
+0053 
+0054 <span class="comment">%% freq analysis on spike trains</span>
+0055 cfg = [];
+0056 cfg.method = <span class="string">'wavelet'</span>;
+0057 cfg.foi = logspace(log10(2),log10(1000),500);
+0058 cfg.toi = -0.5:0.0001:0.5;
+0059 cfg.pad = <span class="string">'maxperlen'</span>;
+0060 <span class="comment">% cfg.trials = randi(length(audSPIKE.trialinfo),20,1);</span>
+0061 freq = ft_freqanalysis(cfg,audSPIKE);
+0062 
+0063 <span class="comment">%%</span>
+0064 cfg = [];
+0065 cfg.channel = 6;
+0066 cfg.baseline = [-0.5 0];
+0067 cfg.baselinetype = <span class="string">'relative'</span>;
+0068 cfg.xlim = [0 0.4];
+0069 cfg.colorbar = <span class="string">'no'</span>;
+0070 cfg.interactive = <span class="string">'no'</span>;
+0071 ft_singleplotTFR(cfg,freq);
+0072 
+0073 <span class="comment">%%</span>
+0074 cfg = [];
+0075 cfg.method = <span class="string">'MTMCONVOL'</span>;
+0076 cfg.foi = 5:150;
+0077 cfg.toi = -0.5:0.01:0.5;
+0078 cfg.tapsmofrq = round(logspace(0,1,length(cfg.foi)));
+0079 cfg.taper = <span class="string">'dpss'</span>;
+0080 cfg.t_ftimwin = 4./cfg.foi;
+0081 freq = ft_freqanalysis(cfg,audSPIKE);
+0082</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

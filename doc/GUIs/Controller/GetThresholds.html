@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of GetThresholds</title>
+  <meta name="keywords" content="GetThresholds">
+  <meta name="description" content="success = GetThresholds(DA)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">GUIs</a> &gt; <a href="index.html">Controller</a> &gt; GetThresholds.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for GUIs\Controller&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>GetThresholds
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>success = GetThresholds(DA)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function success = GetThresholds(DA) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> success = GetThresholds(DA)
+ 
+ Save spike thresholds (hoops) and spike/wave filter settings.
+ 
+ Hoops location: 'C:\Electrophys\RunTime Files\Thresh.mat'
+ 
+ See also <a href="SetThresholds.html" class="code" title="function hoops = SetThresholds(DA,fn)">SetThresholds</a>
+
+ DJS (c) 2012</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="EPhysController.html" class="code" title="function varargout = EPhysController(varargin)">EPhysController</a>	h = EPhysController</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function success = GetThresholds(DA)</a>
+0002 <span class="comment">% success = GetThresholds(DA)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Save spike thresholds (hoops) and spike/wave filter settings.</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Hoops location: 'C:\Electrophys\RunTime Files\Thresh.mat'</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% See also SetThresholds</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% DJS (c) 2012</span>
+0011 
+0012 NCHANS = 32;
+0013 
+0014 <span class="keyword">if</span> ~DA.CheckServerConnection, DA.ConnectServer(<span class="string">'Local'</span>); <span class="keyword">end</span>
+0015 
+0016 <span class="keyword">for</span> i = 1:NCHANS
+0017     spike.threshold(i) = DA.GetTargetVal(num2str(i,<span class="string">'Acq.aSnip~%d'</span>));
+0018 <span class="keyword">end</span>
+0019 
+0020 <span class="keyword">if</span> ~any(spike.threshold)
+0021     fprintf(<span class="string">'\n\n***** WARNING: No spike thresholds found! *****\n\n'</span>)
+0022 <span class="keyword">end</span>
+0023 
+0024 spike.HP = DA.GetTargetVal(<span class="string">'Acq.Spike_HP'</span>);
+0025 spike.LP = DA.GetTargetVal(<span class="string">'Acq.Spike_LP'</span>); <span class="comment">%#ok&lt;STRNU&gt;</span>
+0026 
+0027 wave.HP = DA.GetTargetVal(<span class="string">'Acq.Wave_HP'</span>);
+0028 wave.LP = DA.GetTargetVal(<span class="string">'Acq.Wave_LP'</span>); <span class="comment">%#ok&lt;STRNU&gt;</span>
+0029 
+0030 path = <span class="string">'C:\Electrophys\RunTime Files\'</span>;
+0031 
+0032 <span class="keyword">if</span> ~isdir(path), mkdir(path); <span class="keyword">end</span>
+0033 
+0034 filename = fullfile(path,<span class="string">'Thresh.mat'</span>);
+0035 
+0036 save(filename,<span class="string">'spike'</span>, <span class="string">'wave'</span>);
+0037 
+0038 success = exist(filename,<span class="string">'file'</span>);
+0039 
+0040 s = dir(filename);
+0041 <span class="keyword">if</span> success
+0042     disp([<span class="string">'Hoops acquired at '</span> datestr(s.date,<span class="string">'mmm.dd,yyyy HH:MM:SS PM'</span>)]);
+0043 <span class="keyword">else</span>
+0044     disp(<span class="string">'SaveHoops:Unable to Save Hoops!'</span>);
+0045     beep
+0046 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

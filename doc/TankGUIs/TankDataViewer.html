@@ -1,0 +1,417 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of TankDataViewer</title>
+  <meta name="keywords" content="TankDataViewer">
+  <meta name="description" content="TANKDATAVIEWER MATLAB code for TankDataViewer.fig">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">TankGUIs</a> &gt; TankDataViewer.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for TankGUIs&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>TankDataViewer
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>TANKDATAVIEWER MATLAB code for TankDataViewer.fig</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function varargout = TankDataViewer(varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> TANKDATAVIEWER MATLAB code for TankDataViewer.fig
+      TANKDATAVIEWER, by itself, creates a new TANKDATAVIEWER or raises the existing
+      singleton*.
+
+      H = TANKDATAVIEWER returns the handle to a new TANKDATAVIEWER or the handle to
+      the existing singleton*.
+
+      TANKDATAVIEWER('CALLBACK',hObj,evnt,h,...) calls the local
+      function named CALLBACK in TANKDATAVIEWER.M with the given input arguments.
+
+      TANKDATAVIEWER('Property','Value',...) creates a new TANKDATAVIEWER or raises the
+      existing singleton*.  Starting from the left, property value pairs are
+      applied to the GUI before TankDataViewer_OpeningFcn gets called.  An
+      unrecognized property name or invalid value makes property application
+      stop.  All inputs are passed to TankDataViewer_OpeningFcn via varargin.
+
+      *See GUI Options on GUIDE's Tools menu.  Choose &quot;GUI allows only one
+      instance to run (singleton)&quot;.
+
+ See also: GUIDE, GUIDATA, GUIHANDLES</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function TankDataViewer_OpeningFcn(hObj, evnt, h, varargin)</a></li><li><a href="#_sub2" class="code">function varargout = TankDataViewer_OutputFcn(hObj, evnt, h)</a></li><li><a href="#_sub3" class="code">function InitializeTankList(h)</a></li><li><a href="#_sub4" class="code">function UpdateBlocksList(h)</a></li><li><a href="#_sub5" class="code">function UpdateEventsList(h)</a></li><li><a href="#_sub6" class="code">function UpdateParamsList(h)</a></li><li><a href="#_sub7" class="code">function UpdatePlots(h)</a></li><li><a href="#_sub8" class="code">function CheckStrVal(hObj,nvals)</a></li><li><a href="#_sub9" class="code">function ax = PlotData(ax,h,datain,channelid,binvec,event1,event2,ev1p,ev2p,uev1p,uev2p)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function varargout = TankDataViewer(varargin)</a>
+0002 <span class="comment">% TANKDATAVIEWER MATLAB code for TankDataViewer.fig</span>
+0003 <span class="comment">%      TANKDATAVIEWER, by itself, creates a new TANKDATAVIEWER or raises the existing</span>
+0004 <span class="comment">%      singleton*.</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">%      H = TANKDATAVIEWER returns the handle to a new TANKDATAVIEWER or the handle to</span>
+0007 <span class="comment">%      the existing singleton*.</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">%      TANKDATAVIEWER('CALLBACK',hObj,evnt,h,...) calls the local</span>
+0010 <span class="comment">%      function named CALLBACK in TANKDATAVIEWER.M with the given input arguments.</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">%      TANKDATAVIEWER('Property','Value',...) creates a new TANKDATAVIEWER or raises the</span>
+0013 <span class="comment">%      existing singleton*.  Starting from the left, property value pairs are</span>
+0014 <span class="comment">%      applied to the GUI before TankDataViewer_OpeningFcn gets called.  An</span>
+0015 <span class="comment">%      unrecognized property name or invalid value makes property application</span>
+0016 <span class="comment">%      stop.  All inputs are passed to TankDataViewer_OpeningFcn via varargin.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">%      *See GUI Options on GUIDE's Tools menu.  Choose &quot;GUI allows only one</span>
+0019 <span class="comment">%      instance to run (singleton)&quot;.</span>
+0020 <span class="comment">%</span>
+0021 <span class="comment">% See also: GUIDE, GUIDATA, GUIHANDLES</span>
+0022 
+0023 <span class="comment">% Edit the above text to modify the response to help TankDataViewer</span>
+0024 
+0025 <span class="comment">% Last Modified by GUIDE v2.5 12-Jan-2013 09:12:41</span>
+0026 
+0027 <span class="comment">% Begin initialization code - DO NOT EDIT</span>
+0028 gui_Singleton = 1;
+0029 gui_State = struct(<span class="string">'gui_Name'</span>,       mfilename, <span class="keyword">...</span>
+0030                    <span class="string">'gui_Singleton'</span>,  gui_Singleton, <span class="keyword">...</span>
+0031                    <span class="string">'gui_OpeningFcn'</span>, @<a href="#_sub1" class="code" title="subfunction TankDataViewer_OpeningFcn(hObj, evnt, h, varargin) ">TankDataViewer_OpeningFcn</a>, <span class="keyword">...</span>
+0032                    <span class="string">'gui_OutputFcn'</span>,  @<a href="#_sub2" class="code" title="subfunction varargout = TankDataViewer_OutputFcn(hObj, evnt, h)  ">TankDataViewer_OutputFcn</a>, <span class="keyword">...</span>
+0033                    <span class="string">'gui_LayoutFcn'</span>,  [] , <span class="keyword">...</span>
+0034                    <span class="string">'gui_Callback'</span>,   []);
+0035 <span class="keyword">if</span> nargin &amp;&amp; ischar(varargin{1})
+0036     gui_State.gui_Callback = str2func(varargin{1});
+0037 <span class="keyword">end</span>
+0038 
+0039 <span class="keyword">if</span> nargout
+0040     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+0041 <span class="keyword">else</span>
+0042     gui_mainfcn(gui_State, varargin{:});
+0043 <span class="keyword">end</span>
+0044 <span class="comment">% End initialization code - DO NOT EDIT</span>
+0045 
+0046 
+0047 <span class="comment">% --- Executes just before TankDataViewer is made visible.</span>
+0048 <a name="_sub1" href="#_subfunctions" class="code">function TankDataViewer_OpeningFcn(hObj, evnt, h, varargin) </a><span class="comment">%#ok&lt;INUSL&gt;</span>
+0049 <span class="comment">% Choose default command line output for TankDataViewer</span>
+0050 h.output = hObj;
+0051 
+0052 <span class="comment">% Update h structure</span>
+0053 guidata(hObj, h);
+0054 
+0055 <a href="#_sub3" class="code" title="subfunction InitializeTankList(h)">InitializeTankList</a>(h)
+0056 
+0057 
+0058 
+0059 <span class="comment">% --- Outputs from this function are returned to the command line.</span>
+0060 <a name="_sub2" href="#_subfunctions" class="code">function varargout = TankDataViewer_OutputFcn(hObj, evnt, h)  </a><span class="comment">%#ok&lt;INUSL&gt;</span>
+0061 <span class="comment">% Get default command line output from h structure</span>
+0062 varargout{1} = h.output;
+0063 
+0064 
+0065 
+0066 
+0067 
+0068 
+0069 
+0070 
+0071 
+0072 <span class="comment">%%</span>
+0073 <a name="_sub3" href="#_subfunctions" class="code">function InitializeTankList(h)</a>
+0074 tanks = TDT_RegTanks;
+0075 set(h.list_tanks,<span class="string">'Value'</span>,length(tanks),<span class="string">'String'</span>,tanks);
+0076 
+0077 <a name="_sub4" href="#_subfunctions" class="code">function UpdateBlocksList(h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0078 cfg = [];
+0079 cfg.tank = get_string(h.list_tanks);
+0080 cfg.datatype = <span class="string">'BlockInfo'</span>;
+0081 blockinfo = getTankData(cfg);
+0082 <span class="keyword">if</span> isempty(blockinfo)
+0083     blockstr = <span class="string">'&lt;NO BLOCKS FOUND&gt;'</span>;
+0084 <span class="keyword">else</span>
+0085     blockstr = cell(size(blockinfo));
+0086     <span class="keyword">for</span> i = 1:length(blockinfo)
+0087         blockstr{i} = sprintf(<span class="string">'%s - %s'</span>,blockinfo(i).name,blockinfo(i).protocolname);
+0088     <span class="keyword">end</span>
+0089 <span class="keyword">end</span>
+0090 set(h.list_blocks,<span class="string">'Value'</span>,1,<span class="string">'String'</span>,blockstr, <span class="keyword">...</span>
+0091     <span class="string">'UserData'</span>,blockinfo);
+0092 
+0093 <a href="#_sub5" class="code" title="subfunction UpdateEventsList(h)">UpdateEventsList</a>(h);
+0094 
+0095 <a name="_sub5" href="#_subfunctions" class="code">function UpdateEventsList(h)</a>
+0096 set(findobj(<span class="string">'type'</span>,<span class="string">'figure'</span>),<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); 
+0097 set(get(h.figure1,<span class="string">'children'</span>),<span class="string">'Enable'</span>,<span class="string">'off'</span>);drawnow
+0098 
+0099 blockstr = get_string(h.list_blocks);
+0100 <span class="keyword">if</span> strcmp(blockstr,<span class="string">'&lt;NO BLOCKS FOUND&gt;'</span>)
+0101     set(h.list_event1,<span class="string">'Value'</span>,1,<span class="string">'String'</span>,<span class="string">'&lt;NO EVENTS FOUND&gt;'</span>,<span class="string">'UserData'</span>,[]);
+0102     set(h.list_event2,<span class="string">'Value'</span>,1,<span class="string">'String'</span>,<span class="string">'&lt;NO EVENTS FOUND&gt;'</span>,<span class="string">'UserData'</span>,[]);
+0103     set(findobj(<span class="string">'type'</span>,<span class="string">'figure'</span>),<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);
+0104     set(get(h.figure1,<span class="string">'children'</span>),<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0105     <span class="keyword">return</span>
+0106 <span class="keyword">end</span>
+0107 
+0108 blockidx  = get(h.list_blocks,<span class="string">'Value'</span>);
+0109 blockinfo = get(h.list_blocks,<span class="string">'UserData'</span>);
+0110 
+0111 blockinfo = blockinfo(blockidx);
+0112 
+0113 pspec = blockinfo.paramspec;
+0114 
+0115 <span class="keyword">if</span> isempty(pspec) || isempty(pspec{1})
+0116     set(h.list_event1,<span class="string">'Value'</span>,1,<span class="string">'String'</span>,<span class="string">'&lt;NO EVENTS FOUND&gt;'</span>,<span class="string">'UserData'</span>,[]);
+0117     set(h.list_event2,<span class="string">'Value'</span>,1,<span class="string">'String'</span>,<span class="string">'&lt;NO EVENTS FOUND&gt;'</span>,<span class="string">'UserData'</span>,[]);
+0118     set(findobj(<span class="string">'type'</span>,<span class="string">'figure'</span>),<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);
+0119     set(get(h.figure1,<span class="string">'children'</span>),<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0120     <span class="keyword">return</span>
+0121 <span class="keyword">end</span>
+0122 
+0123 pspec(ismember(pspec,{<span class="string">'onset'</span>,<span class="string">'ofset'</span>})) = [];
+0124 set(h.list_event1,<span class="string">'Value'</span>,1,<span class="string">'String'</span>,pspec,<span class="string">'UserData'</span>,blockinfo);
+0125 <span class="keyword">if</span> length(pspec) &gt; 1, v = 2; <span class="keyword">else</span> v = 1; <span class="keyword">end</span>
+0126 set(h.list_event2,<span class="string">'Value'</span>,v,<span class="string">'String'</span>,pspec,<span class="string">'UserData'</span>,blockinfo);
+0127 
+0128 
+0129 cfg = [];
+0130 cfg.tank     = blockinfo.tank;
+0131 cfg.blocks   = blockinfo.id;
+0132 cfg.datatype = <span class="string">'Spikes'</span>;
+0133 <span class="comment">% cfg.event    = 'eNeu'; % &lt;-------------------</span>
+0134 
+0135 spikes = getTankData(cfg);
+0136 
+0137 setappdata(h.figure1,<span class="string">'spikes'</span>,spikes);
+0138 
+0139 <a href="#_sub6" class="code" title="subfunction UpdateParamsList(h)">UpdateParamsList</a>(h);
+0140  
+0141 set(findobj(<span class="string">'type'</span>,<span class="string">'figure'</span>),<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);
+0142 set(get(h.figure1,<span class="string">'children'</span>),<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0143 
+0144  
+0145 <a name="_sub6" href="#_subfunctions" class="code">function UpdateParamsList(h)</a>
+0146 event1 = get_string(h.list_event1);
+0147 event2 = get_string(h.list_event2);
+0148 
+0149 blockinfo = get(h.list_event1,<span class="string">'UserData'</span>);
+0150 
+0151 ev1ind  = ismember(blockinfo.paramspec,event1);
+0152 ev1p    = blockinfo.epochs(:,ev1ind); 
+0153 uev1p   = unique(ev1p);
+0154 uev1p(isnan(uev1p)) = [];
+0155 
+0156 ev2ind  = ismember(blockinfo.paramspec,event2);
+0157 ev2p    = blockinfo.epochs(:,ev2ind); 
+0158 uev2p   = unique(ev2p);
+0159 uev2p(isnan(uev2p)) = [];
+0160 
+0161 <span class="keyword">if</span> isempty(uev1p), uev1p = {<span class="string">'&lt;NO PARAMS&gt;'</span>}; <span class="keyword">end</span>
+0162 <span class="keyword">if</span> isempty(uev2p), uev2p = {<span class="string">'&lt;NO PARAMS&gt;'</span>}; <span class="keyword">end</span>
+0163 
+0164 set(h.list_param1,<span class="string">'Value'</span>,1:length(uev1p),<span class="string">'String'</span>,uev1p);
+0165 set(h.list_param2,<span class="string">'Value'</span>,1:length(uev2p),<span class="string">'String'</span>,uev2p);
+0166 
+0167 
+0168 <a name="_sub7" href="#_subfunctions" class="code">function UpdatePlots(h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0169 event1 = get_string(h.list_event1);
+0170 event2 = get_string(h.list_event2);
+0171 <span class="keyword">if</span> strcmp(event1,<span class="string">'&lt;NO EVENTS FOUND&gt;'</span>), <span class="keyword">return</span>; <span class="keyword">end</span>
+0172 
+0173 <span class="comment">% look for existing plot figure</span>
+0174 f = findobj(<span class="string">'tag'</span>,<span class="string">'TankDataViewer_PLOTS'</span>);
+0175 <span class="keyword">if</span> isempty(f)
+0176     f = figure(<span class="string">'tag'</span>,<span class="string">'TankDataViewer_PLOTS'</span>);
+0177 <span class="keyword">end</span>
+0178 set(findobj(<span class="string">'type'</span>,<span class="string">'figure'</span>),<span class="string">'Pointer'</span>,<span class="string">'watch'</span>);
+0179 set(get(h.figure1,<span class="string">'children'</span>),<span class="string">'Enable'</span>,<span class="string">'off'</span>);drawnow
+0180 
+0181 spikes = getappdata(h.figure1,<span class="string">'spikes'</span>);
+0182 blockinfo = get(h.list_event1,<span class="string">'UserData'</span>);
+0183 
+0184 nchan = str2num(get(h.plots_nchan,<span class="string">'String'</span>)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0185 ncols = str2num(get(h.plots_dim2, <span class="string">'String'</span>)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0186 nrows = ceil(nchan / ncols);
+0187 
+0188 win     = str2num(get(h.edit_window,<span class="string">'String'</span>)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0189 binsize = str2num(get(h.edit_binsize,<span class="string">'String'</span>)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0190 binvec  = win(1):binsize:win(2);
+0191 
+0192 onind = ismember(blockinfo.paramspec,<span class="string">'onset'</span>);
+0193 ons = blockinfo.epochs(:,onind)' + win(1);
+0194 
+0195 fprintf(<span class="string">'Computing'</span>)
+0196 <span class="comment">% first create PSTHs by stimulus onsets within a window</span>
+0197 psth = zeros(length(binvec),length(ons),length(spikes));
+0198 <span class="keyword">for</span> i = 1:length(spikes)
+0199     <span class="keyword">if</span> iscell(spikes(i).timestamps) &amp;&amp; isempty(spikes(i).timestamps{1}), <span class="keyword">continue</span>; <span class="keyword">end</span>
+0200     <span class="keyword">if</span> isempty(spikes(i).timestamps), <span class="keyword">continue</span>; <span class="keyword">end</span>
+0201     rons = repmat(ons,length(spikes(i).timestamps{1}),1);
+0202     adjt = repmat(spikes(i).timestamps{1},1,size(rons,2)) - rons;
+0203     psth(:,:,i) = histc(adjt,binvec);
+0204     clear rons adjt
+0205     fprintf(<span class="string">'.'</span>)
+0206 <span class="keyword">end</span>
+0207 fprintf(<span class="string">'done\n'</span>)
+0208 
+0209 ev1ind = ismember(blockinfo.paramspec,event1);
+0210 ev1p   = blockinfo.epochs(:,ev1ind);
+0211 uev1p  = unique(ev1p);
+0212 ind = get(h.list_param1,<span class="string">'Value'</span>);
+0213 uev1p  = uev1p(ind);
+0214 
+0215 ev2ind = ismember(blockinfo.paramspec,event2);
+0216 ev2p   = blockinfo.epochs(:,ev2ind);
+0217 uev2p  = unique(ev2p);
+0218 ind = get(h.list_param2,<span class="string">'Value'</span>);
+0219 uev2p  = uev2p(ind);
+0220 
+0221 fprintf(<span class="string">'Plotting'</span>)
+0222 clf(f); figure(f);
+0223 minn = min([size(psth,3) nchan]);
+0224 <span class="keyword">for</span> i = 1:minn
+0225     ax = subplot(nrows,ncols,i,<span class="string">'Parent'</span>,f);
+0226     <a href="#_sub9" class="code" title="subfunction ax = PlotData(ax,h,datain,channelid,binvec,event1,event2,ev1p,ev2p,uev1p,uev2p)">PlotData</a>(ax,h,psth(:,:,i),spikes(i).channel,binvec, <span class="keyword">...</span>
+0227         event1,event2,ev1p,ev2p,uev1p,uev2p);
+0228     fprintf(<span class="string">'.'</span>)
+0229 <span class="keyword">end</span>
+0230 <span class="keyword">if</span> get(h.opt_scaletogether,<span class="string">'Value'</span>)
+0231     axs = get(f,<span class="string">'children'</span>);
+0232     cs  = cell2mat(get(axs,<span class="string">'clim'</span>));
+0233     cs(cs(:,1) == -1,:) = []; <span class="comment">% default clim</span>
+0234     cs  = [min(cs(:)) max(cs(:))];
+0235     set(axs,<span class="string">'clim'</span>,cs);
+0236 <span class="keyword">end</span>
+0237 fprintf(<span class="string">'done\n'</span>)
+0238 
+0239 set(findobj(<span class="string">'type'</span>,<span class="string">'figure'</span>),<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);
+0240 set(get(h.figure1,<span class="string">'children'</span>),<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0241 
+0242 
+0243 
+0244 
+0245 
+0246 <a name="_sub8" href="#_subfunctions" class="code">function CheckStrVal(hObj,nvals) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0247 w = str2num(get(hObj,<span class="string">'String'</span>)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0248 <span class="keyword">if</span> numel(w) ~= nvals
+0249     warndlg(sprintf(<span class="string">'This field requires %d values.'</span>,nvals), <span class="keyword">...</span>
+0250         <span class="string">'Data Window'</span>,<span class="string">'modal'</span>);
+0251 <span class="keyword">end</span>
+0252 
+0253 
+0254 
+0255 
+0256 <a name="_sub9" href="#_subfunctions" class="code">function ax = PlotData(ax,h,datain,channelid,binvec,event1,event2,ev1p,ev2p,uev1p,uev2p)</a>
+0257 
+0258 <span class="keyword">if</span> ~nargin
+0259     datas = get(gca,<span class="string">'UserData'</span>);
+0260     event1 = datas.xlabel;
+0261     event2 = datas.ylabel;
+0262     uev1p  = datas.xticks;
+0263     uev2p  = datas.yticks;
+0264     Xlogscale = datas.Xlogscale;
+0265     data   = datas.data;
+0266     channelid = datas.channel;
+0267     f = figure;
+0268     axes(<span class="string">'Parent'</span>,f);
+0269     ax = get(f,<span class="string">'children'</span>);
+0270 <span class="keyword">else</span>
+0271     <span class="keyword">if</span> length(uev1p) == 1
+0272         <span class="comment">% Plot histogram with y-axis as an event and x-axis as time</span>
+0273         data = zeros(length(uev2p),length(binvec));
+0274         <span class="keyword">for</span> j = 1:length(uev2p)
+0275             <span class="keyword">if</span> isnan(uev1p)
+0276                 ind = ev2p == uev2p(j);
+0277             <span class="keyword">else</span>
+0278                 ind = ev2p == uev2p(j) &amp; ev1p == uev1p;
+0279             <span class="keyword">end</span>
+0280             data(j,:) = mean(datain(:,ind),2);
+0281         <span class="keyword">end</span>
+0282         event1 = <span class="string">'time'</span>;
+0283         uev1p  = binvec;
+0284     <span class="keyword">elseif</span> length(uev2p) == 1 || strcmp(uev2p,<span class="string">'&lt;NO PARAMS&gt;'</span>)
+0285         <span class="comment">% Plot histogram with x-axis as an event and y-axis as time</span>
+0286         data = zeros(length(binvec),length(uev1p));
+0287         <span class="keyword">for</span> j = 1:length(uev1p)
+0288             <span class="keyword">if</span> isnan(uev2p)
+0289                 ind = ev1p == uev1p(j);
+0290             <span class="keyword">else</span>
+0291                 ind = ev1p == uev1p(j) &amp; ev2p == uev2p;
+0292             <span class="keyword">end</span>
+0293             data(:,j) = mean(datain(:,ind),2);
+0294         <span class="keyword">end</span>
+0295         event2 = <span class="string">'time'</span>;
+0296         uev2p  = binvec;
+0297     <span class="keyword">else</span>
+0298         <span class="comment">% Plot receptive field according to summed response to selected parameters</span>
+0299         sumr = squeeze(sum(datain)); <span class="comment">% summed response</span>
+0300         data = zeros(length(uev2p),length(uev1p));
+0301         <span class="keyword">for</span> j = 1:length(uev1p)
+0302             <span class="keyword">for</span> k = 1:length(uev2p)
+0303                 ind = ev1p == uev1p(j) &amp; ev2p == uev2p(k);
+0304                 <span class="keyword">if</span> ~any(ind), <span class="keyword">continue</span>; <span class="keyword">end</span>
+0305                 data(k,j) = mean(sumr(ind));
+0306             <span class="keyword">end</span>
+0307         <span class="keyword">end</span>
+0308         <span class="keyword">if</span> get(h.opt_sgfilter,<span class="string">'Value'</span>)
+0309             data = sgsmooth2d(data);
+0310         <span class="keyword">end</span>
+0311         
+0312     <span class="keyword">end</span>
+0313     <span class="keyword">if</span> get(h.opt_interpolate,<span class="string">'Value'</span>)
+0314         data = interp2(data,3);
+0315         uev1p = interp1(1:length(uev1p),uev1p,linspace(1,length(uev1p),size(data,2)));
+0316         uev2p = interp1(1:length(uev2p),uev2p,linspace(1,length(uev2p),size(data,1)));
+0317     <span class="keyword">end</span>
+0318     Xlogscale = get(h.opt_Xlogscale,<span class="string">'Value'</span>);
+0319 <span class="keyword">end</span>
+0320 imh = surf(uev1p,uev2p,data,<span class="string">'Parent'</span>,ax);
+0321 <span class="comment">% [~,imh] = contourf(ax,uev1p,uev2p,data);</span>
+0322 view(ax,2)
+0323 axis(ax,<span class="string">'tight'</span>);
+0324 shading(ax,<span class="string">'flat'</span>);
+0325 <span class="keyword">if</span> Xlogscale, set(ax,<span class="string">'xscale'</span>,<span class="string">'log'</span>); <span class="keyword">else</span> set(ax,<span class="string">'xscale'</span>,<span class="string">'linear'</span>); <span class="keyword">end</span>
+0326 
+0327 datas.xlabel  = event1;
+0328 datas.ylabel  = event2;
+0329 datas.xticks  = uev1p;
+0330 datas.yticks  = uev2p;
+0331 datas.data    = data;
+0332 datas.channel = channelid;
+0333 datas.Xlogscale = Xlogscale;
+0334 
+0335 set(ax,<span class="string">'UserData'</span>,datas);
+0336 <span class="comment">% set(ax,'ydir','normal','UserData',datas);</span>
+0337 title(ax,datas.channel);
+0338 xlabel(ax,datas.xlabel); 
+0339 ylabel(ax,datas.ylabel);
+0340 
+0341 <span class="keyword">if</span> nargin &gt; 1, set(imh,<span class="string">'ButtonDownFcn'</span>,<span class="string">'TankDataViewer(''PlotData'')'</span>); <span class="keyword">end</span>
+0342 
+0343 set(gcf,<span class="string">'renderer'</span>,<span class="string">'zbuffer'</span>);
+0344 
+0345 
+0346 
+0347 
+0348 
+0349</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

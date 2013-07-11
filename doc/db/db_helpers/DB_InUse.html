@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of DB_InUse</title>
+  <meta name="keywords" content="DB_InUse">
+  <meta name="description" content="in_use = DB_InUse(table,id)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">db</a> &gt; <a href="index.html">db_helpers</a> &gt; DB_InUse.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for db\db_helpers&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>DB_InUse
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>in_use = DB_InUse(table,id)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function in_use = DB_InUse(table,id,state) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> in_use = DB_InUse(table,id)
+ in_use = DB_InUse(table,id,state)
+
+ Use to retrieve or alter 'in_use' field of a table.  Always returns
+ current value of 'in_use' field before changing the state.
+
+ state: 'yes','no','toggle'
+
+ DJS 2013</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function in_use = DB_InUse(table,id,state)</a>
+0002 <span class="comment">% in_use = DB_InUse(table,id)</span>
+0003 <span class="comment">% in_use = DB_InUse(table,id,state)</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Use to retrieve or alter 'in_use' field of a table.  Always returns</span>
+0006 <span class="comment">% current value of 'in_use' field before changing the state.</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% state: 'yes','no','toggle'</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% DJS 2013</span>
+0011 
+0012 <span class="keyword">if</span> nargin &lt; 2 || nargin &gt; 3, error(<span class="string">'DB_InUse: Invalid number of input arguments.'</span>); <span class="keyword">end</span>
+0013 
+0014 s = mym(<span class="string">'SELECT in_use FROM {S} WHERE id = {Si}'</span>,table,id);
+0015 in_use = s.in_use;
+0016 
+0017 <span class="keyword">if</span> nargin == 2, <span class="keyword">return</span>; <span class="keyword">end</span>
+0018 
+0019 <span class="keyword">switch</span> lower(state)
+0020     <span class="keyword">case</span> <span class="string">'yes'</span>
+0021         mym(<span class="string">'UPDATE {S} SET in_use = TRUE WHERE id = {Si}'</span>,table,id);
+0022     <span class="keyword">case</span> <span class="string">'no'</span>
+0023         mym(<span class="string">'UPDATE {S} SET in_use = FALSE WHERE id = {Si}'</span>,table,id);
+0024     <span class="keyword">case</span> <span class="string">'toggle'</span>
+0025         mym(<span class="string">'UPDATE {S} SET in_use = {Si} WHERE id = {Si}'</span>,table,~in_use,id);
+0026     <span class="keyword">otherwise</span>
+0027         error(<span class="string">'DB_InUse: Unknown state ''%s'''</span>,state)
+0028 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

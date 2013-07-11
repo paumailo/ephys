@@ -1,0 +1,718 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ProtocolDesign</title>
+  <meta name="keywords" content="ProtocolDesign">
+  <meta name="description" content="h = ProtocolDesign">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">GUIs</a> &gt; <a href="index.html">ProtocolDesign</a> &gt; ProtocolDesign.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for GUIs\ProtocolDesign&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>ProtocolDesign
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>h = ProtocolDesign</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function varargout = ProtocolDesign(varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> h = ProtocolDesign
+
+ Design protocols for electrophysiolgy ControlPanel2
+
+ DJS 2012</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="CompileProtocol.html" class="code" title="function [P,fail] = CompileProtocol(P)">CompileProtocol</a>	[P,fail] = CompileProtocol(P)</li><li><a href="CompiledProtocolTrials.html" class="code" title="function varargout = CompiledProtocolTrials(protocol,varargin)">CompiledProtocolTrials</a>	cp = CompiledProtocolTrials(protocol,varargin)</li><li><a href="SchedWAVgui.html" class="code" title="function varargout = SchedWAVgui(varargin)">SchedWAVgui</a>	SchedWAVgui(callingh,filestruct)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function ProtocolDesign_OpeningFcn(hObj, ~, h, varargin)</a></li><li><a href="#_sub2" class="code">function varargout = ProtocolDesign_OutputFcn(hObj, ~, h)</a></li><li><a href="#_sub3" class="code">function SaveProtocolFile(h,fn)</a></li><li><a href="#_sub4" class="code">function GUISTATE(fh,onoff)</a></li><li><a href="#_sub5" class="code">function r = NewProtocolFile(h)</a></li><li><a href="#_sub6" class="code">function splash(onoff)</a></li><li><a href="#_sub7" class="code">function protocol = LoadProtocolFile(h,fn)</a></li><li><a href="#_sub8" class="code">function p = AffixOptions(h,p)</a></li><li><a href="#_sub9" class="code">function param_table_CellEditCallback(hObj, evnt, h)</a></li><li><a href="#_sub10" class="code">function param_table_CellSelectionCallback(hObj, evnt, h)</a></li><li><a href="#_sub11" class="code">function trial_selectfunc_Callback(hObj, evnt, h)</a></li><li><a href="#_sub12" class="code">function SetParamTable(h,protocol)</a></li><li><a href="#_sub13" class="code">function d = dfltrow</a></li><li><a href="#_sub14" class="code">function view_compiled_Callback(h)</a></li><li><a href="#_sub15" class="code">function opt_num_reps_Callback(hObj, h)</a></li><li><a href="#_sub16" class="code">function opt_isi_Callback(hObj, h)</a></li><li><a href="#_sub17" class="code">function UpdateProtocolDur(h)</a></li><li><a href="#_sub18" class="code">function remove_parameter_Callback(h)</a></li><li><a href="#_sub19" class="code">function module_select_Callback(hObj, h)</a></li><li><a href="#_sub20" class="code">function add_module_Callback(h)</a></li><li><a href="#_sub21" class="code">function remove_module_Callback(h)</a></li><li><a href="#_sub22" class="code">function rpvds_tags_Callback(h)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function varargout = ProtocolDesign(varargin)</a>
+0002 <span class="comment">% h = ProtocolDesign</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Design protocols for electrophysiolgy ControlPanel2</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% DJS 2012</span>
+0007 
+0008 <span class="comment">% Last Modified by GUIDE v2.5 30-Mar-2012 12:05:40</span>
+0009 
+0010 <span class="comment">% Begin initialization code - DO NOT EDIT</span>
+0011 gui_Singleton = 1;
+0012 gui_State = struct(<span class="string">'gui_Name'</span>,       mfilename, <span class="keyword">...</span>
+0013     <span class="string">'gui_Singleton'</span>,  gui_Singleton, <span class="keyword">...</span>
+0014     <span class="string">'gui_OpeningFcn'</span>, @<a href="#_sub1" class="code" title="subfunction ProtocolDesign_OpeningFcn(hObj, ~, h, varargin)">ProtocolDesign_OpeningFcn</a>, <span class="keyword">...</span>
+0015     <span class="string">'gui_OutputFcn'</span>,  @<a href="#_sub2" class="code" title="subfunction varargout = ProtocolDesign_OutputFcn(hObj, ~, h)  ">ProtocolDesign_OutputFcn</a>, <span class="keyword">...</span>
+0016     <span class="string">'gui_LayoutFcn'</span>,  [] , <span class="keyword">...</span>
+0017     <span class="string">'gui_Callback'</span>,   []);
+0018 <span class="keyword">if</span> nargin &amp;&amp; ischar(varargin{1})
+0019     gui_State.gui_Callback = str2func(varargin{1});
+0020 <span class="keyword">end</span>
+0021 
+0022 <span class="keyword">if</span> nargout
+0023     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+0024 <span class="keyword">else</span>
+0025     gui_mainfcn(gui_State, varargin{:});
+0026 <span class="keyword">end</span>
+0027 <span class="comment">% End initialization code - DO NOT EDIT</span>
+0028 
+0029 <a name="_sub1" href="#_subfunctions" class="code">function ProtocolDesign_OpeningFcn(hObj, ~, h, varargin)</a>
+0030 h.output = hObj;
+0031 
+0032 <span class="keyword">if</span> nargin &gt; 3
+0033     <span class="comment">% Load schedule file pointed to by varargin{1}</span>
+0034     protocol = <a href="#_sub7" class="code" title="subfunction protocol = LoadProtocolFile(h,fn)">LoadProtocolFile</a>(h,varargin{1});
+0035     set(h.param_table,<span class="string">'Data'</span>,protocol.param_data);
+0036 <span class="keyword">else</span>
+0037     <span class="comment">% Clear Parameter Table</span>
+0038     set(h.param_table,<span class="string">'Data'</span>,<a href="#_sub13" class="code" title="subfunction d = dfltrow">dfltrow</a>);
+0039 <span class="keyword">end</span>
+0040 
+0041 <a href="#_sub17" class="code" title="subfunction UpdateProtocolDur(h)">UpdateProtocolDur</a>(h);
+0042 
+0043 <a href="#_sub6" class="code" title="subfunction splash(onoff)">splash</a>(<span class="string">'on'</span>);
+0044 
+0045 <span class="comment">% Update h structure</span>
+0046 guidata(hObj, h);
+0047 
+0048 <a name="_sub2" href="#_subfunctions" class="code">function varargout = ProtocolDesign_OutputFcn(hObj, ~, h)  </a><span class="comment">%#ok&lt;INUSL&gt;</span>
+0049 varargout{1} = h.output;
+0050 
+0051 
+0052 
+0053 
+0054 
+0055 
+0056 
+0057 
+0058 
+0059 
+0060 
+0061 
+0062 
+0063 
+0064 
+0065 
+0066 
+0067 
+0068 
+0069 
+0070 
+0071 
+0072 <span class="comment">%% Protocol Setup</span>
+0073 <a name="_sub3" href="#_subfunctions" class="code">function SaveProtocolFile(h,fn)</a>
+0074 <span class="comment">% Save current protocol to file</span>
+0075 <span class="keyword">if</span> ~exist(<span class="string">'fn'</span>,<span class="string">'var'</span>) || isempty(fn)
+0076     pn = getpref(<span class="string">'EPHYS2'</span>,<span class="string">'ProtDir'</span>,cd);
+0077     <span class="keyword">if</span> ~ischar(pn), pn = cd; <span class="keyword">end</span>
+0078     [fn,pn] = uiputfile({<span class="string">'*.prot'</span>,<span class="string">'Protocol File (*.prot)'</span>}, <span class="keyword">...</span>
+0079         <span class="string">'Save Protocol File'</span>,pn);
+0080     setpref(<span class="string">'EPHYS2'</span>,<span class="string">'ProtDir'</span>,pn);
+0081     <span class="keyword">if</span> ~fn, <span class="keyword">return</span>; <span class="keyword">end</span>
+0082     fn = fullfile(pn,fn);
+0083 <span class="keyword">end</span>
+0084 
+0085 
+0086 set(h.ProtocolDesign,<span class="string">'Name'</span>,<span class="string">'Protocol Design | SAVING ...'</span>);
+0087 fprintf(<span class="string">'Saving protocol ...'</span>)
+0088 <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'off'</span>);
+0089 
+0090 
+0091 protocol = h.protocol;
+0092 <span class="keyword">if</span> isfield(protocol,<span class="string">'COMPILED'</span>)
+0093     protocol = rmfield(protocol,<span class="string">'COMPILED'</span>);
+0094 <span class="keyword">end</span>
+0095 
+0096 <span class="comment">% trim any undefined parameters</span>
+0097 fldn = fieldnames(protocol.MODULES);
+0098 <span class="comment">% fldn(ismember(fldn,{'INFO','OPTIONS','COMPILED'})) = [];</span>
+0099 <span class="keyword">for</span> i = 1:length(fldn)
+0100     v = protocol.MODULES.(fldn{i}).data;
+0101     v(~ismember(1:size(v,1),findincell(v(:,1))),:) = [];
+0102     protocol.MODULES.(fldn{i}).data = v;
+0103 <span class="keyword">end</span>
+0104 
+0105 protocol = <a href="#_sub8" class="code" title="subfunction p = AffixOptions(h,p)">AffixOptions</a>(h,protocol);
+0106 protocol = <a href="CompileProtocol.html" class="code" title="function [P,fail] = CompileProtocol(P)">CompileProtocol</a>(protocol);
+0107 
+0108 <span class="comment">% replace buffers with file ids</span>
+0109 <span class="keyword">for</span> i = 1:length(fldn)
+0110     d = protocol.MODULES.(fldn{i}).data;
+0111     idx = find(cell2mat(d(:,6)));
+0112     <span class="keyword">for</span> j = 1:length(idx)
+0113         v = [<span class="string">'File IDs: ['</span> num2str(1:length(d{idx(j),4})) <span class="string">']'</span>];
+0114         d{idx(j),4} = v;
+0115         protocol.MODULES.(fldn{i}).data = d;
+0116     <span class="keyword">end</span>
+0117 <span class="keyword">end</span>
+0118 
+0119 <span class="keyword">if</span> protocol.OPTIONS.compile_at_runtime
+0120     protocol.COMPILED = rmfield(protocol.COMPILED,<span class="string">'trials'</span>);
+0121 <span class="keyword">end</span>
+0122 
+0123 save(fn,<span class="string">'protocol'</span>,<span class="string">'-mat'</span>);
+0124 
+0125 <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'on'</span>);
+0126 set(h.ProtocolDesign,<span class="string">'Name'</span>,<span class="string">'Protocol Design'</span>);
+0127 fprintf(<span class="string">' done\nFile Location: ''%s''\n'</span>,fn);
+0128 
+0129 <a name="_sub4" href="#_subfunctions" class="code">function GUISTATE(fh,onoff)</a>
+0130 <span class="comment">% Disable/Enable GUI components and set pointer state</span>
+0131 pdchildren = findobj(fh,<span class="string">'-property'</span>,<span class="string">'Enable'</span>);
+0132 set(pdchildren,<span class="string">'Enable'</span>,onoff);
+0133 <span class="keyword">if</span> strcmpi(onoff,<span class="string">'on'</span>)
+0134     set(fh,<span class="string">'pointer'</span>,<span class="string">'arrow'</span>); 
+0135 <span class="keyword">else</span>
+0136     set(fh,<span class="string">'pointer'</span>,<span class="string">'watch'</span>); 
+0137 <span class="keyword">end</span>
+0138 drawnow
+0139 
+0140 
+0141 <a name="_sub5" href="#_subfunctions" class="code">function r = NewProtocolFile(h)</a>
+0142 r = [];
+0143 <span class="comment">% Create new protocol file</span>
+0144 <span class="keyword">if</span> isfield(h,<span class="string">'protocol'</span>) &amp;&amp; ~isempty(h.protocol)
+0145     r = questdlg(<span class="string">'Would you like to save the current protocol before creating a new one?'</span>, <span class="keyword">...</span>
+0146         <span class="string">'Create New Protocol'</span>, <span class="keyword">...</span>
+0147         <span class="string">'Yes'</span>,<span class="string">'No'</span>,<span class="string">'Cancel'</span>,<span class="string">'Cancel'</span>);
+0148     <span class="keyword">switch</span> r
+0149         <span class="keyword">case</span> <span class="string">'Cancel'</span>
+0150             <span class="keyword">return</span>
+0151         <span class="keyword">case</span> <span class="string">'Yes'</span>
+0152             <a href="#_sub3" class="code" title="subfunction SaveProtocolFile(h,fn)">SaveProtocolFile</a>(h);
+0153     <span class="keyword">end</span>
+0154 <span class="keyword">end</span>
+0155 
+0156 set(h.param_table,<span class="string">'Data'</span>,<a href="#_sub13" class="code" title="subfunction d = dfltrow">dfltrow</a>,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0157 set(h.module_select,<span class="string">'String'</span>,<span class="string">''</span>,<span class="string">'Value'</span>,1);
+0158 
+0159 <a href="#_sub6" class="code" title="subfunction splash(onoff)">splash</a>(<span class="string">'off'</span>);
+0160 
+0161 h.protocol = [];
+0162 
+0163 set(h.protocol_dur,<span class="string">'String'</span>,<span class="string">''</span>, <span class="keyword">...</span>
+0164     <span class="string">'backgroundcolor'</span>,get(h.ProtocolDesign,<span class="string">'Color'</span>));
+0165 guidata(h.ProtocolDesign,h);
+0166 
+0167 <a name="_sub6" href="#_subfunctions" class="code">function splash(onoff)</a>
+0168 h = findobj(<span class="string">'tag'</span>,<span class="string">'pdsplash'</span>);
+0169 <span class="keyword">if</span> isequal(onoff,<span class="string">'on'</span>)
+0170     set(h,<span class="string">'visible'</span>,<span class="string">'on'</span>);
+0171 <span class="keyword">else</span>
+0172     set(h,<span class="string">'visible'</span>,<span class="string">'off'</span>);
+0173 <span class="keyword">end</span>
+0174 
+0175 
+0176 <a name="_sub7" href="#_subfunctions" class="code">function protocol = LoadProtocolFile(h,fn)</a>
+0177 <span class="comment">% Load previously saved protocol from file</span>
+0178 protocol = [];
+0179 
+0180 r = <a href="#_sub5" class="code" title="subfunction r = NewProtocolFile(h)">NewProtocolFile</a>(h);
+0181 <span class="keyword">if</span> strcmp(r,<span class="string">'Cancel'</span>), <span class="keyword">return</span>; <span class="keyword">end</span>
+0182 
+0183 <span class="keyword">if</span> ~exist(<span class="string">'fn'</span>,<span class="string">'var'</span>) || isempty(fn) || ~exist(fn,<span class="string">'file'</span>)
+0184     pn = getpref(<span class="string">'EPHYS2'</span>,<span class="string">'ProtDir'</span>,cd);
+0185     <span class="keyword">if</span> isequal(pn,0), pn = cd; <span class="keyword">end</span>
+0186     [fn,pn] = uigetfile({<span class="string">'*.prot'</span>,<span class="string">'Protocol File (*.prot)'</span>},<span class="string">'Locate Protocol File'</span>,pn);
+0187     <span class="keyword">if</span> ~fn, <span class="keyword">return</span>; <span class="keyword">end</span>
+0188 <span class="keyword">end</span>
+0189 
+0190 set(h.ProtocolDesign,<span class="string">'Name'</span>,<span class="string">'Protocol Design: Loading ...'</span>);
+0191 <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'off'</span>);
+0192 
+0193 load(fullfile(pn,fn),<span class="string">'-mat'</span>);
+0194 
+0195 <span class="keyword">if</span> ~exist(<span class="string">'protocol'</span>,<span class="string">'var'</span>)
+0196     error(<span class="string">'ProtocolDesign:Unknown protocol file data'</span>);
+0197 <span class="keyword">end</span>
+0198 
+0199 <span class="comment">% Populate module list</span>
+0200 fldn = fieldnames(protocol.MODULES);
+0201 obj = findobj(h.ProtocolDesign,<span class="string">'tag'</span>,<span class="string">'module_select'</span>);
+0202 set(obj,<span class="string">'String'</span>,fldn,<span class="string">'Value'</span>,1);
+0203 
+0204 <span class="comment">% Ensure all buddy variables are accounted for</span>
+0205 n = {<span class="string">'&lt; ADD &gt;'</span>,<span class="string">'&lt; NONE &gt;'</span>};
+0206 <span class="keyword">for</span> i = 1:length(fldn)
+0207     n = union(n,protocol.MODULES.(fldn{i}).data(:,3));
+0208 <span class="keyword">end</span>
+0209 cf = get(h.param_table,<span class="string">'ColumnFormat'</span>);
+0210 cf{3} = n;
+0211 set(h.param_table,<span class="string">'ColumnFormat'</span>,cf);
+0212 
+0213 <span class="keyword">if</span> isfield(protocol,<span class="string">'TABLEDATA'</span>)
+0214     TD = protocol.TABLEDATA;
+0215 <span class="keyword">else</span>
+0216     TD = [];
+0217 <span class="keyword">end</span>
+0218 set(h.param_table,<span class="string">'UserData'</span>,TD);
+0219 
+0220 <span class="comment">% Populate options</span>
+0221 Op = protocol.OPTIONS;
+0222 set(h.opt_randomize,         <span class="string">'Value'</span>, Op.randomize);
+0223 set(h.opt_compile_at_runtime,<span class="string">'Value'</span>, Op.compile_at_runtime);
+0224 set(h.opt_isi,               <span class="string">'String'</span>,num2str(Op.ISI));
+0225 set(h.opt_num_reps,          <span class="string">'String'</span>,num2str(Op.num_reps));
+0226 
+0227 <span class="keyword">if</span> isfield(Op,<span class="string">'trialfunc'</span>)
+0228     set(h.trial_selectfunc,<span class="string">'String'</span>,Op.trialfunc);
+0229 <span class="keyword">else</span>
+0230     set(h.trial_selectfunc,<span class="string">'String'</span>,<span class="string">'&lt; default &gt;'</span>);
+0231 <span class="keyword">end</span>
+0232 set(h.protocol_info,<span class="string">'String'</span>,protocol.INFO);
+0233 
+0234 set(h.param_table,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0235 <a href="#_sub6" class="code" title="subfunction splash(onoff)">splash</a>(<span class="string">'off'</span>);
+0236 h.protocol = protocol;
+0237 guidata(h.ProtocolDesign,h);
+0238 
+0239 setpref(<span class="string">'EPHYS2'</span>,<span class="string">'ProtDir'</span>,pn);
+0240 
+0241 <a href="#_sub12" class="code" title="subfunction SetParamTable(h,protocol)">SetParamTable</a>(h,protocol);
+0242 
+0243 <a href="#_sub17" class="code" title="subfunction UpdateProtocolDur(h)">UpdateProtocolDur</a>(h);
+0244 
+0245 set(h.ProtocolDesign,<span class="string">'Name'</span>,<span class="string">'Protocol Design'</span>);
+0246 <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'on'</span>);
+0247 
+0248 
+0249 
+0250 <a name="_sub8" href="#_subfunctions" class="code">function p = AffixOptions(h,p)</a>
+0251 <span class="comment">% affix protocol options</span>
+0252 p.OPTIONS.randomize          = get(h.opt_randomize,         <span class="string">'Value'</span>);
+0253 p.OPTIONS.compile_at_runtime = get(h.opt_compile_at_runtime,<span class="string">'Value'</span>);
+0254 p.OPTIONS.ISI                = str2num(get(h.opt_isi,       <span class="string">'String'</span>)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0255 p.OPTIONS.num_reps           = str2num(get(h.opt_num_reps,  <span class="string">'String'</span>)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0256 p.OPTIONS.trialfunc          = get(h.trial_selectfunc,      <span class="string">'String'</span>);
+0257 p.INFO                       = get(h.protocol_info,         <span class="string">'String'</span>);
+0258 
+0259 
+0260 
+0261 
+0262 
+0263 
+0264 
+0265 
+0266 
+0267 
+0268 
+0269 
+0270 
+0271 
+0272 
+0273 
+0274 
+0275 
+0276 
+0277 
+0278 
+0279 
+0280 
+0281 
+0282 
+0283 
+0284 
+0285 
+0286 <span class="comment">%% Table</span>
+0287 <a name="_sub9" href="#_subfunctions" class="code">function param_table_CellEditCallback(hObj, evnt, h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0288 <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'off'</span>);
+0289 
+0290 I = evnt.Indices;
+0291 row = I(1);
+0292 col = I(2);
+0293 
+0294 curmod = get_string(h.module_select);
+0295 
+0296 data = get(hObj,<span class="string">'data'</span>);
+0297 
+0298 <span class="keyword">if</span> col == 1 &amp;&amp; evnt.NewData(1) == <span class="string">'$'</span>
+0299     set(h.opt_compile_at_runtime,<span class="string">'Value'</span>,1);
+0300     
+0301 <span class="keyword">elseif</span> col == 3 &amp;&amp; strcmp(evnt.NewData,<span class="string">'&lt; ADD &gt;'</span>)
+0302     <span class="comment">% Add new Buddy variable</span>
+0303     nd = inputdlg(<span class="string">'Enter new Buddy:'</span>,<span class="string">'Buddy Variable'</span>);
+0304     <span class="keyword">if</span> isempty(nd)
+0305         data{row,col} = <span class="string">'&lt; NONE &gt;'</span>;
+0306         set(hObj,<span class="string">'data'</span>,data);
+0307         <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'on'</span>);
+0308         <span class="keyword">return</span>
+0309     <span class="keyword">end</span>
+0310     cf = get(hObj,<span class="string">'ColumnFormat'</span>);
+0311     od = cf{3};
+0312     
+0313     <span class="keyword">if</span> ~ismember(nd,od)
+0314         od = sort({char(nd) od{:}}); <span class="comment">%#ok&lt;CCAT,FLPST&gt;</span>
+0315         cf{3} = fliplr(od);
+0316         set(hObj,<span class="string">'ColumnFormat'</span>,cf);
+0317         data{row,3} = char(nd);
+0318     <span class="keyword">end</span>
+0319     
+0320 <span class="keyword">elseif</span> col == 4
+0321     <span class="keyword">if</span> length(str2num(data{row,4})) ~= 2 <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0322         data{row,5} = false;
+0323     <span class="keyword">end</span>
+0324 <span class="comment">%     data{row,6} = false;</span>
+0325 <span class="comment">%     if isfield(h.protocol.MODULES.(get_string(h.module_select)),'buffers') ...</span>
+0326 <span class="comment">%         &amp;&amp; row &lt;= length(h.protocol.MODULES.(get_string(h.module_select)).buffers)</span>
+0327 <span class="comment">%         h.protocol.MODULES.(get_string(h.module_select)).buffers(row) = [];</span>
+0328 <span class="comment">%     end</span>
+0329     
+0330 <span class="keyword">elseif</span> col == 5
+0331     <span class="keyword">if</span> ~isempty(evnt.Error), data{row,col} = evnt.EditData; <span class="keyword">end</span>
+0332     <span class="keyword">if</span> length(str2num(data{row,4})) ~= 2 <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0333         data{row,5} = false;
+0334         helpdlg([<span class="string">'Random option only available when a range is specified in ''Values'' field.  '</span>, <span class="keyword">...</span>
+0335             <span class="string">'Range is defined by two values such as: ''2 6'''</span>], <span class="keyword">...</span>
+0336             <span class="string">'Parameter Table'</span>);
+0337     <span class="keyword">end</span>
+0338     
+0339 <span class="keyword">elseif</span> col == 6 <span class="comment">% wav files</span>
+0340     <span class="keyword">if</span> data{row,6}
+0341         <span class="comment">%         S = get(h.param_table,'UserData');</span>
+0342         uiwait(<a href="SchedWAVgui.html" class="code" title="function varargout = SchedWAVgui(varargin)">SchedWAVgui</a>(h.ProtocolDesign,[]))
+0343         S = getappdata(h.ProtocolDesign,<span class="string">'SchedWAVgui_DATA'</span>);
+0344         h.protocol.MODULES.(curmod).buffers{row} = S;
+0345         <span class="keyword">if</span> isempty(S)
+0346             data{row,4} = <span class="string">''</span>;
+0347             data{row,5} = false;
+0348             data{row,6} = false;
+0349         <span class="keyword">else</span>
+0350             data{row,2} = <span class="string">'Write'</span>;
+0351             data{row,4} = [<span class="string">'FILE IDs: '</span> mat2str(1:length(S))];
+0352             data{row,5} = false;
+0353             data{row,6} = true;
+0354         <span class="keyword">end</span>
+0355     <span class="keyword">else</span>
+0356         data{row,4} = <span class="string">''</span>;
+0357     <span class="keyword">end</span>
+0358     
+0359     
+0360     
+0361 <span class="keyword">elseif</span> col == 7 &amp;&amp; ~strcmp(evnt.NewData,<span class="string">'&lt; NONE &gt;'</span>)
+0362     <span class="comment">% Select calibration file from Calibration directory</span>
+0363     dd = getpref(<span class="string">'ProtocolDesign'</span>,<span class="string">'CALDIR'</span>,cd);
+0364     <span class="keyword">if</span> ~ischar(dd), dd = cd; <span class="keyword">end</span> <span class="comment">% this may happen</span>
+0365     
+0366     [fn,dd] = uigetfile({<span class="string">'*.cal'</span>,<span class="string">'Calibration (*.cal)'</span>}, <span class="keyword">...</span>
+0367         <span class="string">'Select a Calibration'</span>,dd);
+0368     
+0369     <span class="keyword">if</span> ~fn
+0370         data{row,7} = <span class="string">'&lt; NONE &gt;'</span>;
+0371         h.protocol.MODULES.(curmod).calibrations{row} = [];
+0372     <span class="keyword">else</span>
+0373         <span class="comment">% update data cell matrix with filename</span>
+0374         data{row,7} = fn;
+0375         calfn = fullfile(dd,fn);
+0376         h.protocol.MODULES.(curmod).calibrations{row} = load(calfn,<span class="string">'-mat'</span>);
+0377         h.protocol.MODULES.(curmod).calibrations{row}.filename = calfn;
+0378         setpref(<span class="string">'ProtocolData'</span>,<span class="string">'CALDIR'</span>,dd);
+0379     <span class="keyword">end</span>
+0380 <span class="keyword">end</span>
+0381 set(hObj,<span class="string">'Data'</span>,data);
+0382 
+0383 <span class="comment">% store protocol data</span>
+0384 v = cellstr(get(h.module_select,<span class="string">'String'</span>));
+0385 v = v{get(h.module_select,<span class="string">'Value'</span>)};
+0386 h.protocol.MODULES.(v).data = get(hObj,<span class="string">'Data'</span>);
+0387 <a href="#_sub17" class="code" title="subfunction UpdateProtocolDur(h)">UpdateProtocolDur</a>(h);
+0388 guidata(h.ProtocolDesign,h);
+0389 <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'on'</span>);
+0390 
+0391 
+0392 <a name="_sub10" href="#_subfunctions" class="code">function param_table_CellSelectionCallback(hObj, evnt, h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0393 h.CURRENTCELL = evnt.Indices;
+0394 guidata(h.ProtocolDesign,h);
+0395 
+0396 <span class="comment">% make sure we always have an extra row for new parameter</span>
+0397 data = get(hObj,<span class="string">'data'</span>);
+0398 
+0399 <span class="keyword">if</span> ~isempty(h.CURRENTCELL) &amp;&amp; h.CURRENTCELL(2) == 4 <span class="keyword">...</span>
+0400         &amp;&amp; data{h.CURRENTCELL(1),6} <span class="comment">% check if WAV files</span>
+0401     uiwait(helpdlg(<span class="string">'This field should not be edited when using WAV files'</span>));
+0402 <span class="keyword">end</span>
+0403 
+0404 k = find(~ismember(1:size(data,1),findincell(data(:,1)))); <span class="comment">%#ok&lt;EFIND&gt;</span>
+0405 
+0406 <span class="keyword">if</span> ~isfield(h,<span class="string">'PA5flag'</span>), h.PA5flag = 0; <span class="keyword">end</span>
+0407 <span class="keyword">if</span> isempty(k) &amp;&amp; ~h.PA5flag
+0408     data(end+1,:) = <a href="#_sub13" class="code" title="subfunction d = dfltrow">dfltrow</a>;
+0409     set(hObj,<span class="string">'data'</span>,data);
+0410 <span class="keyword">end</span>
+0411 
+0412 <a name="_sub11" href="#_subfunctions" class="code">function trial_selectfunc_Callback(hObj, evnt, h) </a><span class="comment">%#ok&lt;INUSD,DEFNU&gt;</span>
+0413 cfunc = get(hObj,<span class="string">'String'</span>);
+0414 <span class="keyword">if</span> ~exist(cfunc,<span class="string">'file'</span>)
+0415     errordlg(sprintf(<span class="string">'The function ''%s'' was not found on MATLAB''s search path.'</span>,cfunc), <span class="keyword">...</span>
+0416         <span class="string">'Custom Trial Selection'</span>);
+0417     set(hObj,<span class="string">'String'</span>,<span class="string">'&lt; default &gt;'</span>);
+0418 <span class="keyword">end</span>
+0419 
+0420 <a name="_sub12" href="#_subfunctions" class="code">function SetParamTable(h,protocol)</a>
+0421 <span class="comment">% Updates parameter table with protocol data</span>
+0422 
+0423 v = get(h.module_select,<span class="string">'String'</span>);
+0424 v = v{get(h.module_select,<span class="string">'Value'</span>)};
+0425 <span class="keyword">if</span> isempty(protocol) || ~isfield(protocol.MODULES,v)
+0426     d = <a href="#_sub13" class="code" title="subfunction d = dfltrow">dfltrow</a>;
+0427 <span class="keyword">else</span>
+0428     d = protocol.MODULES.(v).data;
+0429 <span class="keyword">end</span>
+0430 
+0431 <span class="keyword">if</span> ~isfield(h,<span class="string">'PA5flag'</span>),   h.PA5flag = 0;  <span class="keyword">end</span>
+0432 
+0433 <span class="keyword">if</span> h.PA5flag, d{1} = <span class="string">'SetAtten'</span>; <span class="keyword">end</span>
+0434 ce = true(size(<a href="#_sub13" class="code" title="subfunction d = dfltrow">dfltrow</a>));
+0435 
+0436 ce([1 end-1 end]) = ~h.PA5flag;
+0437 
+0438 set(h.param_table,<span class="string">'ColumnEditable'</span>,ce,<span class="string">'Data'</span>,d);
+0439 
+0440 
+0441 
+0442 <a name="_sub13" href="#_subfunctions" class="code">function d = dfltrow</a>
+0443 <span class="comment">% default row definition</span>
+0444 d = {<span class="string">''</span> <span class="string">'Write/Read'</span> <span class="string">'&lt; NONE &gt;'</span> <span class="string">''</span> false false <span class="string">'&lt; NONE &gt;'</span>};
+0445 
+0446 <a name="_sub14" href="#_subfunctions" class="code">function view_compiled_Callback(h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0447 <span class="keyword">if</span> ~isfield(h,<span class="string">'protocol'</span>), <span class="keyword">return</span>; <span class="keyword">end</span>
+0448 <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'off'</span>);
+0449 h.protocol = <a href="#_sub8" class="code" title="subfunction p = AffixOptions(h,p)">AffixOptions</a>(h,h.protocol);
+0450 <a href="CompiledProtocolTrials.html" class="code" title="function varargout = CompiledProtocolTrials(protocol,varargin)">CompiledProtocolTrials</a>(h.protocol,<span class="string">'trunc'</span>,2000);
+0451 <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'on'</span>);
+0452 
+0453 
+0454 
+0455 
+0456 
+0457 
+0458 
+0459 
+0460 
+0461 
+0462 
+0463 
+0464 
+0465 
+0466 
+0467 
+0468 
+0469 
+0470 
+0471 
+0472 
+0473 
+0474 
+0475 
+0476 
+0477 
+0478 
+0479 <span class="comment">%% GUI Callbacks</span>
+0480 <a name="_sub15" href="#_subfunctions" class="code">function opt_num_reps_Callback(hObj, h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0481 <span class="comment">% Check number of repetitions</span>
+0482 d = get(hObj,<span class="string">'String'</span>);
+0483 d = str2num(d); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0484 <span class="keyword">if</span> length(d) ~= 1
+0485     warndlg(<span class="string">'Number of repetitions must be a scalar value'</span>,<span class="string">'Bad Value'</span>);
+0486     <span class="keyword">if</span> isempty(d), d = 5; <span class="keyword">end</span>
+0487     set(hObj,<span class="string">'String'</span>,num2str(d(1)));
+0488 <span class="keyword">end</span>
+0489 <a href="#_sub17" class="code" title="subfunction UpdateProtocolDur(h)">UpdateProtocolDur</a>(h)
+0490 
+0491 <a name="_sub16" href="#_subfunctions" class="code">function opt_isi_Callback(hObj, h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0492 <span class="comment">% Check inter-stimulus interval (ISI)</span>
+0493 d = get(hObj,<span class="string">'String'</span>);
+0494 d = str2num(d); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0495 <span class="keyword">if</span> length(d) &lt; 1 || length(d) &gt; 2
+0496     warndlg(<span class="string">'Number of repetitions must be a scalar value for constant ISI or two values for random interval'</span>,<span class="string">'Bad Value'</span>);
+0497     <span class="keyword">if</span> isempty(d), d = 300; <span class="keyword">end</span>
+0498     set(hObj,<span class="string">'String'</span>,num2str(d(1)));
+0499 <span class="keyword">end</span>
+0500 <a href="#_sub17" class="code" title="subfunction UpdateProtocolDur(h)">UpdateProtocolDur</a>(h)
+0501 
+0502 <a name="_sub17" href="#_subfunctions" class="code">function UpdateProtocolDur(h)</a>
+0503 <span class="keyword">if</span> ~isfield(h,<span class="string">'protocol'</span>)
+0504     set(h.protocol_dur,<span class="string">'String'</span>,<span class="string">'Protocol Duration:'</span>);
+0505     <span class="keyword">return</span>
+0506 <span class="keyword">end</span>
+0507 
+0508 isi = str2num(get(h.opt_isi,<span class="string">'String'</span>)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0509 
+0510 h.protocol = <a href="#_sub8" class="code" title="subfunction p = AffixOptions(h,p)">AffixOptions</a>(h,h.protocol);
+0511 [p,fail] = <a href="CompiledProtocolTrials.html" class="code" title="function varargout = CompiledProtocolTrials(protocol,varargin)">CompiledProtocolTrials</a>(h.protocol,<span class="string">'showgui'</span>,false);
+0512 <span class="keyword">if</span> fail
+0513     set(h.protocol_dur,<span class="string">'String'</span>,<span class="string">'Invalid Value Combinations'</span>, <span class="keyword">...</span>
+0514         <span class="string">'backgroundcolor'</span>,<span class="string">'r'</span>);
+0515 <span class="keyword">else</span>
+0516     pdur = mean(size(p.trials,1)*isi/1000/60);
+0517     set(h.protocol_dur,<span class="string">'String'</span>,sprintf(<span class="string">'Protocol Duration: %0.1f min'</span>,pdur), <span class="keyword">...</span>
+0518         <span class="string">'backgroundcolor'</span>,<span class="string">'g'</span>);
+0519 <span class="keyword">end</span>
+0520 
+0521 
+0522 
+0523 
+0524 <a name="_sub18" href="#_subfunctions" class="code">function remove_parameter_Callback(h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0525 <span class="comment">% Remove currently selected parameter from table</span>
+0526 <span class="keyword">if</span> ~isfield(h,<span class="string">'CURRENTCELL'</span>) || isempty(h.CURRENTCELL), <span class="keyword">return</span>; <span class="keyword">end</span>
+0527 row = h.CURRENTCELL(1);
+0528 
+0529 data = get(h.param_table,<span class="string">'data'</span>);
+0530 data(row,:) = [];
+0531 set(h.param_table,<span class="string">'data'</span>,data);
+0532 
+0533 v = get_string(h.module_select);
+0534 h.protocol.MODULES.(v).data = data;
+0535 
+0536 <span class="keyword">if</span> isfield(h.protocol.MODULES.(v),<span class="string">'buffers'</span>) &amp;&amp; row &lt;= length(h.protocol.MODULES.(v).buffers)
+0537     h.protocol.MODULES.(v).buffers(row) = [];
+0538 <span class="keyword">end</span>
+0539 
+0540 <span class="keyword">if</span> isfield(h.protocol.MODULES.(v),<span class="string">'calibrations'</span>) &amp;&amp; row &lt;= length(h.protocol.MODULES.(v).calibrations)
+0541     h.protocol.MODULES.(v).calibrations(row) = [];
+0542 <span class="keyword">end</span>
+0543 
+0544 h.CURRENTCELL = [];
+0545 guidata(h.ProtocolDesign,h);
+0546 
+0547 <a name="_sub19" href="#_subfunctions" class="code">function module_select_Callback(hObj, h)</a>
+0548 <span class="comment">% handles module selection</span>
+0549 <span class="keyword">if</span> ~isfield(h,<span class="string">'protocol'</span>), h.protocol = []; <span class="keyword">end</span>
+0550 
+0551 v = cellstr(get(hObj,<span class="string">'String'</span>));
+0552 v = v{get(hObj,<span class="string">'Value'</span>)};
+0553 <span class="keyword">if</span> strfind(v,<span class="string">'PA5'</span>)
+0554     h.PA5flag = true;
+0555 <span class="keyword">else</span>
+0556     h.PA5flag = false;
+0557 <span class="keyword">end</span>
+0558 guidata(h.ProtocolDesign,h);
+0559 
+0560 <a href="#_sub12" class="code" title="subfunction SetParamTable(h,protocol)">SetParamTable</a>(h,h.protocol);
+0561 
+0562 <a name="_sub20" href="#_subfunctions" class="code">function add_module_Callback(h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0563 <span class="comment">% add new module to protocol</span>
+0564 ov = cellstr(get(h.module_select,<span class="string">'String'</span>));
+0565 
+0566 options.Resize = <span class="string">'off'</span>;
+0567 options.WindowStyle = <span class="string">'modal'</span>;
+0568 nv = inputdlg(<span class="string">'Enter hardware module alias (case sensitive):'</span>, <span class="keyword">...</span>
+0569     <span class="string">'Hardware Alias'</span>,1,{<span class="string">'Stim'</span>},options);
+0570 <span class="keyword">if</span> isempty(nv), <span class="keyword">return</span>; <span class="keyword">end</span>
+0571 
+0572 ov(~ismember(1:length(ov),findincell(ov))) = [];
+0573 
+0574 <span class="keyword">if</span> ~ismember(nv,ov)
+0575     ov{end+1} = char(nv);
+0576     <span class="comment">%     ov = sort(ov);</span>
+0577 <span class="keyword">end</span>
+0578 
+0579 h.PA5flag = strfind(char(nv),<span class="string">'PA5'</span>); <span class="comment">% PA5 attenuation module</span>
+0580 <span class="keyword">if</span> isempty(h.PA5flag), h.PA5flag = false; <span class="keyword">end</span>
+0581 <span class="keyword">if</span> h.PA5flag
+0582     data = <a href="#_sub13" class="code" title="subfunction d = dfltrow">dfltrow</a>;
+0583     data{1} = <span class="string">'SetAtten'</span>;
+0584     set(h.param_table,<span class="string">'Data'</span>,data);
+0585 <span class="keyword">end</span>
+0586 guidata(h.ProtocolDesign,h);
+0587 
+0588 set(h.module_select,<span class="string">'String'</span>,ov,<span class="string">'Value'</span>,find(ismember(ov,nv)));
+0589 set(h.param_table,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0590 <span class="keyword">if</span> isempty(ov)
+0591     <a href="#_sub6" class="code" title="subfunction splash(onoff)">splash</a>(<span class="string">'on'</span>);
+0592 <span class="keyword">else</span>
+0593     <a href="#_sub6" class="code" title="subfunction splash(onoff)">splash</a>(<span class="string">'off'</span>);
+0594 <span class="keyword">end</span>
+0595 
+0596 <a href="#_sub19" class="code" title="subfunction module_select_Callback(hObj, h)">module_select_Callback</a>(h.module_select, h);
+0597 
+0598 
+0599 <a name="_sub21" href="#_subfunctions" class="code">function remove_module_Callback(h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0600 <span class="comment">% remove selected module from protocol</span>
+0601 ov  = cellstr(get(h.module_select,<span class="string">'String'</span>));
+0602 idx = get(h.module_select,<span class="string">'Value'</span>);
+0603 v = ov{idx};
+0604 
+0605 r = questdlg( <span class="keyword">...</span>
+0606     sprintf(<span class="string">'Are you certain you would like to remove the ''%s'' module?'</span>,v), <span class="keyword">...</span>
+0607     <span class="string">'Remove Module'</span>,<span class="string">'Yes'</span>,<span class="string">'No'</span>,<span class="string">'No'</span>);
+0608 
+0609 <span class="keyword">if</span> strcmp(r,<span class="string">'No'</span>), <span class="keyword">return</span>; <span class="keyword">end</span>
+0610 
+0611 <span class="keyword">if</span> isfield(h.protocol.MODULES,v)
+0612     h.protocol.MODULES = rmfield(h.protocol.MODULES,v);
+0613     guidata(h.ProtocolDesign,h);
+0614 <span class="keyword">end</span>
+0615 
+0616 ov(idx) = [];
+0617 set(h.module_select,<span class="string">'String'</span>,ov,<span class="string">'Value'</span>,1);
+0618 
+0619 <span class="keyword">if</span> isempty(ov), set(h.param_table,<span class="string">'Enable'</span>,<span class="string">'off'</span>); <span class="keyword">end</span>
+0620 
+0621 <a href="#_sub19" class="code" title="subfunction module_select_Callback(hObj, h)">module_select_Callback</a>(h.module_select, h);
+0622 
+0623 <a name="_sub22" href="#_subfunctions" class="code">function rpvds_tags_Callback(h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0624 <span class="keyword">if</span> strcmp(get(h.param_table,<span class="string">'Enable'</span>),<span class="string">'off'</span>), <span class="keyword">return</span>; <span class="keyword">end</span>
+0625 
+0626 <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'off'</span>);
+0627 
+0628 <span class="comment">% Grab parameter tags from an existing RPvds file</span>
+0629 fh = findobj(<span class="string">'Type'</span>,<span class="string">'figure'</span>,<span class="string">'-and'</span>,<span class="string">'Name'</span>,<span class="string">'RPfig'</span>);
+0630 <span class="keyword">if</span> isempty(fh), fh = figure(<span class="string">'Visible'</span>,<span class="string">'off'</span>,<span class="string">'Name'</span>,<span class="string">'RPfig'</span>); <span class="keyword">end</span>
+0631 
+0632 [fn,pn] = uigetfile({<span class="string">'*.rcx'</span>, <span class="string">'RPvds File (*.rcx)'</span>},<span class="string">'Select RPvds File'</span>);
+0633 <span class="keyword">if</span> ~fn, <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'on'</span>); <span class="keyword">return</span>; <span class="keyword">end</span>
+0634 
+0635 RP = actxcontrol(<span class="string">'RPco.x'</span>,<span class="string">'parent'</span>,fh);
+0636 RP.ReadCOF(fullfile(pn,fn));
+0637 
+0638 data = <a href="#_sub13" class="code" title="subfunction d = dfltrow">dfltrow</a>;
+0639 k = 1;
+0640 n = RP.GetNumOf(<span class="string">'ParTag'</span>);
+0641 <span class="keyword">for</span> i = 1:n
+0642     x = RP.GetNameOf(<span class="string">'ParTag'</span>, i);
+0643     <span class="comment">% remove any error messages and OpenEx proprietary tags (starting with 'z')</span>
+0644     <span class="keyword">if</span> ~(any(ismember(x,<span class="string">'/\|'</span>)) || ~isempty(strfind(x,<span class="string">'rPvDsHElpEr'</span>)) <span class="keyword">...</span>
+0645             || any(x(1) == <span class="string">'zZ'</span>) || x(1) == <span class="string">'~'</span>)
+0646         data(k,:) = <a href="#_sub13" class="code" title="subfunction d = dfltrow">dfltrow</a>;
+0647         data{k,1} = x;
+0648         k = k + 1;
+0649     <span class="keyword">end</span>
+0650 <span class="keyword">end</span>
+0651 
+0652 data = sortrows(data,1);
+0653 
+0654 delete(RP);
+0655 close(fh);
+0656 
+0657 set(h.param_table,<span class="string">'data'</span>,data)
+0658 
+0659 v = cellstr(get(h.module_select,<span class="string">'String'</span>));
+0660 v = v{get(h.module_select,<span class="string">'Value'</span>)};
+0661 h.protocol.MODULES.(v).data = data;
+0662 guidata(h.ProtocolDesign,h);
+0663 <a href="#_sub4" class="code" title="subfunction GUISTATE(fh,onoff)">GUISTATE</a>(h.ProtocolDesign,<span class="string">'on'</span>);
+0664 
+0665</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

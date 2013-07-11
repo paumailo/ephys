@@ -1,0 +1,475 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of DB_QuickPlot</title>
+  <meta name="keywords" content="DB_QuickPlot">
+  <meta name="description" content="DB_QUICKPLOT MATLAB code for DB_QuickPlot.fig">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">db</a> &gt; <a href="index.html">gui</a> &gt; DB_QuickPlot.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for db\gui&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>DB_QuickPlot
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>DB_QUICKPLOT MATLAB code for DB_QuickPlot.fig</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function varargout = DB_QuickPlot(varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> DB_QUICKPLOT MATLAB code for DB_QuickPlot.fig</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="DB_Browser.html" class="code" title="function varargout = DB_Browser(varargin)">DB_Browser</a>	DB_Browser</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function DB_QuickPlot_OpeningFcn(hObj, ~, h, varargin)</a></li><li><a href="#_sub2" class="code">function varargout = DB_QuickPlot_OutputFcn(hObj, ~, h)</a></li><li><a href="#_sub3" class="code">function RefreshParameters(hObj,h)</a></li><li><a href="#_sub4" class="code">function SelectParam(hObj,h)</a></li><li><a href="#_sub5" class="code">function SwapXY(h)</a></li><li><a href="#_sub6" class="code">function opts_datatype_SelectionChangeFcn(~, e, h)</a></li><li><a href="#_sub7" class="code">function param_table_CellSelectionCallback(hObj, e, h)</a></li><li><a href="#_sub8" class="code">function optTable_CellEditCallback(~,~,h)</a></li><li><a href="#_sub9" class="code">function chk_newfigure_Callback(hObj,h)</a></li><li><a href="#_sub10" class="code">function PlotData(h)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function varargout = DB_QuickPlot(varargin)</a>
+0002 <span class="comment">% DB_QUICKPLOT MATLAB code for DB_QuickPlot.fig</span>
+0003 
+0004 <span class="comment">% Edit the above text to modify the response to help DB_QuickPlot</span>
+0005 
+0006 <span class="comment">% Last Modified by GUIDE v2.5 16-May-2013 12:42:17</span>
+0007 
+0008 <span class="comment">% Begin initialization code - DO NOT EDIT</span>
+0009 gui_Singleton = 1;
+0010 gui_State = struct(<span class="string">'gui_Name'</span>,       mfilename, <span class="keyword">...</span>
+0011     <span class="string">'gui_Singleton'</span>,  gui_Singleton, <span class="keyword">...</span>
+0012     <span class="string">'gui_OpeningFcn'</span>, @<a href="#_sub1" class="code" title="subfunction DB_QuickPlot_OpeningFcn(hObj, ~, h, varargin)">DB_QuickPlot_OpeningFcn</a>, <span class="keyword">...</span>
+0013     <span class="string">'gui_OutputFcn'</span>,  @<a href="#_sub2" class="code" title="subfunction varargout = DB_QuickPlot_OutputFcn(hObj, ~, h)  ">DB_QuickPlot_OutputFcn</a>, <span class="keyword">...</span>
+0014     <span class="string">'gui_LayoutFcn'</span>,  [] , <span class="keyword">...</span>
+0015     <span class="string">'gui_Callback'</span>,   []);
+0016 <span class="keyword">if</span> nargin &amp;&amp; ischar(varargin{1})
+0017     gui_State.gui_Callback = str2func(varargin{1});
+0018 <span class="keyword">end</span>
+0019 
+0020 <span class="keyword">if</span> nargout
+0021     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+0022 <span class="keyword">else</span>
+0023     gui_mainfcn(gui_State, varargin{:});
+0024 <span class="keyword">end</span>
+0025 <span class="comment">% End initialization code - DO NOT EDIT</span>
+0026 
+0027 
+0028 <span class="comment">% --- Executes just before DB_QuickPlot is made visible.</span>
+0029 <a name="_sub1" href="#_subfunctions" class="code">function DB_QuickPlot_OpeningFcn(hObj, ~, h, varargin)</a>
+0030 h.output = hObj;
+0031 
+0032 guidata(hObj, h);
+0033 
+0034 <a href="#_sub3" class="code" title="subfunction RefreshParameters(hObj,h) ">RefreshParameters</a>([],h);
+0035 
+0036 <span class="comment">% pref = getpref('DB_QuickPlot','opt','opt_spikes');</span>
+0037 <span class="comment">% if strcmp(pref,'opt_spikes')</span>
+0038 <span class="comment">%     e.OldValue = h.opt_LFP;</span>
+0039 <span class="comment">%     e.NewValue = h.opt_spikes;</span>
+0040 <span class="comment">% else</span>
+0041 <span class="comment">%     e.OldValue = h.opt_spikes;</span>
+0042 <span class="comment">%     e.NewValue = h.opt_LFP;</span>
+0043 <span class="comment">% end</span>
+0044 <span class="keyword">if</span> get(h.opt_spikes,<span class="string">'Value'</span>)
+0045     e.OldValue = h.opt_spikes;
+0046     e.NewValue = h.opt_spikes;
+0047 <span class="keyword">else</span>
+0048     e.OldValue = h.opt_LFP;
+0049     e.NewValue = h.opt_LFP;
+0050 <span class="keyword">end</span>
+0051 <a href="#_sub6" class="code" title="subfunction opts_datatype_SelectionChangeFcn(~, e, h)">opts_datatype_SelectionChangeFcn</a>([], e, h)
+0052 
+0053 
+0054 
+0055 <span class="comment">% --- Outputs from this function are returned to the command line.</span>
+0056 <a name="_sub2" href="#_subfunctions" class="code">function varargout = DB_QuickPlot_OutputFcn(hObj, ~, h)  </a><span class="comment">%#ok&lt;INUSL&gt;</span>
+0057 varargout{1} = h.output;
+0058 
+0059 
+0060 
+0061 
+0062 
+0063 
+0064 
+0065 
+0066 
+0067 
+0068 
+0069 
+0070 
+0071 
+0072 
+0073 
+0074 
+0075 
+0076 
+0077 
+0078 
+0079 
+0080 <span class="comment">%%</span>
+0081 <a name="_sub3" href="#_subfunctions" class="code">function RefreshParameters(hObj,h) </a><span class="comment">%#ok&lt;INUSL&gt;</span>
+0082 <span class="keyword">if</span> isempty(h), h = guidata(findobj(<span class="string">'type'</span>,<span class="string">'figure'</span>,<span class="string">'-and'</span>,<span class="string">'name'</span>,<span class="string">'DB_QuickPlot'</span>)); <span class="keyword">end</span>
+0083 
+0084 pref = getpref(<span class="string">'DB_BROWSER_SELECTION'</span>);
+0085 <span class="keyword">if</span> isempty(pref)
+0086     errordlg(<span class="string">'DB_Browser malfunctioned'</span>)
+0087     <span class="keyword">return</span>
+0088 <span class="keyword">end</span>
+0089 
+0090 pref = orderfields(pref,{<span class="string">'experiments'</span>,<span class="string">'tanks'</span>,<span class="string">'blocks'</span>,<span class="string">'channels'</span>,<span class="string">'units'</span>});
+0091 
+0092 dbstr = <span class="string">''</span>;
+0093 dbfn = fieldnames(pref);
+0094 <span class="keyword">for</span> i = 1:length(dbfn)
+0095     dbstr = sprintf(<span class="string">'%s%s:\t% 6.0f\n'</span>,dbstr,dbfn{i}(1:end-1),pref.(dbfn{i}));
+0096 <span class="keyword">end</span>
+0097 set(h.txt_dbinfo,<span class="string">'String'</span>,dbstr);
+0098 
+0099 P = DB_GetParams(pref.blocks);
+0100 
+0101 <span class="keyword">if</span> isfield(P,<span class="string">'lists'</span>)
+0102     params = fieldnames(P.lists);
+0103     params(strcmp(params,<span class="string">'onset'</span>)) = [];
+0104     
+0105     str = cellstr(get_string(h.list_params));
+0106     str = cellfun(@(x)x(1:find(x==<span class="string">' '</span>,1)-1),str,<span class="string">'UniformOutput'</span>,false);
+0107 <span class="comment">%     str(find(str==' ',1,'first'):end) = [];</span>
+0108     val = find(ismember(params,str));
+0109     <span class="keyword">if</span> isempty(val), val = 1; <span class="keyword">end</span>
+0110     
+0111     <span class="keyword">for</span> i = 1:length(params)
+0112         params{i} = sprintf(<span class="string">'%s (%d)'</span>,params{i},length(P.lists.(params{i})));
+0113     <span class="keyword">end</span>
+0114     
+0115     set(h.list_params,<span class="string">'String'</span>,params,<span class="string">'Value'</span>,val)
+0116 <span class="keyword">end</span>
+0117 
+0118 <a href="#_sub4" class="code" title="subfunction SelectParam(hObj,h)">SelectParam</a>(h.list_params,h);
+0119 <a href="#_sub9" class="code" title="subfunction chk_newfigure_Callback(hObj,h)">chk_newfigure_Callback</a>(h.chk_newfig,h)
+0120 
+0121 <a name="_sub4" href="#_subfunctions" class="code">function SelectParam(hObj,h)</a>
+0122 val = get(hObj,<span class="string">'Value'</span>);
+0123 
+0124 lastval = get(hObj,<span class="string">'UserData'</span>);
+0125 <span class="keyword">if</span> ~isempty(lastval) &amp;&amp; numel(val) &gt; 1
+0126     ind = val == lastval;
+0127     set(hObj,<span class="string">'UserData'</span>,val(~ind))
+0128     val(ind) = [];
+0129     val = [lastval val];
+0130 <span class="keyword">else</span>
+0131     set(hObj,<span class="string">'UserData'</span>,val);
+0132 <span class="keyword">end</span>
+0133 
+0134 <span class="keyword">if</span> numel(val) &gt; 2
+0135     val(end) = [];
+0136     set(hObj,<span class="string">'Value'</span>,val);
+0137 <span class="keyword">end</span>
+0138 
+0139 param = cellstr(get(hObj,<span class="string">'String'</span>));
+0140 param = param(val);
+0141 
+0142 data = get(h.optTable,<span class="string">'Data'</span>);
+0143 ncols = data{1,2};
+0144 nrows = data{2,2};
+0145     
+0146 <span class="keyword">if</span> length(param) == 1
+0147     idx = find(param{1} == <span class="string">'('</span> | param{1} == <span class="string">')'</span>);
+0148     n = str2num(param{1}(idx(1):idx(2))); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0149     <span class="keyword">if</span> ncols*nrows &lt; n
+0150         nrows = round(sqrt(n));
+0151         ncols = ceil(n/nrows);
+0152     <span class="keyword">end</span>
+0153     set([h.txt_xaxis h.txt_yaxis h.btn_swapxy],<span class="string">'Visible'</span>,<span class="string">'off'</span>);
+0154 <span class="keyword">else</span>
+0155     nrows = 1;
+0156     ncols = 1;
+0157     set([h.txt_xaxis h.txt_yaxis h.btn_swapxy],<span class="string">'Visible'</span>,<span class="string">'on'</span>);
+0158 <span class="keyword">end</span>
+0159 
+0160 data = get(h.optTable,<span class="string">'Data'</span>);
+0161 data{1,2} = ncols;
+0162 data{2,2} = nrows;
+0163 set(h.optTable,<span class="string">'Data'</span>,data);
+0164 
+0165 pref = getpref(<span class="string">'DB_BROWSER_SELECTION'</span>);
+0166 P = DB_GetParams(pref.blocks);
+0167 <span class="comment">% list parameters</span>
+0168 <span class="keyword">for</span> i = 1:length(param)
+0169     name{i} = param{i}(1:find(param{i} == <span class="string">' '</span>)-1); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0170     t = num2cell(sort(P.lists.(name{i})));
+0171     pdata(1:length(t),i) = t; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0172 <span class="keyword">end</span>
+0173 set(h.param_table,<span class="string">'data'</span>,pdata,<span class="string">'ColumnName'</span>,name);
+0174 
+0175 <a name="_sub5" href="#_subfunctions" class="code">function SwapXY(h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0176 
+0177 vals = get(h.list_params,<span class="string">'Value'</span>);
+0178 
+0179 <span class="keyword">if</span> length(vals) == 1, <span class="keyword">return</span>; <span class="keyword">end</span>
+0180 
+0181 ud = get(h.list_params,<span class="string">'UserData'</span>);
+0182 ud = flipud(ud(:));
+0183 set(h.list_params,<span class="string">'UserData'</span>,ud);
+0184 
+0185 <a href="#_sub4" class="code" title="subfunction SelectParam(hObj,h)">SelectParam</a>(h.list_params,h);
+0186 
+0187 
+0188 
+0189 
+0190 
+0191 
+0192 
+0193 
+0194 
+0195 
+0196 
+0197 
+0198 
+0199 
+0200 
+0201 
+0202 
+0203 
+0204 
+0205 <span class="comment">%% Helper functions</span>
+0206 <a name="_sub6" href="#_subfunctions" class="code">function opts_datatype_SelectionChangeFcn(~, e, h)</a>
+0207 hObj = h.optTable;
+0208 
+0209 oldtype = get(e.OldValue,<span class="string">'String'</span>);
+0210 type    = get(e.NewValue,<span class="string">'String'</span>);
+0211 
+0212 setpref(<span class="string">'DB_QuickPlot'</span>,<span class="string">'opt'</span>,get(e.NewValue,<span class="string">'tag'</span>));
+0213 
+0214 data  = get(hObj,<span class="string">'Data'</span>);
+0215 udata = get(hObj,<span class="string">'UserData'</span>);
+0216 <span class="keyword">if</span> ~isempty(data{1})
+0217     setpref(<span class="string">'DB_QuickPlot'</span>,sprintf(<span class="string">'optTable_%s'</span>,oldtype),{data,udata});
+0218 <span class="keyword">end</span>
+0219 
+0220 prefdata = getpref(<span class="string">'DB_QuickPlot'</span>,sprintf(<span class="string">'optTable_%s'</span>,type),[]);
+0221 
+0222 
+0223 <span class="comment">% check to see if things have changed</span>
+0224 <span class="keyword">switch</span> type 
+0225     <span class="keyword">case</span> <span class="string">'Spikes'</span>
+0226         CURDATASIZE = 11;
+0227     <span class="keyword">case</span> <span class="string">'LFPs'</span>
+0228         CURDATASIZE = 9;
+0229 <span class="keyword">end</span>
+0230 
+0231 <span class="keyword">if</span> isempty(prefdata) || ~iscell(prefdata) || isempty(prefdata{1}{1}) <span class="keyword">...</span>
+0232         || size(prefdata{1},1) ~= CURDATASIZE
+0233     clear data udata
+0234     data{1,1} = <span class="string">'# Columns'</span>;            data{1,2} = 4;      udata{1} = <span class="string">'ncols'</span>;
+0235     data{2,1} = <span class="string">'# Rows'</span>;               data{2,2} = 5;      udata{2} = <span class="string">'nrows'</span>;
+0236     data{3,1} = <span class="string">'Window Onset (ms)'</span>;    data{3,2} = -10;    udata{3} = <span class="string">'win_on'</span>;
+0237     data{4,1} = <span class="string">'Window Offset (ms)'</span>;   data{4,2} = 200;    udata{4} = <span class="string">'win_off'</span>;
+0238     
+0239     <span class="keyword">switch</span> type
+0240         <span class="keyword">case</span> <span class="string">'Spikes'</span>
+0241             data{end+1,1} = <span class="string">'Plot Raster'</span>;      data{<span class="keyword">end</span>,2} = true; udata{end+1} = <span class="string">'plotraster'</span>;
+0242             data{end+1,1} = <span class="string">'Plot Histogram'</span>;   data{<span class="keyword">end</span>,2} = true; udata{end+1} = <span class="string">'plothist'</span>;
+0243             data{end+1,1} = <span class="string">'Bin size (ms)'</span>;    data{<span class="keyword">end</span>,2} = 1;    udata{end+1} = <span class="string">'binsize'</span>;
+0244             
+0245             
+0246         <span class="keyword">case</span> <span class="string">'LFPs'</span>
+0247             data{end+1,1} = <span class="string">'Error band'</span>;    data{<span class="keyword">end</span>,2} = true;  udata{end+1} = <span class="string">'errorband'</span>;
+0248 
+0249     <span class="keyword">end</span>
+0250     data{end+1,1} = <span class="string">'Color Order'</span>;      data{<span class="keyword">end</span>,2} = <span class="string">'brgbkcmy'</span>;   udata{end+1} = <span class="string">'colororder'</span>;
+0251     data{end+1,1} = <span class="string">'2d smoothing'</span>;     data{<span class="keyword">end</span>,2} = true;         udata{end+1} = <span class="string">'smooth2d'</span>;
+0252     data{end+1,1} = <span class="string">'2d interpolate'</span>;   data{<span class="keyword">end</span>,2} = 3;            udata{end+1} = <span class="string">'interpolate'</span>;
+0253     data{end+1,1} = <span class="string">'2d X is log'</span>;      data{<span class="keyword">end</span>,2} = false;        udata{end+1} = <span class="string">'xislog'</span>;
+0254 <span class="keyword">else</span>
+0255     data  = prefdata{1};
+0256     udata = prefdata{2};
+0257 <span class="keyword">end</span>
+0258 
+0259 set(hObj,<span class="string">'data'</span>,data,<span class="string">'UserData'</span>,udata);
+0260         
+0261 <a name="_sub7" href="#_subfunctions" class="code">function param_table_CellSelectionCallback(hObj, e, h) </a><span class="comment">%#ok&lt;INUSD,DEFNU&gt;</span>
+0262 eI = e.Indices;
+0263 
+0264 data = get(hObj,<span class="string">'Data'</span>);
+0265 
+0266 uc = unique(eI(:,2));
+0267 <span class="keyword">for</span> i = 1:length(uc)
+0268     idx = find(eI(:,2) == uc(i));
+0269     t = data(eI(idx,1),uc(i));
+0270     eind = cellfun(@isempty,t,<span class="string">'UniformOutput'</span>,true);
+0271     eI(idx(eind),:) = [];
+0272 <span class="keyword">end</span>
+0273 
+0274 set(hObj,<span class="string">'UserData'</span>,eI);
+0275 
+0276 <a name="_sub8" href="#_subfunctions" class="code">function optTable_CellEditCallback(~,~,h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0277 <span class="keyword">if</span> get(h.opt_spikes,<span class="string">'Value'</span>)
+0278     e.OldValue = h.opt_spikes;
+0279     e.NewValue = h.opt_spikes;
+0280 <span class="keyword">else</span>
+0281     e.OldValue = h.opt_LFP;
+0282     e.NewValue = h.opt_LFP;
+0283 <span class="keyword">end</span>
+0284 <a href="#_sub6" class="code" title="subfunction opts_datatype_SelectionChangeFcn(~, e, h)">opts_datatype_SelectionChangeFcn</a>(h.opts_datatype,e,h);
+0285 
+0286 <a name="_sub9" href="#_subfunctions" class="code">function chk_newfigure_Callback(hObj,h)</a>
+0287 val = get(hObj,<span class="string">'Value'</span>);
+0288 <span class="keyword">if</span> val
+0289     set(h.chk_holdplot,<span class="string">'Visible'</span>,<span class="string">'off'</span>);
+0290 <span class="keyword">else</span>
+0291     set(h.chk_holdplot,<span class="string">'Visible'</span>,<span class="string">'on'</span>);
+0292 <span class="keyword">end</span>
+0293 
+0294 
+0295 
+0296 
+0297 
+0298 
+0299 
+0300 
+0301 
+0302 
+0303 
+0304 
+0305 
+0306 
+0307 
+0308 <span class="comment">%% Plotting</span>
+0309 <a name="_sub10" href="#_subfunctions" class="code">function PlotData(h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0310 <span class="keyword">global</span> FIGH
+0311 <span class="keyword">persistent</span> CIDX
+0312 
+0313 <span class="keyword">if</span> isempty(CIDX); CIDX = 1; <span class="keyword">end</span>
+0314 
+0315 pref = getpref(<span class="string">'DB_BROWSER_SELECTION'</span>);
+0316 
+0317 <span class="keyword">if</span> isempty(pref)
+0318     errordlg(<span class="string">'DB_Browser malfunctioned'</span>)
+0319     <span class="keyword">return</span>
+0320 <span class="keyword">end</span>
+0321 
+0322 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); drawnow
+0323 
+0324 P = DB_GetParams(pref.blocks);
+0325 
+0326 paramsel = get(h.param_table,<span class="string">'UserData'</span>);
+0327 param    = get(h.param_table,<span class="string">'ColumnName'</span>);
+0328 <span class="keyword">if</span> ~isempty(paramsel)
+0329     <span class="keyword">for</span> i = 1:length(param)
+0330         ind = paramsel(:,2) == i;
+0331         <span class="keyword">if</span> ~any(ind), <span class="keyword">continue</span>; <span class="keyword">end</span>
+0332         P.lists.(param{i}) = P.lists.(param{i})(paramsel(ind,1));
+0333     <span class="keyword">end</span>
+0334 <span class="keyword">end</span>
+0335 
+0336 
+0337 <span class="comment">% Plot Figure</span>
+0338 <span class="keyword">if</span> get(h.chk_newfig,<span class="string">'Value'</span>) || isempty(FIGH) || ~ishandle(FIGH), FIGH = figure; <span class="keyword">end</span>
+0339 figure(FIGH)
+0340 set(FIGH,<span class="string">'NumberTitle'</span>,<span class="string">'off'</span>,<span class="string">'Renderer'</span>,<span class="string">'painters'</span>,<span class="string">'pointer'</span>,<span class="string">'watch'</span>); 
+0341 
+0342 
+0343 
+0344 <span class="comment">% CFG structure</span>
+0345 data   = get(h.optTable,<span class="string">'Data'</span>);
+0346 params = get(h.optTable,<span class="string">'UserData'</span>);
+0347 <span class="keyword">for</span> i = 1:length(params)
+0348     cfg.(params{i}) = data{i,2};
+0349 <span class="keyword">end</span>
+0350 <span class="keyword">if</span> get(h.chk_holdplot,<span class="string">'Value'</span>) &amp;&amp; ~get(h.chk_newfig,<span class="string">'Value'</span>)
+0351     cfg.hold = <span class="string">'on'</span>;
+0352     CIDX = CIDX + 1;
+0353 <span class="keyword">else</span>
+0354     cfg.hold = <span class="string">'off'</span>;
+0355     CIDX = 1;
+0356     clf(FIGH);
+0357 <span class="keyword">end</span>
+0358 tidx = mod(CIDX,length(cfg.colororder));
+0359 <span class="keyword">if</span> tidx == 0, tidx = length(cfg.colororder); <span class="keyword">end</span>
+0360 cfg.color = cfg.colororder(tidx);
+0361 
+0362 
+0363 drawnow
+0364 
+0365 <span class="keyword">if</span> get(h.opt_spikes,<span class="string">'Value'</span>)
+0366     <span class="comment">% get spike data</span>
+0367     S = DB_GetSpiketimes(pref.units);
+0368     
+0369     <span class="keyword">if</span> numel(param) == 1 || (numel(param) == 2 <span class="keyword">...</span>
+0370             &amp;&amp; (numel(P.lists.(param{1})) == 1 || numel(P.lists.(param{2})) == 1))
+0371         plot_spike_raster(S,P,param,cfg);
+0372     
+0373     <span class="keyword">elseif</span> numel(param) == 2
+0374         plot_spike_rf(S,P,param,cfg);
+0375             
+0376     <span class="keyword">end</span>
+0377     
+0378     <span class="comment">% label figure</span>
+0379     n = myms(sprintf([ <span class="keyword">...</span>
+0380         <span class="string">'SELECT CONCAT(e.name,&quot;: &quot;,t.tank_condition,&quot;-&quot;,p.alias,&quot;[&quot;,c.target,c.channel,&quot;-&quot;,cl.class,&quot;]&quot;) '</span>, <span class="keyword">...</span>
+0381         <span class="string">'FROM tanks t INNER JOIN experiments e ON t.exp_id = e.id '</span>, <span class="keyword">...</span>
+0382         <span class="string">'INNER JOIN blocks b ON b.tank_id = t.id '</span>, <span class="keyword">...</span>
+0383         <span class="string">'INNER JOIN db_util.protocol_types p ON b.protocol = p.pid '</span>, <span class="keyword">...</span>
+0384         <span class="string">'INNER JOIN channels c ON c.block_id = b.id '</span>, <span class="keyword">...</span>
+0385         <span class="string">'INNER JOIN units u ON u.channel_id = c.id '</span>, <span class="keyword">...</span>
+0386         <span class="string">'INNER JOIN class_lists.pool_class cl ON cl.id = u.pool '</span>, <span class="keyword">...</span>
+0387         <span class="string">'WHERE u.id = %d'</span>],pref.units));
+0388 
+0389 <span class="keyword">else</span>
+0390     <span class="comment">% get continuously sampled data</span>
+0391     W = DB_GetWave(pref.channels);
+0392 
+0393     <span class="keyword">switch</span> numel(param)
+0394         <span class="keyword">case</span> 1
+0395             plot_evLFP(W,P,param,cfg);
+0396 
+0397         <span class="keyword">case</span> 2
+0398             plot_LFP_rf(W,P,param,cfg);
+0399     <span class="keyword">end</span>
+0400     
+0401     <span class="comment">% label figure</span>
+0402     n = myms(sprintf([ <span class="keyword">...</span>
+0403         <span class="string">'SELECT CONCAT(e.name,&quot;: &quot;,t.tank_condition,&quot;-&quot;,p.alias,&quot;[&quot;,c.target,c.channel,&quot;]&quot;) '</span>, <span class="keyword">...</span>
+0404         <span class="string">'FROM tanks t INNER JOIN experiments e ON t.exp_id = e.id '</span>, <span class="keyword">...</span>
+0405         <span class="string">'INNER JOIN blocks b ON b.tank_id = t.id '</span>, <span class="keyword">...</span>
+0406         <span class="string">'INNER JOIN db_util.protocol_types p ON b.protocol = p.pid '</span>, <span class="keyword">...</span>
+0407         <span class="string">'INNER JOIN channels c ON c.block_id = b.id '</span>, <span class="keyword">...</span>
+0408         <span class="string">'WHERE c.id = %d'</span>],pref.channels));
+0409 
+0410 <span class="keyword">end</span>
+0411 
+0412 set(FIGH,<span class="string">'name'</span>,char(n),<span class="string">'pointer'</span>,<span class="string">'arrow'</span>);
+0413 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);
+0414 
+0415 
+0416 
+0417 
+0418 
+0419 
+0420 
+0421 
+0422 
+0423         
+0424         
+0425         
+0426</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of myisopen</title>
+  <meta name="keywords" content="myisopen">
+  <meta name="description" content="myisopen True if MySQL instance active  [mym utilities]">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">db</a> &gt; <a href="index.html">mym</a> &gt; myisopen.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for db\mym&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>myisopen
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>myisopen True if MySQL instance active  [mym utilities]</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function[i] = myisopen </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> myisopen True if MySQL instance active  [mym utilities]  
+ Example  if mycheck, disp('MySQL running!'), end</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="mym.html" class="code" title="">mym</a>	MYM - Interact with a MySQL database server</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="dbadd.html" class="code" title="function dbadd(dbname)">dbadd</a>	dbadd    Create MySQL database          [mym utilities]</li><li><a href="dbcurr.html" class="code" title="function[name] = dbcurr">dbcurr</a>	dbcurr   Current MySQL database         [mym utilities]</li><li><a href="dbdrop.html" class="code" title="function dbdrop(name)">dbdrop</a>	dbdrop   Delete MySQL database          [mym utilities]</li><li><a href="dblist.html" class="code" title="function[names] = dblist">dblist</a>	dblist   List MySQL databases           [mym utilities]</li><li><a href="dbopen.html" class="code" title="function dbopen(name)">dbopen</a>	dbopen   Make MySQL database current    [mym utilities]</li><li><a href="isdbase.html" class="code" title="function[i] = isdbase(name)">isdbase</a>	isdbase  True if MySQL database exists  [mym utilities]</li><li><a href="istable.html" class="code" title="function[i] = istable(name)">istable</a>	istable  True if MySQL table exists     [mym utilities]</li><li><a href="mydemo.html" class="code" title="">mydemo</a>	% MYDEMO: Demonstrate usage of mym utilities</li><li><a href="tbdrop.html" class="code" title="function tbdrop(table)">tbdrop</a>	tbdrop   Delete MySQL table             [mym utilities]</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function[i] = myisopen</a>
+0002 <span class="comment">% myisopen True if MySQL instance active  [mym utilities]</span>
+0003 <span class="comment">% Example  if mycheck, disp('MySQL running!'), end</span>
+0004 i = ~<a href="mym.html" class="code" title="">mym</a>(<span class="string">'status'</span>);</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

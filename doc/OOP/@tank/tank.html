@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of tank</title>
+  <meta name="keywords" content="tank">
+  <meta name="description" content="">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">OOP</a> &gt; <a href="index.html">@tank</a> &gt; tank.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for OOP\@tank&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>tank
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong></strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="permutepars.html" class="code" title="function p = permutepars(obj,parid)">permutepars</a>	p = permutepars(parid)</li><li><a href="tank.html" class="code" title="">tank</a>	</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="tank.html" class="code" title="">tank</a>	</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function obj = tank(name,block)</a></li><li><a href="#_sub2" class="code">function obj = set.name(obj,name)</a></li><li><a href="#_sub3" class="code">function name = get.name(obj)</a></li><li><a href="#_sub4" class="code">function obj = set.block(obj,block)</a></li><li><a href="#_sub5" class="code">function block = get.block(obj)</a></li><li><a href="#_sub6" class="code">function cb = get.currentblock(obj)</a></li><li><a href="#_sub7" class="code">function blocklist = get.blocklist(obj)</a></li><li><a href="#_sub8" class="code">function p = get.params(obj)</a></li><li><a href="#_sub9" class="code">function d = get.time_start(obj)</a></li><li><a href="#_sub10" class="code">function d = get.time_stop(obj)</a></li><li><a href="#_sub11" class="code">function s = get.status(obj)</a></li><li><a href="#_sub12" class="code">function p = get.paramslist(obj)</a></li><li><a href="#_sub13" class="code">function obj = open(obj)</a></li><li><a href="#_sub14" class="code">function close(obj)</a></li><li><a href="#_sub15" class="code">function delete(obj)</a></li><li><a href="#_sub16" class="code">function [TT,TDTfig] = setupTT(obj)</a></li><li><a href="#_sub17" class="code">function obj = closeTT(obj)</a></li><li><a href="#_sub18" class="code">function obj = checkTT(obj)</a></li><li><a href="#_sub19" class="code">function obj = selectBlock(obj,block)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 classdef <a href="tank.html" class="code" title="">tank</a>
+0002     <span class="comment">% T = tank(tankname)</span>
+0003     <span class="comment">% T = tank(tankname,block)</span>
+0004     <span class="comment">%</span>
+0005     <span class="comment">% TANK Class for TDT Data Tank Server</span>
+0006     <span class="comment">%</span>
+0007     <span class="comment">% See also, waves, spikes</span>
+0008     
+0009     <span class="comment">% DJS 2013</span>
+0010     
+0011     properties (SetAccess = <span class="string">'public'</span>,GetAccess = <span class="string">'public'</span>)
+0012         name                    <span class="comment">% Data tank</span>
+0013         block                   <span class="comment">% Tank block number</span>
+0014         server  = <span class="string">'local'</span>;      <span class="comment">% Tank server (default = 'local')</span>
+0015         verbose = true;         <span class="comment">% Print detailed info</span>
+0016     <span class="keyword">end</span>
+0017     
+0018     properties (SetAccess = <span class="string">'protected'</span>,GetAccess = <span class="string">'protected'</span>)
+0019         TT                      <span class="comment">% TTank ActiveX</span>
+0020         TDTfig                  <span class="comment">% TTank ActiveX container</span>
+0021     <span class="keyword">end</span>
+0022     
+0023     properties (SetAccess = <span class="string">'private'</span>,GetAccess = <span class="string">'public'</span>,Dependent = true)
+0024         status                  <span class="comment">% Tank status</span>
+0025         blocklist               <span class="comment">% Blocks in tank</span>
+0026         currentblock            <span class="comment">% Selected block name</span>
+0027         params                  <span class="comment">% Event data structure</span>
+0028         paramslist              <span class="comment">% User friendly version of params structure</span>
+0029         tankpath                <span class="comment">% Path to tank</span>
+0030         time_start              <span class="comment">% Block start time</span>
+0031         time_stop               <span class="comment">% Block stop time</span>
+0032     <span class="keyword">end</span>
+0033     
+0034     methods        
+0035         <span class="comment">%% class constructor</span>
+0036         <a name="_sub0" href="#_subfunctions" class="code">function obj = tank(name,block)</a>
+0037             [obj.TT,obj.TDTfig] = <a href="#_sub16" class="code" title="subfunction [TT,TDTfig] = setupTT(obj)">setupTT</a>(obj);
+0038             <span class="keyword">if</span> nargin &gt;= 1, obj.name = name;    <span class="keyword">end</span>
+0039             <span class="keyword">if</span> nargin == 2, obj.block = block;  <span class="keyword">end</span>
+0040         <span class="keyword">end</span>
+0041         
+0042         
+0043         <span class="comment">%% Set/Get functions-----------------------------------------------</span>
+0044         <span class="comment">% Set/Get name</span>
+0045         <a name="_sub1" href="#_subfunctions" class="code">function obj = set.name(obj,name)</a>
+0046             obj.name = name;
+0047             obj = <a href="#_sub13" class="code" title="subfunction obj = open(obj)">open</a>(obj);
+0048         <span class="keyword">end</span>
+0049         
+0050         <a name="_sub2" href="#_subfunctions" class="code">function name = get.name(obj)</a>
+0051             name = obj.name;
+0052         <span class="keyword">end</span>
+0053         
+0054         <span class="comment">% Set/Get block</span>
+0055         <a name="_sub3" href="#_subfunctions" class="code">function obj = set.block(obj,block)</a>
+0056             b = obj.blocklist; <span class="comment">%#ok&lt;MCSUP&gt;</span>
+0057             <span class="keyword">if</span> ischar(block)
+0058                 tmp = find(strcmpi(block,b));
+0059                 <span class="keyword">if</span> isempty(tmp)
+0060                     fprintf(<span class="string">'The block ''%s'' does not exist in tank ''%s''\n'</span>, <span class="keyword">...</span>
+0061                         obj.block,obj.name) <span class="comment">%#ok&lt;MCSUP&gt;</span>
+0062                     <span class="keyword">return</span>
+0063                 <span class="keyword">end</span>
+0064                 block = tmp;
+0065             <span class="keyword">end</span>
+0066             <span class="keyword">if</span> block &gt; length(b)
+0067                 fprintf(<span class="string">'Length of blocks == %d\n'</span>,length(b))
+0068                 <span class="keyword">return</span>
+0069             <span class="keyword">end</span>
+0070             obj = <a href="#_sub19" class="code" title="subfunction obj = selectBlock(obj,block)">selectBlock</a>(obj,b{block});
+0071             obj.block = block;
+0072             obj = update(obj);
+0073         <span class="keyword">end</span>
+0074         
+0075         <a name="_sub4" href="#_subfunctions" class="code">function block = get.block(obj)</a>
+0076             block = obj.block;
+0077         <span class="keyword">end</span>
+0078         
+0079         <span class="comment">% Get currentblock</span>
+0080         <a name="_sub5" href="#_subfunctions" class="code">function cb = get.currentblock(obj)</a>
+0081             obj = <a href="#_sub18" class="code" title="subfunction obj = checkTT(obj)">checkTT</a>(obj);
+0082             cb = obj.TT.CurBlockName;
+0083         <span class="keyword">end</span>
+0084         
+0085         <span class="comment">% Get blocklist</span>
+0086         <a name="_sub6" href="#_subfunctions" class="code">function blocklist = get.blocklist(obj)</a>
+0087             <span class="keyword">if</span> ~isa(obj.TT,<span class="string">'COM.TTank_X'</span>), blocklist = {<span class="string">''</span>}; <span class="keyword">return</span>; <span class="keyword">end</span>
+0088             blocklist{1} = [];
+0089             bidx = 2;
+0090             obj.TT.QueryBlockName(0);   <span class="comment">%initialize block query</span>
+0091             <span class="keyword">while</span> ~strcmp(blocklist{bidx-1},<span class="string">''</span>)
+0092                 blocklist{bidx} = obj.TT.QueryBlockName(bidx-1); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0093                 bidx = bidx + 1;
+0094             <span class="keyword">end</span>
+0095             blocklist([1 end]) = [];    <span class="comment">% erase first and last empties</span>
+0096             <span class="comment">% properly sort blocklist</span>
+0097             <span class="keyword">for</span> i = 1:length(blocklist)
+0098                 j = find(blocklist{i}==<span class="string">'-'</span>,1,<span class="string">'last'</span>);
+0099                 n(i) = str2double(blocklist{i}(j+1:end)); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0100             <span class="keyword">end</span>
+0101             [~,idx] = sort(n);
+0102             blocklist = blocklist(idx)';
+0103         <span class="keyword">end</span>
+0104         
+0105         <span class="comment">% Get eventcodes</span>
+0106         <a name="_sub7" href="#_subfunctions" class="code">function p = get.params(obj)</a>
+0107             obj = <a href="#_sub18" class="code" title="subfunction obj = checkTT(obj)">checkTT</a>(obj);
+0108             obj.TT.CreateEpocIndexing;
+0109             obj.TT.ResetFilters;
+0110             <span class="comment">% get epoch names</span>
+0111             i = 1;
+0112             <span class="keyword">while</span> true
+0113                 p(i).event = obj.TT.GetEpocCode(i-1); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0114                 <span class="keyword">if</span> isempty(p(i).event)
+0115                     p(i) = []; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0116                     <span class="keyword">break</span>
+0117                 <span class="keyword">end</span>
+0118                 p(i).vals  = obj.TT.GetEpocsV(p(i).event,0,0,10^6)'; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0119                 p(i).uvals = unique(p(i).vals(:,1)); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0120                 i = i + 1;
+0121             <span class="keyword">end</span>
+0122 
+0123         <span class="keyword">end</span>
+0124                
+0125         <span class="comment">% Get date/time info</span>
+0126         <a name="_sub8" href="#_subfunctions" class="code">function d = get.time_start(obj)</a>
+0127             obj = <a href="#_sub18" class="code" title="subfunction obj = checkTT(obj)">checkTT</a>(obj);
+0128             t = obj.TT.CurBlockStartTime;
+0129             d = obj.TT.FancyTime(t,<span class="string">'Y-O-D H:M:S'</span>);
+0130         <span class="keyword">end</span>
+0131         
+0132         <a name="_sub9" href="#_subfunctions" class="code">function d = get.time_stop(obj)</a>
+0133             obj = <a href="#_sub18" class="code" title="subfunction obj = checkTT(obj)">checkTT</a>(obj);
+0134             t = obj.TT.CurBlockStopTime;
+0135             d = obj.TT.FancyTime(t,<span class="string">'Y-O-D H:M:S'</span>);
+0136         <span class="keyword">end</span>
+0137         
+0138         <span class="comment">% Set/Get status</span>
+0139         <a name="_sub10" href="#_subfunctions" class="code">function s = get.status(obj)</a>
+0140             <span class="keyword">if</span> isa(obj.TT,<span class="string">'COM.TTank_X'</span>)
+0141                 a = obj.TT.CheckTank(obj.name);
+0142                 <span class="keyword">switch</span> a
+0143                     <span class="keyword">case</span> 67,    s = <span class="string">'closed'</span>;
+0144                     <span class="keyword">case</span> 79,    s = <span class="string">'open'</span>;
+0145                     <span class="keyword">case</span> 82,    s = <span class="string">'record'</span>;
+0146                     <span class="keyword">otherwise</span>,  s = <span class="string">'unknown'</span>;
+0147                 <span class="keyword">end</span>
+0148             <span class="keyword">else</span>
+0149                 s = <span class="string">'closed'</span>;
+0150             <span class="keyword">end</span>
+0151         <span class="keyword">end</span>
+0152         
+0153         <span class="comment">% Get params</span>
+0154         <a name="_sub11" href="#_subfunctions" class="code">function p = get.paramslist(obj)</a>
+0155             p = [{obj.params.event};{obj.params.uvals}];
+0156         <span class="keyword">end</span>
+0157         
+0158         <span class="comment">% @methods</span>
+0159         p = <a href="permutepars.html" class="code" title="function p = permutepars(obj,parid)">permutepars</a>(obj,parid);
+0160         
+0161         <span class="comment">% Open tank</span>
+0162         <a name="_sub12" href="#_subfunctions" class="code">function obj = open(obj)</a>
+0163             obj = <a href="#_sub18" class="code" title="subfunction obj = checkTT(obj)">checkTT</a>(obj);
+0164             s = obj.TT.OpenTank(obj.name,<span class="string">'R'</span>);
+0165             <span class="keyword">if</span> obj.verbose
+0166                 <span class="keyword">if</span> s
+0167                     fprintf(<span class="string">'Tank ''%s'' opened succesfully\n'</span>,obj.name)
+0168                 <span class="keyword">else</span>
+0169                     disp(obj.TT.GetError);
+0170                 <span class="keyword">end</span>
+0171             <span class="keyword">end</span>
+0172         <span class="keyword">end</span>
+0173             
+0174         
+0175         <span class="comment">% Close tank object</span>
+0176         <a name="_sub13" href="#_subfunctions" class="code">function close(obj)</a>
+0177             <a href="#_sub17" class="code" title="subfunction obj = closeTT(obj)">closeTT</a>(obj);
+0178         <span class="keyword">end</span>
+0179         
+0180         <span class="comment">%---------------------------------</span>
+0181         <span class="comment">% handle 'destruction'</span>
+0182         <a name="_sub14" href="#_subfunctions" class="code">function delete(obj)</a>
+0183             <a href="#_sub17" class="code" title="subfunction obj = closeTT(obj)">closeTT</a>(obj);
+0184         <span class="keyword">end</span>
+0185         
+0186         
+0187     <span class="keyword">end</span>
+0188     
+0189     
+0190     
+0191     methods(Abstract)
+0192         update(obj)
+0193 <span class="comment">%         updateTank(obj)</span>
+0194     <span class="keyword">end</span>
+0195     
+0196     
+0197     
+0198     
+0199     
+0200     
+0201     
+0202     
+0203     
+0204     
+0205     
+0206     
+0207     
+0208     
+0209     
+0210     
+0211     
+0212         
+0213     methods(Access = <span class="string">'protected'</span>, Hidden = true)
+0214         <span class="comment">% instantiate TTank ActiveX control</span>
+0215         <a name="_sub15" href="#_subfunctions" class="code">function [TT,TDTfig] = setupTT(obj)</a>
+0216             TDTfig = figure(<span class="string">'Visible'</span>,<span class="string">'off'</span>,<span class="string">'Name'</span>,<span class="string">'TTankFig'</span>, <span class="keyword">...</span>
+0217                 <span class="string">'IntegerHandle'</span>,<span class="string">'off'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
+0218             TT     = actxcontrol(<span class="string">'TTank.X'</span>,<span class="string">'parent'</span>,TDTfig);
+0219             TT.ConnectServer(obj.server,<span class="string">'Me'</span>); 
+0220             TT.GetEnumTank(0); 
+0221             <span class="keyword">if</span> obj.verbose
+0222                 fprintf(<span class="string">'Connected to tank server ''%s''\n'</span>,obj.server)
+0223             <span class="keyword">end</span>
+0224         <span class="keyword">end</span>
+0225         
+0226         <span class="comment">% properly close tank and delete ActiveX control and figure</span>
+0227         <a name="_sub16" href="#_subfunctions" class="code">function obj = closeTT(obj)</a>
+0228             obj = <a href="#_sub18" class="code" title="subfunction obj = checkTT(obj)">checkTT</a>(obj);
+0229             obj.TT.CloseTank;
+0230             obj.TT.ReleaseServer;
+0231             <a href="#_sub15" class="code" title="subfunction delete(obj)">delete</a>(obj.TT)
+0232             obj.TT = [];
+0233             <a href="#_sub14" class="code" title="subfunction close(obj)">close</a>(obj.TDTfig);
+0234             <span class="keyword">if</span> obj.verbose
+0235                 fprintf(<span class="string">'Tank closed and server released\n'</span>)
+0236             <span class="keyword">end</span>
+0237         <span class="keyword">end</span>
+0238         
+0239         <span class="comment">% check for TT</span>
+0240         <a name="_sub17" href="#_subfunctions" class="code">function obj = checkTT(obj)</a>
+0241            <span class="keyword">if</span> ~isa(obj.TT,<span class="string">'COM.TTank_X'</span>)
+0242                [obj.TT,obj.TDTfig] = <a href="#_sub16" class="code" title="subfunction [TT,TDTfig] = setupTT(obj)">setupTT</a>(obj);
+0243            <span class="keyword">end</span>
+0244         <span class="keyword">end</span>      
+0245            
+0246         <span class="comment">% select block</span>
+0247         <a name="_sub18" href="#_subfunctions" class="code">function obj = selectBlock(obj,block)</a>
+0248             <span class="keyword">if</span> nargin == 1 || isempty(block), <span class="keyword">return</span>; <span class="keyword">end</span>
+0249             obj = <a href="#_sub18" class="code" title="subfunction obj = checkTT(obj)">checkTT</a>(obj);
+0250             s = obj.TT.SelectBlock(block);
+0251             <span class="keyword">if</span> obj.verbose
+0252                 <span class="keyword">if</span> s
+0253                     fprintf(<span class="string">'Block ''%s'' selected\n'</span>,block)
+0254                 <span class="keyword">else</span>
+0255                     disp(obj.TT.GetError)
+0256                 <span class="keyword">end</span>
+0257             <span class="keyword">end</span>
+0258         <span class="keyword">end</span>
+0259                 
+0260     <span class="keyword">end</span>
+0261     
+0262 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

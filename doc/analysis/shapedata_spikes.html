@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of shapedata_spikes</title>
+  <meta name="keywords" content="shapedata_spikes">
+  <meta name="description" content="data = shapedata_spikes(spiketimes,params,dimparams)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">analysis</a> &gt; shapedata_spikes.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for analysis&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>shapedata_spikes
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>data = shapedata_spikes(spiketimes,params,dimparams)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function varargout = shapedata_spikes(spiketimes,params,dimparams,varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> data = shapedata_spikes(spiketimes,params,dimparams)
+ data = shapedata_spikes(...,'PropertyName',PropertyValue)
+ [data,vals] = shapedata_spikes(...) 
+
+ PropertyName ... PropertyValue
+ 'win'     ... window (eg, [-0.1 0.5]) in seconds
+ 'binsize' ... in seconds
+ 
+ DJS 2013
+
+ See also, <a href="shapedata_wave.html" class="code" title="function varargout = shapedata_wave(wave,tvec,params,dimparams,varargin)">shapedata_wave</a></pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function varargout = shapedata_spikes(spiketimes,params,dimparams,varargin)</a>
+0002 <span class="comment">% data = shapedata_spikes(spiketimes,params,dimparams)</span>
+0003 <span class="comment">% data = shapedata_spikes(...,'PropertyName',PropertyValue)</span>
+0004 <span class="comment">% [data,vals] = shapedata_spikes(...)</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% PropertyName ... PropertyValue</span>
+0007 <span class="comment">% 'win'     ... window (eg, [-0.1 0.5]) in seconds</span>
+0008 <span class="comment">% 'binsize' ... in seconds</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% DJS 2013</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% See also, shapedata_wave</span>
+0013 
+0014 win = [-0.1 0.5];
+0015 binsize = 0.001;
+0016 
+0017 <span class="keyword">for</span> i = 1:2:length(varargin)
+0018     <span class="keyword">switch</span> lower(varargin{i})
+0019         <span class="keyword">case</span> <span class="string">'win'</span>,     win = varargin{i+1};
+0020         <span class="keyword">case</span> <span class="string">'binsize'</span>, binsize = varargin{i+1};
+0021     <span class="keyword">end</span>
+0022 <span class="keyword">end</span>
+0023 
+0024 binvec = win(1):binsize:win(2);
+0025 
+0026 <span class="comment">% sort spikes by onsets</span>
+0027 ons = params.VALS.onset;
+0028 raster = cell(size(ons));
+0029 
+0030 <span class="comment">% psth:   bins/trials</span>
+0031 psth = zeros(length(binvec),length(ons));
+0032 
+0033 <span class="keyword">for</span> i = 1:length(ons)
+0034     ind = spiketimes-ons(i) &gt;= win(1) &amp; spiketimes-ons(i) &lt; win(2);
+0035     <span class="keyword">if</span> ~any(ind), <span class="keyword">continue</span>; <span class="keyword">end</span>
+0036     raster{i} = spiketimes(ind)-ons(i);
+0037     psth(:,i) = histc(raster{i},binvec);
+0038 <span class="keyword">end</span>
+0039 
+0040 
+0041 <span class="comment">% select parameter for dimensions</span>
+0042 <span class="keyword">for</span> i = 1:length(dimparams)
+0043     vals{i} = unique(params.VALS.(dimparams{i})); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0044 <span class="keyword">end</span>
+0045 
+0046 <span class="comment">% THERE'S PROBABLY A MORE CLEVER WAY OF DOING THIS...</span>
+0047 <span class="keyword">if</span> length(dimparams) == 1
+0048     <span class="comment">% data:    bins/param1</span>
+0049     data = zeros(length(binvec),length(vals{1}));
+0050     <span class="keyword">for</span> i = 1:length(vals{1})
+0051         ind = params.VALS.(dimparams{1}) == vals{1}(i);
+0052         data(:,i) = mean(psth(:,ind),2);
+0053     <span class="keyword">end</span>
+0054     
+0055     
+0056 <span class="keyword">elseif</span> length(dimparams) == 2
+0057     <span class="comment">% data:    bins/param1/param2</span>
+0058     data = zeros(length(binvec),length(vals{1}),length(vals{2}));
+0059     <span class="keyword">for</span> i = 1:length(vals{1})
+0060         <span class="keyword">for</span> j = 1:length(vals{2})
+0061             ind = params.VALS.(dimparams{1}) == vals{1}(i) <span class="keyword">...</span>
+0062                 &amp; params.VALS.(dimparams{2}) == vals{2}(j);
+0063             data(:,i,j) = mean(psth(:,ind),2);
+0064         <span class="keyword">end</span>
+0065     <span class="keyword">end</span>
+0066     
+0067     
+0068 <span class="keyword">elseif</span> length(dimparams) == 3
+0069     <span class="comment">% data:    bins/param1/param2/param3</span>
+0070     data = zeros(length(binvec),length(vals{1}),length(vals{2}),length(vals{3}));
+0071     <span class="keyword">for</span> i = 1:length(vals{1})
+0072         <span class="keyword">for</span> j = 1:length(vals{2})
+0073             <span class="keyword">for</span> k = 1:length(vals{3})
+0074                 ind = params.VALS.(dimparams{1}) == vals{1}(i) <span class="keyword">...</span>
+0075                     &amp; params.VALS.(dimparams{2}) == vals{2}(j) <span class="keyword">...</span>
+0076                     &amp; params.VALS.(dimparams{3}) == vals{3}(k);
+0077                 data(:,i,j,k) = mean(psth(:,ind),2);
+0078             <span class="keyword">end</span>
+0079         <span class="keyword">end</span>
+0080     <span class="keyword">end</span>
+0081 
+0082 <span class="keyword">end</span>
+0083 
+0084 
+0085 varargout{1} = data;
+0086 varargout{2} = [{binvec},vals];
+0087 
+0088 
+0089 
+0090 
+0091 
+0092</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

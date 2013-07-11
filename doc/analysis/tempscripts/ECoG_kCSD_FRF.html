@@ -1,0 +1,388 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ECoG_kCSD_FRF</title>
+  <meta name="keywords" content="ECoG_kCSD_FRF">
+  <meta name="description" content="% Procedure for retrieving LFP data from Tanks">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">analysis</a> &gt; <a href="index.html">tempscripts</a> &gt; ECoG_kCSD_FRF.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for analysis\tempscripts&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>ECoG_kCSD_FRF
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>% Procedure for retrieving LFP data from Tanks</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Procedure for retrieving LFP data from Tanks</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Procedure for retrieving LFP data from Tanks</span>
+0002 
+0003 cfg = [];
+0004 cfg.tank  = char(TDT_TankSelect);
+0005 [cfg.TT,~,TDTfig] = TDT_SetupTT;
+0006 
+0007 <span class="comment">% cfg.block = cfg.TT.GetHotBlock;</span>
+0008 cfg.block = 5;
+0009 cfg.usemym   = false;
+0010 cfg.downfs   = 600;
+0011 cfg.datatype = <span class="string">'BlockInfo'</span>;
+0012 binfo = getTankData(cfg);
+0013 
+0014 cfg.datatype = <span class="string">'Waves'</span>;
+0015 data = getTankData(cfg);
+0016 
+0017 delete(cfg.TT)
+0018 close(TDTfig)
+0019 
+0020 Fs = data.fsample;
+0021 
+0022 <span class="comment">%% Filter different frequency bands</span>
+0023 
+0024 <span class="comment">% % theta band [4 8]</span>
+0025 <span class="comment">% Fstop1 = 2;          % First Stopband Frequency</span>
+0026 <span class="comment">% Fpass1 = 4;          % First Passband Frequency</span>
+0027 <span class="comment">% Fpass2 = 8;          % Second Passband Frequency</span>
+0028 <span class="comment">% Fstop2 = 16;         % Second Stopband Frequency</span>
+0029 <span class="comment">% Astop1 = 60;          % First Stopband Attenuation (dB)</span>
+0030 <span class="comment">% Apass  = 1;           % Passband Ripple (dB)</span>
+0031 <span class="comment">% Astop2 = 80;          % Second Stopband Attenuation (dB)</span>
+0032 <span class="comment">% match  = 'stopband';  % Band to match exactly</span>
+0033 
+0034 <span class="comment">% Gamma band [20 80]</span>
+0035 Fstop1 = 15;          <span class="comment">% First Stopband Frequency</span>
+0036 Fpass1 = 20;          <span class="comment">% First Passband Frequency</span>
+0037 Fpass2 = 80;          <span class="comment">% Second Passband Frequency</span>
+0038 Fstop2 = 100;         <span class="comment">% Second Stopband Frequency</span>
+0039 Astop1 = 60;          <span class="comment">% First Stopband Attenuation (dB)</span>
+0040 Apass  = 1;           <span class="comment">% Passband Ripple (dB)</span>
+0041 Astop2 = 80;          <span class="comment">% Second Stopband Attenuation (dB)</span>
+0042 match  = <span class="string">'stopband'</span>;  <span class="comment">% Band to match exactly</span>
+0043 
+0044 <span class="comment">% High Gamma band [100 150]</span>
+0045 <span class="comment">% Fstop1 = 50;          % First Stopband Frequency</span>
+0046 <span class="comment">% Fpass1 = 100;          % First Passband Frequency</span>
+0047 <span class="comment">% Fpass2 = 150;          % Second Passband Frequency</span>
+0048 <span class="comment">% Fstop2 = 200;         % Second Stopband Frequency</span>
+0049 <span class="comment">% Astop1 = 60;          % First Stopband Attenuation (dB)</span>
+0050 <span class="comment">% Apass  = 1;           % Passband Ripple (dB)</span>
+0051 <span class="comment">% Astop2 = 80;          % Second Stopband Attenuation (dB)</span>
+0052 <span class="comment">% match  = 'stopband';  % Band to match exactly</span>
+0053 
+0054 <span class="comment">% Construct an FDESIGN object and call its BUTTER method.</span>
+0055 h  = fdesign.bandpass(Fstop1, Fpass1, Fpass2, Fstop2, Astop1, Apass, <span class="keyword">...</span>
+0056                       Astop2, Fs);
+0057 Hd = design(h, <span class="string">'butter'</span>, <span class="string">'MatchExactly'</span>, match);
+0058 
+0059 fprintf(<span class="string">'Filtering ...'</span>)
+0060 data.waves = filter(Hd,data.waves);
+0061 fprintf(<span class="string">' done\n'</span>)
+0062 
+0063 
+0064 <span class="comment">%% Reorganize by freq/level</span>
+0065 n = size(data.waves,1);
+0066 win = [0 0.5];
+0067 
+0068 i = strcmpi(<span class="string">'freq'</span>,binfo.paramspec); freqs = binfo.epochs(:,i);
+0069 i = strcmpi(<span class="string">'levl'</span>,binfo.paramspec); levls = binfo.epochs(:,i);
+0070 ufreq = unique(freqs);
+0071 ulevl = unique(levls);
+0072 stmon = binfo.epochs(:,end);
+0073 stmonsamps = round(stmon * Fs);
+0074 
+0075 svec = round(win(1)*Fs):round(win(2)*Fs);
+0076 
+0077 <span class="comment">% Trial-based LFP dims: samples x channels x trials</span>
+0078 tLFP = zeros(length(svec),size(data.waves,2),length(stmonsamps));
+0079 <span class="keyword">for</span> i = 1:length(stmonsamps)
+0080     sind = stmonsamps(i) + svec;
+0081     tLFP(:,:,i) = data.waves(sind,:);
+0082 <span class="keyword">end</span>
+0083 
+0084 tvec = svec/Fs;
+0085 
+0086 <span class="comment">%% LFP map</span>
+0087 mLFP = zeros(size(tLFP,2),length(ulevl),length(ufreq));
+0088 <span class="keyword">for</span> F = 1:length(ufreq)
+0089     <span class="keyword">for</span> L = 1:length(ulevl)
+0090         ind = ufreq(F) == freqs &amp; ulevl(L) == levls;
+0091         mLFP(:,L,F) = mean(squeeze(std(tLFP(:,:,ind))),2);
+0092     <span class="keyword">end</span>
+0093 <span class="keyword">end</span>
+0094 
+0095 
+0096 <span class="comment">%% Optionally map out electrode sites and save in electrode strucuture</span>
+0097 ctxpath = <span class="string">'D:\Work\PROJECTS\Electrophysiology\Mel''s DZ'</span>;
+0098 ctximfn = <span class="string">'ECoG_Block5_cropped.png'</span>;
+0099 
+0100 ctxfn = fullfile(ctxpath,ctximfn);
+0101 ctx = imread(ctxfn);
+0102 
+0103 figure(<span class="string">'WindowStyle'</span>,<span class="string">'docked'</span>);
+0104 imshow(ctx)
+0105 
+0106 nch = 32;
+0107 el_pos = zeros(nch,2);
+0108 hold on
+0109 <span class="keyword">for</span> i = 1:nch
+0110     fprintf(<span class="string">'Click on electrode channel %d ...\n'</span>,i)
+0111     [el_pos(i,1),el_pos(i,2),button] = ginput(1);
+0112     <span class="keyword">if</span> isequal(button,3), <span class="keyword">break</span>; <span class="keyword">end</span>
+0113     plot(el_pos(i,1),el_pos(i,2),<span class="string">'xb'</span>);
+0114 <span class="keyword">end</span>
+0115 hold off
+0116 
+0117 
+0118 <span class="comment">%% Artifical electrode spacing</span>
+0119 elmod = <span class="string">'E32-1000-30-200'</span>;
+0120 elpath = <span class="string">'C:\MATLAB\work\ephys\analysis\electrode_maps'</span>;
+0121 elfn = fullfile(elpath,[elmod,<span class="string">'.mat'</span>]);
+0122 load(elfn); <span class="comment">% load 'electrode' structure</span>
+0123 
+0124 
+0125 
+0126 
+0127 <span class="comment">%% Use el_map to plot FRFs</span>
+0128 <span class="comment">% elmod = 'E32-1000-30-200_Skyy5';</span>
+0129 <span class="comment">% elpath = 'C:\MATLAB\work\ephys\analysis\electrode_maps';</span>
+0130 <span class="comment">% elfn = fullfile(elpath,[elmod,'.mat']);</span>
+0131 <span class="comment">% load(elfn); % load 'electrode' structure</span>
+0132 
+0133 <span class="comment">% bad channels</span>
+0134 <span class="comment">% badchannels = [15 16 29 30 31 32];</span>
+0135 badchannels = [16 30];
+0136 
+0137 badchanind = ismember([electrode.channel],badchannels);
+0138 
+0139 figure(<span class="string">'windowstyle'</span>,<span class="string">'docked'</span>);
+0140 set(gcf,<span class="string">'units'</span>,<span class="string">'normalized'</span>);
+0141 
+0142 
+0143 normx = [electrode.xcoord] / max(abs([electrode.xcoord]));
+0144 normy = 1-([electrode.ycoord] / max(abs([electrode.ycoord])));
+0145 xmin = min(normx);
+0146 ymin = min(normy);
+0147 lowleftidx = find(normx==xmin &amp; normy==ymin);
+0148 normx = normx - xmin * 0.7;
+0149 normy = normy - ymin * 0.7;
+0150 
+0151 
+0152 
+0153 <span class="comment">% would be nice to somehow copmute these values from x,y coordinates</span>
+0154 opW = 0.08; 
+0155 opH = 0.15;
+0156 
+0157 
+0158 n = length(electrode);
+0159 
+0160 ax = zeros(size(electrode));
+0161 <span class="keyword">for</span> i = 1:n
+0162     opL = normx(i);
+0163     opB = normy(i);
+0164     
+0165     ax(i) = axes(<span class="string">'Position'</span>,[opL opB opW opH],<span class="string">'xtick'</span>,[],<span class="string">'ytick'</span>,[]);
+0166     
+0167     c = electrode(i).channel;
+0168     
+0169     <span class="keyword">if</span> ~any(c == badchannels) 
+0170         surf(ufreq,ulevl,sgsmooth2d(squeeze(mLFP(c,:,:))),<span class="string">'parent'</span>,ax(i));
+0171         shading interp
+0172         view(2)
+0173         axis tight
+0174     <span class="keyword">end</span>
+0175     box on
+0176 <span class="comment">%     title(c)</span>
+0177 <span class="keyword">end</span>
+0178 
+0179 lowleftax = ax(lowleftidx);
+0180 
+0181 ax = ax(~ismember([electrode.channel],badchannels));
+0182 
+0183 set(ax,<span class="string">'xscale'</span>,<span class="string">'log'</span>);
+0184 set(ax,<span class="string">'climmode'</span>,<span class="string">'auto'</span>);
+0185 <span class="comment">% c = cell2mat(get(ax,'clim'));</span>
+0186 <span class="comment">% set(ax,'clim',[min(c(:)) max(c(:))]);</span>
+0187 set(ax,<span class="string">'xtick'</span>,[],<span class="string">'ytick'</span>,[])
+0188 
+0189 set(lowleftax,<span class="string">'xtickMode'</span>,<span class="string">'auto'</span>,<span class="string">'ytickMode'</span>,<span class="string">'auto'</span>);
+0190 
+0191 
+0192 <span class="comment">%% 2D kCSD parallel</span>
+0193 <span class="comment">% Time slices</span>
+0194 <span class="comment">% tslice = find(tvec&gt;0.05,1); % for computing 2D kCSD</span>
+0195 tslice = 1:10:length(tvec);
+0196 
+0197 el_pos = [[electrode.xcoord]',[electrode.ycoord]'];
+0198 ep = el_pos(~badchanind,:);
+0199 
+0200 <span class="keyword">if</span> matlabpool(<span class="string">'size'</span>) == 0, matlabpool 8; <span class="keyword">end</span> <span class="comment">% for parrallel processing</span>
+0201 
+0202 tic;
+0203 fprintf(<span class="string">'Beginning kCSD computing at %s\n'</span>,datestr(now,<span class="string">'HH:MM:SS PM'</span>))
+0204 
+0205 TkCSD = cell(size(tslice));
+0206 <span class="keyword">for</span> t = 1:length(tslice)
+0207     fprintf(<span class="string">'\tTime Slice %d of %d\t%0.3f sec\n'</span>,t,length(tslice),tvec(tslice(t)))
+0208     kLFP = squeeze(tLFP(tslice(t),~badchanind,:));
+0209     pots = zeros(size(kLFP,1),length(ufreq)*length(ulevl));
+0210     kCSD = zeros(101,101,size(pots,2));
+0211     
+0212     <span class="comment">% tic</span>
+0213     i = 1;
+0214     <span class="keyword">for</span> F = 1:length(ufreq)
+0215         ind = ufreq(F) == freqs;
+0216         <span class="keyword">for</span> L = 1:length(ulevl)
+0217             tind = ind &amp; ulevl(L) == levls;
+0218             pots(:,i) = mean(kLFP(:,tind),2);
+0219             i = i + 1;
+0220         <span class="keyword">end</span>
+0221     <span class="keyword">end</span>
+0222     
+0223     <span class="comment">% Comptue kCSD for each trial in parallel</span>
+0224     parfor i = 1:size(pots,2)
+0225         k = kcsd2d(ep, pots(:,i),<span class="string">'manage_data'</span>,0);
+0226         kCSD(:,:,i) = k.CSD_est;
+0227     <span class="keyword">end</span>
+0228     
+0229     kFRF = zeros(size(kCSD,1),size(kCSD,2),length(ufreq),length(ulevl));
+0230     i = 1;
+0231     <span class="keyword">for</span> F = 1:length(ufreq)
+0232         <span class="keyword">for</span> L = 1:length(ulevl)
+0233             kFRF(:,:,F,L) = kCSD(:,:,i);
+0234             i = i + 1;
+0235         <span class="keyword">end</span>
+0236     <span class="keyword">end</span>
+0237     <span class="comment">% kFRF = reshape(kCSD,size(kCSD,1),size(kCSD,2),length(ufreq),length(ulevl));</span>
+0238     
+0239     TkCSD{t} = kFRF;
+0240 <span class="keyword">end</span>
+0241 clear kFRF
+0242 fprintf(<span class="string">'Completed computation at %s\n\ttotal compute time = %0.2f hours\n'</span>,<span class="keyword">...</span>
+0243     datestr(now,<span class="string">'HH:MM:SS PM'</span>),toc/3600)
+0244 
+0245 <span class="comment">%% contour plots</span>
+0246 ctxpath = <span class="string">'D:\Work\PROJECTS\Electrophysiology\Mel''s DZ'</span>;
+0247 ctximfn = <span class="string">'ECoG_Block5_cropped.png'</span>;
+0248 ctxfn = fullfile(ctxpath,ctximfn);
+0249 ctx = imread(ctxfn);
+0250 
+0251 fh = min(ufreq)*2.^(0:log2(max(ufreq)/min(ufreq))-1);
+0252 fmap = jet(length(fh));
+0253 
+0254 clf
+0255 
+0256 lidx = 9;
+0257 
+0258 nval = abs(cell2mat(TkCSD));
+0259 nval = nval(:,:,:,lidx);
+0260 nval = max(abs(nval(:)));
+0261 
+0262 x = [electrode.xcoord];
+0263 y = [electrode.ycoord];
+0264 
+0265 minx = min(x)-0.5;  maxx = max(x)+0.5;
+0266 miny = min(y)-0.5;  maxy = max(y)+0.5;
+0267 
+0268 s = 1;
+0269 clear mval midx
+0270 <span class="keyword">for</span> i = 1:length(TkCSD)
+0271     <span class="keyword">if</span> i &gt; 30, <span class="keyword">break</span>; <span class="keyword">end</span>
+0272     subplot(5,6,s)
+0273 <span class="comment">%     imshow(ctx(:,:,1));</span>
+0274 <span class="comment">%     [imy,imx,~] = size(ctx);</span>
+0275 <span class="comment">%     imy = linspace(imy,1,size(TkCSD{i},2)); % because image is displayed upside down</span>
+0276 <span class="comment">%     imx = linspace(1,imx,size(TkCSD{i},2));</span>
+0277     <span class="comment">% plot electrode sites</span>
+0278     plot(x,y,<span class="string">'o'</span>,<span class="string">'color'</span>,[0.4 0.4 0.4],<span class="string">'markerfacecolor'</span>,[0.6 0.6 0.6],<span class="string">'markersize'</span>,3)
+0279     
+0280     
+0281     hold on
+0282     <span class="keyword">for</span> F = 1:size(TkCSD{i},3)
+0283         k = squeeze(TkCSD{i}(:,:,F,lidx) / nval)';
+0284         cc = find(fh&lt;=ufreq(F),1,<span class="string">'last'</span>);
+0285         imx = linspace(minx,maxx,size(k,2));
+0286         imy = linspace(miny,maxy,size(k,1));
+0287         [~,h] = contourf(imx,imy,k,[1 0.6]);
+0288         ch = get(h,<span class="string">'children'</span>);
+0289         set(ch,<span class="string">'facecolor'</span>,fmap(cc,:),<span class="string">'facealpha'</span>,0.5, <span class="keyword">...</span>
+0290             <span class="string">'linestyle'</span>,<span class="string">'-'</span>,<span class="string">'edgecolor'</span>,fmap(cc,:));
+0291     <span class="keyword">end</span>
+0292     box on
+0293     title(sprintf(<span class="string">'%0.0f'</span>,1000*tvec(tslice(i))));
+0294     hold off
+0295     drawnow
+0296     
+0297     s = s + 1;
+0298 <span class="keyword">end</span>
+0299 ax = get(gcf,<span class="string">'children'</span>);
+0300 set(ax,<span class="string">'xtick'</span>,[],<span class="string">'ytick'</span>,[],<span class="string">'ylim'</span>,[miny maxy],<span class="string">'xlim'</span>,[minx maxx]);
+0301 
+0302 <span class="comment">%% Frequency maps</span>
+0303 ctxpath = <span class="string">'D:\Work\PROJECTS\Electrophysiology\Mel''s DZ'</span>;
+0304 ctximfn = <span class="string">'ECoG_Block5_cropped.png'</span>;
+0305 ctxfn = fullfile(ctxpath,ctximfn);
+0306 ctx = imread(ctxfn);
+0307 
+0308 fh = min(ufreq)*2.^(0:log2(max(ufreq)/min(ufreq))-1);
+0309 fmap = jet(length(fh));
+0310 
+0311 clf
+0312 
+0313 lidx = 9;
+0314 
+0315 x = [electrode.xcoord];
+0316 y = [electrode.ycoord];
+0317 
+0318 minx = min(x)-0.5;  maxx = max(x)+0.5;
+0319 miny = min(y)-0.5;  maxy = max(y)+0.5;
+0320 
+0321 s = 1;
+0322 clear mval midx
+0323 <span class="keyword">for</span> i = 1:length(TkCSD)
+0324     
+0325     <span class="keyword">for</span> F = 1:size(TkCSD{i},3)
+0326         k = squeeze(TkCSD{i}(:,:,F,lidx) / nval)';
+0327     <span class="keyword">end</span>
+0328 <span class="keyword">end</span>
+0329 
+0330 
+0331 
+0332 
+0333 
+0334 
+0335 
+0336 
+0337 
+0338 
+0339 
+0340 
+0341</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

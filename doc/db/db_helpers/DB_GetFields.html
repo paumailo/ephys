@@ -1,0 +1,314 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of DB_GetFields</title>
+  <meta name="keywords" content="DB_GetFields">
+  <meta name="description" content="varargout = DB_GetFields(table,field,val,cond,retfields,addargs)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">db</a> &gt; <a href="index.html">db_helpers</a> &gt; DB_GetFields.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for db\db_helpers&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>DB_GetFields
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>varargout = DB_GetFields(table,field,val,cond,retfields,addargs)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function varargout = DB_GetFields(table,field,val,cond,retfields,addargs,varargin) %#ok<STOUT> </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> varargout = DB_GetFields(table,field,val,cond,retfields,addargs)
+   Returns structures with all fields from TABLE with the value VAL 
+   in the field specified from FIELD.  VAL must be an Nx1 cell of
+   scalars,vectors, 1xN char string or Nx1 cell strings.
+   NOTE: FIELD and VAL can be cell arrays specifying more than one 
+   condition, however they must be the same size.
+ 
+   TABLE can also be specified as a cell array of strings if fields from 
+   more than one table is to be retrieved.
+   This will likely only be the case if ADDARGS is used to specify a join.
+   In the case of multiple tables, the output will contain a structure for
+   each table retrieved. 
+ 
+   If FIELD and VAL are not specified, or are left empty ([]), then all
+   fields and rows from TABLE will be returned in FIELDS.
+ 
+   COND is used only when FIELD and VAL have a length greater than 1, i.e.
+   there is more than one condition to query on.  ex: {'AND','OR'} for
+   three conditions specified in FIELD and VAL. The default is to use
+   'AND' between each condition.
+ 
+   Additional MySQL arguments, more specifically additional SELECT
+   statement arguments, can be made in a single string of type char.  This
+   is useful for futher filtering or to specify ordering of retrieved
+   data.  Ex:  'AND protocol = 2 ' | Ex: 'ORDER BY name'
+ 
+   RETFIELD can be optionally specified to retrieve only specific fields
+   from TABLE. RETFIELD should be a cell array of char strings.
+       An example of valid RETFIELDS input would be:
+       {'name','birthday'} 
+       if 'name' and 'birthday' are field names of TABLE.
+ 
+       Basic wildcard use is also supported:
+       {'q10_*','q40_*'}
+       This would return all fields starting with q10_ and q40_ ...
+       such as q10_1,q10_2,q40_1,q40_2
+ 
+       NOTE: if using RETFIELD with ambiguous field names following a join
+       (using ADDARGS), RETFIELD must contain the full name of the table
+       being returned.  ex: 'tanks.id,blocks.id,channels.*'
+ 
+   Output will be a structure with TABLE field names containing retrieved
+   data.  If more that one TABLE is specified, i.e. TABLE is a cell array
+   of strings, then a structure will be returned for each table and in the
+   the same order of TABLE.
+ 
+   Although DB_GetFields is useful in retrieving table data, more complex
+   joins and statements are likely best made explicitly.
+     That being said.. DB_GetFields can be used in the following way to
+     perform JOINs and return data from multiple tables in the following
+     way:
+       spontp = DB_GetFields({'blocks','protocols'},{'protocol'},{2},[],[], ...
+     'INNER JOIN protocols ON blocks.id = protocols.block_id');
+     &gt; This example returns all fields from both the blocks and protocols
+     tables.  The right side of a JOIN statement must not be the first
+     table in the first input field ('blocks' in this case).
+     &gt; NOTE: identical field names are not handled well and will be
+     returned from only one of the tables.
+ 
+   NOTE: The current thread of MATLAB must already be connected to the server
+   and a database must be in use.
+ 
+   NOTE: Avoid using table or variable aliases when calling this function
+
+ DJS (c) 2009</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function varargout = DB_GetFields(table,field,val,cond,retfields,addargs,varargin) </a><span class="comment">%#ok&lt;STOUT&gt;</span>
+0002 <span class="comment">% varargout = DB_GetFields(table,field,val,cond,retfields,addargs)</span>
+0003 <span class="comment">%   Returns structures with all fields from TABLE with the value VAL</span>
+0004 <span class="comment">%   in the field specified from FIELD.  VAL must be an Nx1 cell of</span>
+0005 <span class="comment">%   scalars,vectors, 1xN char string or Nx1 cell strings.</span>
+0006 <span class="comment">%   NOTE: FIELD and VAL can be cell arrays specifying more than one</span>
+0007 <span class="comment">%   condition, however they must be the same size.</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">%   TABLE can also be specified as a cell array of strings if fields from</span>
+0010 <span class="comment">%   more than one table is to be retrieved.</span>
+0011 <span class="comment">%   This will likely only be the case if ADDARGS is used to specify a join.</span>
+0012 <span class="comment">%   In the case of multiple tables, the output will contain a structure for</span>
+0013 <span class="comment">%   each table retrieved.</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">%   If FIELD and VAL are not specified, or are left empty ([]), then all</span>
+0016 <span class="comment">%   fields and rows from TABLE will be returned in FIELDS.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">%   COND is used only when FIELD and VAL have a length greater than 1, i.e.</span>
+0019 <span class="comment">%   there is more than one condition to query on.  ex: {'AND','OR'} for</span>
+0020 <span class="comment">%   three conditions specified in FIELD and VAL. The default is to use</span>
+0021 <span class="comment">%   'AND' between each condition.</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">%   Additional MySQL arguments, more specifically additional SELECT</span>
+0024 <span class="comment">%   statement arguments, can be made in a single string of type char.  This</span>
+0025 <span class="comment">%   is useful for futher filtering or to specify ordering of retrieved</span>
+0026 <span class="comment">%   data.  Ex:  'AND protocol = 2 ' | Ex: 'ORDER BY name'</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">%   RETFIELD can be optionally specified to retrieve only specific fields</span>
+0029 <span class="comment">%   from TABLE. RETFIELD should be a cell array of char strings.</span>
+0030 <span class="comment">%       An example of valid RETFIELDS input would be:</span>
+0031 <span class="comment">%       {'name','birthday'}</span>
+0032 <span class="comment">%       if 'name' and 'birthday' are field names of TABLE.</span>
+0033 <span class="comment">%</span>
+0034 <span class="comment">%       Basic wildcard use is also supported:</span>
+0035 <span class="comment">%       {'q10_*','q40_*'}</span>
+0036 <span class="comment">%       This would return all fields starting with q10_ and q40_ ...</span>
+0037 <span class="comment">%       such as q10_1,q10_2,q40_1,q40_2</span>
+0038 <span class="comment">%</span>
+0039 <span class="comment">%       NOTE: if using RETFIELD with ambiguous field names following a join</span>
+0040 <span class="comment">%       (using ADDARGS), RETFIELD must contain the full name of the table</span>
+0041 <span class="comment">%       being returned.  ex: 'tanks.id,blocks.id,channels.*'</span>
+0042 <span class="comment">%</span>
+0043 <span class="comment">%   Output will be a structure with TABLE field names containing retrieved</span>
+0044 <span class="comment">%   data.  If more that one TABLE is specified, i.e. TABLE is a cell array</span>
+0045 <span class="comment">%   of strings, then a structure will be returned for each table and in the</span>
+0046 <span class="comment">%   the same order of TABLE.</span>
+0047 <span class="comment">%</span>
+0048 <span class="comment">%   Although DB_GetFields is useful in retrieving table data, more complex</span>
+0049 <span class="comment">%   joins and statements are likely best made explicitly.</span>
+0050 <span class="comment">%     That being said.. DB_GetFields can be used in the following way to</span>
+0051 <span class="comment">%     perform JOINs and return data from multiple tables in the following</span>
+0052 <span class="comment">%     way:</span>
+0053 <span class="comment">%       spontp = DB_GetFields({'blocks','protocols'},{'protocol'},{2},[],[], ...</span>
+0054 <span class="comment">%     'INNER JOIN protocols ON blocks.id = protocols.block_id');</span>
+0055 <span class="comment">%     &gt; This example returns all fields from both the blocks and protocols</span>
+0056 <span class="comment">%     tables.  The right side of a JOIN statement must not be the first</span>
+0057 <span class="comment">%     table in the first input field ('blocks' in this case).</span>
+0058 <span class="comment">%     &gt; NOTE: identical field names are not handled well and will be</span>
+0059 <span class="comment">%     returned from only one of the tables.</span>
+0060 <span class="comment">%</span>
+0061 <span class="comment">%   NOTE: The current thread of MATLAB must already be connected to the server</span>
+0062 <span class="comment">%   and a database must be in use.</span>
+0063 <span class="comment">%</span>
+0064 <span class="comment">%   NOTE: Avoid using table or variable aliases when calling this function</span>
+0065 <span class="comment">%</span>
+0066 <span class="comment">% DJS (c) 2009</span>
+0067 
+0068 <span class="keyword">if</span> exist(<span class="string">'table'</span>,<span class="string">'var'</span>) &amp;&amp; ~isempty(table)  &amp;&amp; ischar(table)
+0069     table = cellstr(table);
+0070 <span class="keyword">end</span>
+0071 
+0072 <span class="keyword">if</span> exist(<span class="string">'table'</span>,<span class="string">'var'</span>) &amp;&amp; ~isempty(table) &amp;&amp; nargout ~= length(table)
+0073 <span class="comment">%     error('Number of outputs must be the same as the number of tables');</span>
+0074 <span class="keyword">elseif</span> ~exist(<span class="string">'table'</span>,<span class="string">'var'</span>) || isempty(table)
+0075     table = {<span class="string">'retstruct'</span>};
+0076 <span class="keyword">end</span>
+0077 
+0078 <span class="comment">% find all fields from table(s) (TABLE)</span>
+0079 table = cellstr(table);
+0080 <span class="keyword">for</span> i = 1:length(table)
+0081     f{i} = tbattr(table{i});
+0082 <span class="keyword">end</span>
+0083 
+0084 <span class="comment">% return fields (RETFIELDS)</span>
+0085 <span class="keyword">if</span> nargin &gt;= 5 &amp;&amp; ~isempty(retfields)
+0086     retfields = cellstr(retfields);
+0087     fieldstr = <span class="string">' '</span>;
+0088     <span class="keyword">for</span> i = 1:length(retfields)
+0089         <span class="keyword">if</span> findstr(<span class="string">'*'</span>,retfields{i}) <span class="comment">% look for wildcard character</span>
+0090             ind = regexp(f{1},retfields{i});
+0091             <span class="keyword">for</span> j = 1:length(ind)
+0092                 <span class="keyword">if</span> isempty(ind{j}), ind{j} = 0; <span class="keyword">end</span>
+0093             <span class="keyword">end</span>
+0094             tmpfield = {f{1}{logical(cell2mat(ind))}};
+0095         <span class="keyword">else</span>
+0096             tmpfield = retfields(i);
+0097         <span class="keyword">end</span>
+0098         
+0099         <span class="keyword">for</span> j = 1:length(tmpfield)
+0100             fieldstr = [fieldstr,table{1},<span class="string">'.'</span>,tmpfield{j},<span class="string">','</span>]; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0101         <span class="keyword">end</span>
+0102     <span class="keyword">end</span>
+0103     fieldstr(end) = [];
+0104 
+0105 <span class="keyword">else</span>
+0106     <span class="comment">% generate output fields</span>
+0107     fi = <span class="string">''</span>;
+0108     <span class="keyword">for</span> i = 1:length(f)
+0109         fi = char(fi,[repmat([table{i},<span class="string">'.'</span>],size(f{i},1),1),char(f{i})]);
+0110     <span class="keyword">end</span>
+0111     fi = cellstr(fi);
+0112     fi(1) = [];
+0113 
+0114     fieldstr = <span class="string">' '</span>;
+0115     <span class="keyword">for</span> i = 1:length(fi)
+0116         fieldstr = [fieldstr,fi{i},<span class="string">','</span>]; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0117     <span class="keyword">end</span>
+0118     fieldstr(end) = [];
+0119 <span class="keyword">end</span>
+0120 
+0121 <span class="comment">% val string</span>
+0122 valstr = <span class="string">' '</span>;
+0123 <span class="keyword">if</span> nargin &gt; 1 &amp;&amp; ~isempty(field)
+0124     <span class="keyword">if</span> ~iscell(field), field = {field}; <span class="keyword">end</span>
+0125     <span class="keyword">if</span> ~iscell(val),   val   = {val};   <span class="keyword">end</span>
+0126     
+0127     <span class="keyword">if</span> length(field) ~= length(val)
+0128         error(<span class="string">'FIELD and VAL must have the same length'</span>);
+0129     <span class="keyword">end</span>
+0130 
+0131     <span class="keyword">if</span> ~exist(<span class="string">'cond'</span>,<span class="string">'var'</span>) || isempty(cond)
+0132         cond = cellstr(repmat(<span class="string">'AND'</span>,length(field),1));
+0133     <span class="keyword">end</span>
+0134 
+0135     <span class="keyword">for</span> i = 1:length(val)
+0136         str = <span class="string">' '</span>;
+0137         <span class="keyword">if</span> isnumeric(val{i})
+0138             val{i} = reshape(val{i},1,numel(val{i}));
+0139             str = [str,num2str(val{i},<span class="string">'%g,'</span>)]; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0140             
+0141         <span class="keyword">elseif</span> iscellstr(val{i})
+0142             <span class="keyword">for</span> j = 1:length(val{i})
+0143                 str = [str,<span class="string">'&quot;'</span>,val{i}{j},<span class="string">'&quot;,'</span>]; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0144             <span class="keyword">end</span>
+0145         <span class="keyword">elseif</span> ischar(val{i})
+0146             str = [str,<span class="string">'&quot;'</span>,val{i},<span class="string">'&quot;,'</span>]; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0147         <span class="keyword">else</span>
+0148             error([<span class="string">'VAL index %g is an invalid type.\n'</span>, <span class="keyword">...</span>
+0149                 <span class="string">'Only scalars, vectors, or cellstr may be used.'</span>],i);
+0150         <span class="keyword">end</span>
+0151         
+0152         str(end) = []; <span class="comment">% erase trailing comma</span>
+0153         
+0154         valstr = [valstr,sprintf(<span class="string">' %s IN (%s)'</span>,field{i},str)]; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0155 
+0156         <span class="keyword">if</span> i &lt; length(val)
+0157             valstr = [valstr,<span class="string">' '</span>,cond{i},<span class="string">' '</span>]; <span class="comment">%#ok&lt;NASGU,AGROW&gt;</span>
+0158         <span class="keyword">end</span>
+0159     <span class="keyword">end</span>
+0160     valstr = [<span class="string">' WHERE '</span>,valstr];
+0161 <span class="keyword">end</span>
+0162 
+0163 <span class="comment">% additional arguments</span>
+0164 <span class="keyword">if</span> ~exist(<span class="string">'addargs'</span>,<span class="string">'var'</span>), addargs = <span class="string">' '</span>; <span class="keyword">end</span>
+0165 
+0166 
+0167 <span class="keyword">if</span> ~isempty(deblank(addargs))
+0168 <span class="comment">% handle ORDER BY or GROUP BY statements</span>
+0169     ind = findstr(addargs,<span class="string">'ORDER'</span>);
+0170     <span class="keyword">if</span> isempty(ind)
+0171         ind = findstr(addargs,<span class="string">'GROUP'</span>);
+0172     <span class="keyword">end</span>
+0173     
+0174     <span class="keyword">if</span> ~isempty(ind)
+0175         valstr = [valstr,<span class="string">' '</span>,addargs(ind:end)];
+0176         addargs(ind:end) = [];
+0177     <span class="keyword">end</span>
+0178     
+0179 <span class="comment">% handle conditioinal statements (AND, OR, etc.)</span>
+0180     ind = findstr(addargs,<span class="string">'AND'</span>);
+0181     <span class="keyword">if</span> isempty(ind)
+0182         ind = findstr(addargs,<span class="string">'OR'</span>);
+0183     <span class="keyword">end</span>
+0184     
+0185     <span class="keyword">if</span> ~isempty(ind)
+0186         valstr = [valstr,<span class="string">' '</span>,addargs(ind:end)];
+0187         addargs(ind:end) = [];
+0188     <span class="keyword">end</span>
+0189 <span class="keyword">end</span>
+0190 
+0191 <span class="keyword">if</span> isempty(fieldstr)
+0192     error(<span class="string">'No fields to return'</span>)
+0193 <span class="keyword">end</span>
+0194 
+0195 
+0196 <span class="comment">% evaluate MySQL statement</span>
+0197 eval(sprintf(<span class="string">'[%s] = mym(''SELECT %s FROM %s %s %s'');'</span>, <span class="keyword">...</span>
+0198     fieldstr,fieldstr,table{1},addargs,valstr));
+0199 
+0200 <span class="comment">% set output</span>
+0201 <span class="keyword">for</span> i = 1:length(table)
+0202     eval(sprintf(<span class="string">'varargout{i} = %s;'</span>,table{i}));
+0203 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

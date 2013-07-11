@@ -1,0 +1,285 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of CompileProtocol</title>
+  <meta name="keywords" content="CompileProtocol">
+  <meta name="description" content="[P,fail] = CompileProtocol(P)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">GUIs</a> &gt; <a href="index.html">ProtocolDesign</a> &gt; CompileProtocol.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for GUIs\ProtocolDesign&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>CompileProtocol
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>[P,fail] = CompileProtocol(P)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function [P,fail] = CompileProtocol(P) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> [P,fail] = CompileProtocol(P)
+
+ Takes protocol structure created by ProtocolSetup GUI and compiles the
+ date for use by ControlPanel2.
+ 
+ Adds fields to the protocol structure:
+       protocol.COMPILED.writeparams
+       protocol.COMPILED.readparams
+       protocol.COMPILED.trials
+ 
+ Alternatively, compiled protocol can be fully customized manually by
+ manually specifying values for writeparams, readparams, and trials
+ fields in protocol.COMPILED structure.
+
+ DJS 2013</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="AddTrial.html" class="code" title="function [schedule,fail] = AddTrial(schedule,varargin)">AddTrial</a>	[schedule,fail] = AddTrial(schedule,varargin)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="CompiledProtocolTrials.html" class="code" title="function varargout = CompiledProtocolTrials(protocol,varargin)">CompiledProtocolTrials</a>	cp = CompiledProtocolTrials(protocol,varargin)</li><li><a href="ProtocolDesign.html" class="code" title="function varargout = ProtocolDesign(varargin)">ProtocolDesign</a>	h = ProtocolDesign</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [comp,fail] = ParamPrep(P)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [P,fail] = CompileProtocol(P)</a>
+0002 <span class="comment">% [P,fail] = CompileProtocol(P)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Takes protocol structure created by ProtocolSetup GUI and compiles the</span>
+0005 <span class="comment">% date for use by ControlPanel2.</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Adds fields to the protocol structure:</span>
+0008 <span class="comment">%       protocol.COMPILED.writeparams</span>
+0009 <span class="comment">%       protocol.COMPILED.readparams</span>
+0010 <span class="comment">%       protocol.COMPILED.trials</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% Alternatively, compiled protocol can be fully customized manually by</span>
+0013 <span class="comment">% manually specifying values for writeparams, readparams, and trials</span>
+0014 <span class="comment">% fields in protocol.COMPILED structure.</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% DJS 2013</span>
+0017 
+0018 fldn = fieldnames(P.MODULES);
+0019 
+0020 <span class="comment">% look for buffers and replace them into the table as parameters</span>
+0021 <span class="keyword">for</span> i = 1:length(fldn)
+0022     <span class="keyword">if</span> ~isfield(P.MODULES,fldn{i}) || ~isfield(P.MODULES.(fldn{i}),<span class="string">'buffers'</span>)
+0023         <span class="keyword">continue</span>
+0024     <span class="keyword">end</span>
+0025     bufs = P.MODULES.(fldn{i}).buffers;
+0026     idx = findincell(bufs);
+0027     <span class="keyword">for</span> j = idx
+0028         P.MODULES.(fldn{i}).data{j,4} = bufs{j};
+0029     <span class="keyword">end</span>
+0030 <span class="keyword">end</span>
+0031 
+0032 
+0033 <span class="comment">% trim any undefined parameters</span>
+0034 <span class="keyword">for</span> i = 1:length(fldn)
+0035     v = P.MODULES.(fldn{i}).data;
+0036     v(~ismember(1:size(v,1),findincell(v(:,1))),:) = [];
+0037     P.MODULES.(fldn{i}).data = v;
+0038 <span class="keyword">end</span>
+0039 
+0040 
+0041 <span class="comment">% RUN THROUGH EACH MODULE AND EXPAND PARAMETERS ACROSS MODULES</span>
+0042 [COMPILED,fail] = <a href="#_sub1" class="code" title="subfunction [comp,fail] = ParamPrep(P)">ParamPrep</a>(P);
+0043 <span class="keyword">if</span> fail, <span class="keyword">return</span>; <span class="keyword">end</span>
+0044 
+0045 n = P.OPTIONS.num_reps;
+0046 <span class="keyword">if</span> P.OPTIONS.randomize
+0047     <span class="comment">% randomized presentation order</span>
+0048     m = size(COMPILED.trials,1);
+0049     <span class="keyword">for</span> i = 1:n    
+0050         ind = randperm(m);
+0051         t(m*(i-1)+1:m*i,:) = COMPILED.trials(ind,:); 
+0052     <span class="keyword">end</span>
+0053     COMPILED.trials = t;
+0054 <span class="keyword">else</span>
+0055     <span class="comment">% serialized presentation orders</span>
+0056     COMPILED.trials = repmat(COMPILED.trials,n,1);
+0057 <span class="keyword">end</span>
+0058 
+0059 
+0060 COMPILED.OPTIONS = P.OPTIONS;
+0061 COMPILED = rmfield(COMPILED,<span class="string">'buds'</span>); <span class="comment">% not needed</span>
+0062 
+0063 P.COMPILED = COMPILED;
+0064 
+0065 <span class="keyword">end</span>
+0066 
+0067 
+0068 
+0069 <a name="_sub1" href="#_subfunctions" class="code">function [comp,fail] = ParamPrep(P)</a>
+0070 comp.writeparams = [];
+0071 comp.readparams  = [];
+0072 
+0073 d = [];
+0074 data = {};
+0075 mod  = {};
+0076 
+0077 k = 1; m = 1;
+0078 fn = fieldnames(P.MODULES);
+0079 <span class="keyword">for</span> i = 1:length(fn)
+0080     v = P.MODULES.(fn{i}).data;
+0081     cind = ~ismember(v(:,end),<span class="string">'&lt; NONE &gt;'</span>); <span class="comment">% associate calibration</span>
+0082     <span class="keyword">if</span> any(cind)
+0083         idx = find(cind);
+0084         <span class="keyword">for</span> j = 1:length(idx)
+0085             <span class="keyword">if</span> ~isfield(P.MODULES.(fn{i}),<span class="string">'calibrations'</span>) <span class="comment">% backwards compatability</span>
+0086                 dd = getpref(<span class="string">'ProtocolDesign'</span>,<span class="string">'CALDIR'</span>,cd);
+0087                 <span class="keyword">if</span> isnumeric(dd), dd = cd; <span class="keyword">end</span>
+0088                 cfn = fullfile(dd,v{idx(j),end});
+0089             <span class="keyword">else</span>
+0090                 cfn = P.MODULES.(fn{i}).calibrations{idx(j)}.filename;
+0091             <span class="keyword">end</span>
+0092             
+0093             <span class="keyword">if</span> ~exist(cfn,<span class="string">'file'</span>)
+0094                 r = questdlg(sprintf([ <span class="keyword">...</span>
+0095                     <span class="string">'Can''t locate the calibration file which was part of this protocol: '</span>, <span class="keyword">...</span>
+0096                     <span class="string">'&quot;%s&quot;\n\n'</span>, <span class="keyword">...</span>
+0097                     <span class="string">'Would you like to locate it manually?'</span>],cfn), <span class="keyword">...</span>
+0098                     <span class="string">'Missing Calibration'</span>,<span class="string">'Yes'</span>,<span class="string">'No'</span>,<span class="string">'Yes'</span>);
+0099                 <span class="keyword">if</span> isequal(r,<span class="string">'Yes'</span>)
+0100                     cfn = uigetfile({<span class="string">'Calibration File (*.cal)'</span>,<span class="string">'*.cal'</span>}, <span class="keyword">...</span>
+0101                         <span class="string">'Locate Calibration file'</span>);
+0102                     <span class="keyword">if</span> ~cfn
+0103                         fprintf(<span class="string">'** Missing Calibration file: &quot;%s&quot;\n'</span>,cfn)
+0104                         v{idx(j),end} = <span class="string">'&lt; NONE &gt;'</span>;
+0105                         <span class="keyword">continue</span>
+0106                     <span class="keyword">end</span>
+0107                 <span class="keyword">else</span>
+0108                     fprintf(<span class="string">'** Missing Calibration file: &quot;%s&quot;\n'</span>,cfn)
+0109                     v{idx(j),end} = <span class="string">'&lt; NONE &gt;'</span>;
+0110                     <span class="keyword">continue</span>
+0111                 <span class="keyword">end</span>
+0112             <span class="keyword">end</span>
+0113 
+0114             <span class="keyword">try</span>
+0115                 vals = eval(v{idx(j),4});
+0116             <span class="keyword">catch</span> <span class="comment">%#ok&lt;CTCH&gt;</span>
+0117                 vals = str2num(v{idx(j),4}); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0118             <span class="keyword">end</span>
+0119             
+0120             C = load(cfn,<span class="string">'-mat'</span>);
+0121             cvals = Calibrate(vals,C);
+0122             
+0123             <span class="keyword">if</span> isequal(v{idx(j),3},<span class="string">'&lt; NONE &gt;'</span>)
+0124                 cb = sprintf(<span class="string">'CalBuddy%d'</span>,m);
+0125             <span class="keyword">else</span>
+0126                 cb = v{idx(j),3};
+0127             <span class="keyword">end</span>
+0128     
+0129             v{idx(j),3} = cb;
+0130             v(end+1,:)  = {sprintf(<span class="string">'~%s'</span>,v{idx(j),1}), <span class="keyword">...</span>
+0131                 <span class="string">'Write'</span>, cb,  cvals, 0, 0, <span class="string">'&lt; NONE &gt;'</span>}; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0132             m = m + 1;
+0133         <span class="keyword">end</span>
+0134     <span class="keyword">end</span>
+0135     
+0136     <span class="comment">% buffer</span>
+0137     idx = find([v{:,6}]);
+0138     <span class="keyword">for</span> j = 1:length(idx)
+0139         buflengths = zeros(size(v{idx(j),4}));
+0140         <span class="keyword">for</span> b = 1:length(v{idx(j),4})
+0141             buflengths(b) = v{idx(j),4}{b}.nsamps;
+0142         <span class="keyword">end</span>
+0143         <span class="keyword">if</span> isempty(v{idx(j),3})
+0144             bb = sprintf(<span class="string">'BufBuddy%d'</span>,m);
+0145         <span class="keyword">else</span>
+0146             bb = v{idx(j),3};
+0147         <span class="keyword">end</span>
+0148         v(end+1,:) = {sprintf(<span class="string">'~%s'</span>,v{idx(j),1}), <span class="keyword">...</span>
+0149             <span class="string">'Write'</span>, bb, num2str(buflengths), 0, 0, <span class="string">'&lt; NONE &gt;'</span>}; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0150     <span class="keyword">end</span>
+0151     
+0152     
+0153     kl = size(v,1);
+0154     mod(k:k+kl-1,1)  = repmat(fn(i),kl,1);
+0155     data(k:k+kl-1,:) = v;
+0156     k = k + kl;
+0157 <span class="keyword">end</span>
+0158 
+0159 [data,idx] = sortrows(data,3);
+0160 mod = mod(idx);
+0161 
+0162 <span class="comment">% fields: 1 - parameter tag</span>
+0163 <span class="comment">%         2 - Write/Read</span>
+0164 <span class="comment">%         3 - buddy variable</span>
+0165 <span class="comment">%         4 - Associated parameter values</span>
+0166 <span class="comment">%         5 - Random within range (specified in values)</span>
+0167 
+0168 <span class="keyword">for</span> i = 1:size(data,1)
+0169     module = mod{i};
+0170     <span class="keyword">if</span> isempty(strfind(data{i,2},<span class="string">'Write'</span>)) <span class="comment">% 'Read' only</span>
+0171         comp.readparams{end+1} = [module <span class="string">'.'</span> data{i,1}];
+0172         <span class="keyword">continue</span>
+0173     <span class="keyword">end</span>
+0174     
+0175     <span class="keyword">if</span> strfind(data{i,2},<span class="string">'Write'</span>)
+0176         comp.writeparams{end+1} = [module <span class="string">'.'</span> data{i,1}];
+0177     <span class="keyword">end</span>
+0178     
+0179     <span class="keyword">if</span> strfind(data{i,2},<span class="string">'Read'</span>)
+0180         comp.readparams{end+1} = [module <span class="string">'.'</span> data{i,1}];
+0181     <span class="keyword">end</span>
+0182     
+0183     <span class="keyword">if</span> isnumeric(data{i,4}) <span class="comment">% Numeric data</span>
+0184         v = data{i,4};
+0185     
+0186     <span class="keyword">elseif</span> ~data{i,6} <span class="comment">% Char and not WAV</span>
+0187         <span class="keyword">if</span> ~ischar(data{i,4}) <span class="comment">% left over from previous use as WAV file</span>
+0188             data{i,4} = <span class="string">''</span>;
+0189         <span class="keyword">end</span>
+0190         
+0191         v = str2num(data{i,4}); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0192     
+0193     <span class="keyword">elseif</span> data{i,6} <span class="comment">% WAV files</span>
+0194 <span class="comment">%         t = findobj('type','uitable','-and','tag','param_table');</span>
+0195 <span class="comment">%         S = get(t,'UserData');</span>
+0196 <span class="comment">%         v = S.WAV{i}';</span>
+0197         v = data{i,4};
+0198     <span class="keyword">else</span>
+0199         v = str2num(data{i,4}); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0200     <span class="keyword">end</span>
+0201     
+0202     <span class="keyword">if</span> data{i,5} <span class="comment">% randomized</span>
+0203         d{end+1}{1} = <span class="string">'randomized'</span>; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0204         d{end}{2} = []; 
+0205         d{end}{3} = v; 
+0206     <span class="keyword">else</span>
+0207         <span class="comment">% Buddy variables</span>
+0208         <span class="keyword">if</span> strcmp(data{i,3},<span class="string">'&lt; NONE &gt;'</span>)
+0209             d{end+1} = v; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0210         <span class="keyword">else</span>
+0211             d{end+1}{1} = <span class="string">'buddy'</span>; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0212             d{end}{2} = data{i,3}; 
+0213             d{end}{3} = v; 
+0214         <span class="keyword">end</span>
+0215     <span class="keyword">end</span>
+0216 <span class="keyword">end</span>
+0217 
+0218 [comp,fail] = <a href="AddTrial.html" class="code" title="function [schedule,fail] = AddTrial(schedule,varargin)">AddTrial</a>(comp,d);
+0219 
+0220 <span class="keyword">end</span>
+0221 
+0222</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

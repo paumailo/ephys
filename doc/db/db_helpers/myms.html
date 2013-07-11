@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of myms</title>
+  <meta name="keywords" content="myms">
+  <meta name="description" content="varargout = myms(str)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">db</a> &gt; <a href="index.html">db_helpers</a> &gt; myms.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for db\db_helpers&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>myms
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>varargout = myms(str)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function varargout = myms(str) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> varargout = myms(str)
+
+ Wrapper function for mym.
+
+ Returns individual outputs instead of a single structure.
+ 
+ Use sprintf instead of normal mym inline placeholders like {Si}
+
+ DJS 2013
+
+ See also, sprintf, mym</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="DB_GetParams.html" class="code" title="function p = DB_GetParams(block_id)">DB_GetParams</a>	p = DB_GetParams(block_id)</li><li><a href="DB_GetProtocolName.html" class="code" title="function pname = DB_GetProtocolName(protocol)">DB_GetProtocolName</a>	pname = DB_GetProtocolName(protocol)</li><li><a href="DB_UploadWaveData.html" class="code" title="function result = DB_UploadWaveData(tankname,blockname,eventname)">DB_UploadWaveData</a>	result = DB_UploadWaveData(tankname,blockname,eventname)</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function varargout = myms(str)</a>
+0002 <span class="comment">% varargout = myms(str)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Wrapper function for mym.</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Returns individual outputs instead of a single structure.</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Use sprintf instead of normal mym inline placeholders like {Si}</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% DJS 2013</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% See also, sprintf, mym</span>
+0013 
+0014 varargout = struct2cell(mym(str));
+0015</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

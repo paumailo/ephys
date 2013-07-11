@@ -1,0 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ft_read_event_tdt</title>
+  <meta name="keywords" content="ft_read_event_tdt">
+  <meta name="description" content="EVENT = ft_read_event_tdt">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">analysis</a> &gt; <a href="index.html">FT_integration</a> &gt; ft_read_event_tdt.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for analysis\FT_integration&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>ft_read_event_tdt
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>EVENT = ft_read_event_tdt</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function event = ft_read_event_tdt(tank,block,blockroot,eventname,eventvalue,Fs) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> EVENT = ft_read_event_tdt
+ EVENT = ft_read_event_tdt(TANK)
+ EVENT = ft_read_event_tdt(TANK,BLOCK)
+ EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT)
+ EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT,EVENTNAME)
+ EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT,EVENTNAME,EVENTVALUE)
+ EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT,EVENTNAME,EVENTVALUE,Fs)
+
+ Read events from TDT tank for use with FieldTrip.
+
+ If TANK is not specified, a list box will appear with registered tanks.
+
+ If BLOCK is not specified, a list box will appear with blocks of the tank.
+
+ BLOCKROOT can be specified if the blocks begin with something other than
+ 'Block-' (must include '-' if it's there).
+
+ The event to which the data should be organized is determined either by
+ EVENTNAME (if specified) or a single event name from the tank.  If
+ EVENTNAME is not specified and there is more than one event found in the
+ tank, then a prompt will appear for the user to select the correct event.
+ 
+ EVENTVALUE can be specified to limit the returned events to some value(s)
+ 
+ See also, ft_read_event, <a href="trialfun_tdt.html" class="code" title="function [trl,event] = trialfun_tdt(cfg)">trialfun_tdt</a>, <a href="ft_read_lfp_tdt.html" class="code" title="function data = ft_read_lfp_tdt(tank,block)">ft_read_lfp_tdt</a> TankReg
+
+ DJS 2013</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="trialfun_tdt.html" class="code" title="function [trl,event] = trialfun_tdt(cfg)">trialfun_tdt</a>	[trl,event] = trialfun_tdt(cfg)</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function event = ft_read_event_tdt(tank,block,blockroot,eventname,eventvalue,Fs)</a>
+0002 <span class="comment">% EVENT = ft_read_event_tdt</span>
+0003 <span class="comment">% EVENT = ft_read_event_tdt(TANK)</span>
+0004 <span class="comment">% EVENT = ft_read_event_tdt(TANK,BLOCK)</span>
+0005 <span class="comment">% EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT)</span>
+0006 <span class="comment">% EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT,EVENTNAME)</span>
+0007 <span class="comment">% EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT,EVENTNAME,EVENTVALUE)</span>
+0008 <span class="comment">% EVENT = ft_read_event_tdt(TANK,BLOCK,BLOCKROOT,EVENTNAME,EVENTVALUE,Fs)</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% Read events from TDT tank for use with FieldTrip.</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% If TANK is not specified, a list box will appear with registered tanks.</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% If BLOCK is not specified, a list box will appear with blocks of the tank.</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% BLOCKROOT can be specified if the blocks begin with something other than</span>
+0017 <span class="comment">% 'Block-' (must include '-' if it's there).</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% The event to which the data should be organized is determined either by</span>
+0020 <span class="comment">% EVENTNAME (if specified) or a single event name from the tank.  If</span>
+0021 <span class="comment">% EVENTNAME is not specified and there is more than one event found in the</span>
+0022 <span class="comment">% tank, then a prompt will appear for the user to select the correct event.</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% EVENTVALUE can be specified to limit the returned events to some value(s)</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% See also, ft_read_event, trialfun_tdt, ft_read_lfp_tdt TankReg</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% DJS 2013</span>
+0029 
+0030 
+0031 <span class="comment">% check inputs</span>
+0032 <span class="keyword">if</span> nargin == 0 || isempty(tank),  tank = char(TDT_TankSelect); <span class="keyword">end</span>
+0033 cfg.tank     = tank;
+0034 cfg.datatype = <span class="string">'BlockInfo'</span>;
+0035 cfg.usemym   = false;
+0036 <span class="keyword">if</span> nargin &lt; 2
+0037     tinfo = getTankData(cfg);
+0038     <span class="keyword">if</span> isempty(tinfo)
+0039         error(<span class="string">'No blocks found in ''%s'''</span>,tank)
+0040     <span class="keyword">end</span>
+0041     [sel,ok] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select one block'</span>, <span class="keyword">...</span>
+0042                        <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>, <span class="keyword">...</span>
+0043                        <span class="string">'ListString'</span>,num2cell([tinfo.block]));
+0044     <span class="keyword">if</span> ~ok, <span class="keyword">return</span>; <span class="keyword">end</span>
+0045     block = tinfo(sel).block;
+0046 <span class="keyword">end</span>
+0047 <span class="keyword">if</span> nargin &lt; 3 || isempty(blockroot), blockroot = <span class="string">'Block-'</span>; <span class="keyword">end</span>
+0048 
+0049 <span class="comment">% get tank info</span>
+0050 cfg.blocks      = block;
+0051 cfg.blockroot   = blockroot;
+0052 cfg.datatype    = <span class="string">'BlockInfo'</span>;
+0053 cfg.usemym      = false;
+0054 tinfo           = getTankData(cfg);
+0055 
+0056 
+0057 <span class="comment">% deal with event name</span>
+0058 selparam = 1; <span class="comment">% default</span>
+0059 params = tinfo.paramspec(1:end-1); <span class="comment">% last parameter is always onsets of trigger</span>
+0060 <span class="keyword">if</span> nargin &gt;= 4 &amp;&amp; ~isempty(eventname) <span class="comment">% eventname was specified by user</span>
+0061     selparam = strcmpi(eventname,params);
+0062     <span class="keyword">if</span> isempty(selparam)
+0063         error(<span class="string">'No events called ''%s'' were found in tank ''%s'''</span>,eventname,tank);
+0064     <span class="keyword">end</span>
+0065     <span class="keyword">if</span> ~any(selparam)
+0066         error(<span class="string">'The event ''%s'' was not found in this block'</span>,eventname)
+0067     <span class="keyword">end</span>
+0068 <span class="keyword">else</span> <span class="comment">% eventname was not specified</span>
+0069     <span class="keyword">if</span> length(params) &gt; 2 <span class="comment">% meaning more than one parameter + onsets of trigger</span>
+0070         [selparam,ok] = listdlg(<span class="string">'ListString'</span>,params(1:end-1), <span class="keyword">...</span>
+0071                            <span class="string">'Name'</span>,<span class="string">'Read Event TDT'</span>, <span class="keyword">...</span>
+0072                            <span class="string">'PromptString'</span>,<span class="string">'Select one event from the list:'</span>, <span class="keyword">...</span>
+0073                            <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>);
+0074         <span class="keyword">if</span> ~ok
+0075             disp(<span class="string">'User cancelled event selection.'</span>)
+0076             <span class="keyword">return</span>
+0077         <span class="keyword">end</span>
+0078     <span class="keyword">end</span>
+0079 <span class="keyword">end</span>
+0080 
+0081 parind = strcmpi(params{selparam},params);
+0082 rvalues = tinfo.epochs(:,parind);
+0083 
+0084 <span class="keyword">if</span> nargin &gt;= 5 <span class="comment">% eventvalue was specified</span>
+0085     rind = rvalues == eventvalue;
+0086 <span class="keyword">else</span>
+0087     rind = true(size(rvalues));
+0088 <span class="keyword">end</span>
+0089 
+0090 <span class="comment">% generate event structure</span>
+0091 rvalues = rvalues(rind);
+0092 ronsets = tinfo.epochs(rind,end);
+0093 ronsamp = round(ronsets*Fs);
+0094 event = [];
+0095 <span class="keyword">for</span> j = 1:length(rvalues)
+0096     event(j).type       = params{selparam}; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0097     event(j).sample     = ronsamp(j); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0098     event(j).value      = rvalues(j); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0099     event(j).timestamp  = ronsets(j); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0100 <span class="keyword">end</span>
+0101 
+0102 
+0103 
+0104 
+0105 
+0106 
+0107 
+0108 
+0109 
+0110</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

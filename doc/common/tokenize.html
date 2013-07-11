@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of tokenize</title>
+  <meta name="keywords" content="tokenize">
+  <meta name="description" content="TOKENIZE cuts a string into pieces, returning the pieces in a cell array">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">common</a> &gt; tokenize.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for common&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>tokenize
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>TOKENIZE cuts a string into pieces, returning the pieces in a cell array</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [tok] = tokenize(str, sep, rep) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> TOKENIZE cuts a string into pieces, returning the pieces in a cell array
+
+ Use as
+   t = tokenize(str)
+   t = tokenize(str, sep)
+   t = tokenize(str, sep, rep)
+ where
+   str = the string that you want to cut into pieces
+   sep = the separator at which to cut (default is whitespace)
+   rep = whether to treat repeating seperator characters as one (default is false)
+
+ With the optional boolean flag &quot;rep&quot; you can specify whether repeated
+ seperator characters should be squeezed together (e.g. multiple
+ spaces between two words). The default is rep=1, i.e. repeated
+ seperators are treated as one.
+
+ See also STRTOK, TEXTSCAN</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [tok] = tokenize(str, sep, rep)</a>
+0002 
+0003 <span class="comment">% TOKENIZE cuts a string into pieces, returning the pieces in a cell array</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Use as</span>
+0006 <span class="comment">%   t = tokenize(str)</span>
+0007 <span class="comment">%   t = tokenize(str, sep)</span>
+0008 <span class="comment">%   t = tokenize(str, sep, rep)</span>
+0009 <span class="comment">% where</span>
+0010 <span class="comment">%   str = the string that you want to cut into pieces</span>
+0011 <span class="comment">%   sep = the separator at which to cut (default is whitespace)</span>
+0012 <span class="comment">%   rep = whether to treat repeating seperator characters as one (default is false)</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% With the optional boolean flag &quot;rep&quot; you can specify whether repeated</span>
+0015 <span class="comment">% seperator characters should be squeezed together (e.g. multiple</span>
+0016 <span class="comment">% spaces between two words). The default is rep=1, i.e. repeated</span>
+0017 <span class="comment">% seperators are treated as one.</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% See also STRTOK, TEXTSCAN</span>
+0020 
+0021 <span class="comment">% Copyright (C) 2003-2010, Robert Oostenveld</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip</span>
+0024 <span class="comment">% for the documentation and details.</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">%    FieldTrip is free software: you can redistribute it and/or modify</span>
+0027 <span class="comment">%    it under the terms of the GNU General Public License as published by</span>
+0028 <span class="comment">%    the Free Software Foundation, either version 3 of the License, or</span>
+0029 <span class="comment">%    (at your option) any later version.</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">%    FieldTrip is distributed in the hope that it will be useful,</span>
+0032 <span class="comment">%    but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0033 <span class="comment">%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0034 <span class="comment">%    GNU General Public License for more details.</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">%    You should have received a copy of the GNU General Public License</span>
+0037 <span class="comment">%    along with FieldTrip. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0038 <span class="comment">%</span>
+0039 <span class="comment">% $Id: tokenize.m 7123 2012-12-06 21:21:38Z roboos $</span>
+0040 
+0041 <span class="comment">% these are for remembering the type on subsequent calls with the same input arguments</span>
+0042 <span class="keyword">persistent</span> previous_argin previous_argout
+0043 
+0044 <span class="keyword">if</span> nargin&lt;2
+0045   sep = [9:13 32]; <span class="comment">% White space characters</span>
+0046 <span class="keyword">end</span>
+0047 
+0048 <span class="keyword">if</span> nargin&lt;3
+0049   rep = false;
+0050 <span class="keyword">end</span>
+0051 
+0052 current_argin = {str, sep, rep};
+0053 <span class="keyword">if</span> isequal(current_argin, previous_argin)
+0054   <span class="comment">% don't do the processing again, but return the previous values from cache</span>
+0055   tok = previous_argout;
+0056   <span class="keyword">return</span>
+0057 <span class="keyword">end</span>
+0058 
+0059 tok = {};
+0060 f = find(ismember(str, sep));
+0061 f = [0, f, length(str)+1];
+0062 <span class="keyword">for</span> i=1:(length(f)-1)
+0063   tok{i} = str((f(i)+1):(f(i+1)-1));
+0064 <span class="keyword">end</span>
+0065 
+0066 <span class="keyword">if</span> rep
+0067   <span class="comment">% remove empty cells, which occur if the separator is repeated (e.g. multiple spaces)</span>
+0068   tok(cellfun(<span class="string">'isempty'</span>, tok))=[];
+0069 <span class="keyword">end</span>
+0070 
+0071 <span class="comment">% remember the current input and output arguments, so that they can be</span>
+0072 <span class="comment">% reused on a subsequent call in case the same input argument is given</span>
+0073 current_argout  = tok;
+0074 previous_argin  = current_argin;
+0075 previous_argout = current_argout;
+0076</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

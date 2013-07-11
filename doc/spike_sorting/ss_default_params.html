@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ss_default_params</title>
+  <meta name="keywords" content="ss_default_params">
+  <meta name="description" content="UltraMegaSort2000 by Hill DN, Mehta SB, &amp; Kleinfeld D  - 07/12/2010">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">spike_sorting</a> &gt; ss_default_params.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for spike_sorting&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>ss_default_params
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>UltraMegaSort2000 by Hill DN, Mehta SB, &amp; Kleinfeld D  - 07/12/2010</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function spikes = ss_default_params(Fs, varargin ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> UltraMegaSort2000 by Hill DN, Mehta SB, &amp; Kleinfeld D  - 07/12/2010
+
+ ss_default_params - initializes a spikes object with the default
+                     parameters
+               
+ Usage:
+       spikes = ss_default_params(Fs, varargin )
+
+ Description:  
+   This function creates an empty spikes object containing a params struc.
+ There are 2 major categories.  All fields in SPIKES.PARAMS are related
+ to the algorithmic process of spike detection and sorting.  In 
+ SPIKES.PARAMS.DISPLAY there are parameters that largely only affect the
+ way in which data is plotted.
+
+  The only required input is Fs, the data sampling rate in Hertz.  Any
+  other parameters can be changed by putting in a parameter/value pair 
+  such as.  spikes = ss_default_params(36000, 'thresh', 4.0);</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="RunAutoClass.html" class="code" title="function TANKS = RunAutoClass(TANKS)">RunAutoClass</a>	RunAutoClass</li><li><a href="SCRATCH_AutoClass2.html" class="code" title="">SCRATCH_AutoClass2</a>	% AutoClass Scratch</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 
+0002 <a name="_sub0" href="#_subfunctions" class="code">function spikes = ss_default_params(Fs, varargin )</a>
+0003 <span class="comment">% UltraMegaSort2000 by Hill DN, Mehta SB, &amp; Kleinfeld D  - 07/12/2010</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% ss_default_params - initializes a spikes object with the default</span>
+0006 <span class="comment">%                     parameters</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Usage:</span>
+0009 <span class="comment">%       spikes = ss_default_params(Fs, varargin )</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% Description:</span>
+0012 <span class="comment">%   This function creates an empty spikes object containing a params struc.</span>
+0013 <span class="comment">% There are 2 major categories.  All fields in SPIKES.PARAMS are related</span>
+0014 <span class="comment">% to the algorithmic process of spike detection and sorting.  In</span>
+0015 <span class="comment">% SPIKES.PARAMS.DISPLAY there are parameters that largely only affect the</span>
+0016 <span class="comment">% way in which data is plotted.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">%  The only required input is Fs, the data sampling rate in Hertz.  Any</span>
+0019 <span class="comment">%  other parameters can be changed by putting in a parameter/value pair</span>
+0020 <span class="comment">%  such as.  spikes = ss_default_params(36000, 'thresh', 4.0);</span>
+0021 <span class="comment">%</span>
+0022 
+0023     <span class="comment">%%</span>
+0024     <span class="comment">% ALGORITHMIC PARAMETERS</span>
+0025     <span class="comment">%</span>
+0026   
+0027     <span class="comment">% spike detection parameters</span>
+0028     spikes.params.Fs = Fs;                 <span class="comment">% Hz, sampling rate of spike data</span>
+0029     spikes.params.detect_method = <span class="string">'auto'</span>;  <span class="comment">% 'auto' = threshold calculated from background noise, 'manual' = user defined threshold</span>
+0030     spikes.params.thresh = 3.9;            <span class="comment">% for 'auto', set number of standard deviations above background noise</span>
+0031  <span class="comment">%  spikes.params.thresh =    [-5.3897 -5.0999 -5.1816 -5.5274]; % for 'manual', set specific thresholds for each channel</span>
+0032     spikes.params.window_size  = 1.5;       <span class="comment">% ms, width of a spike</span>
+0033     spikes.params.shadow = 0.75;            <span class="comment">% ms, enforced dead region after each spike</span>
+0034     spikes.params.cross_time = 0.6;         <span class="comment">% ms, alignment point for peak of waveform</span>
+0035  
+0036     <span class="comment">% sorting parameters</span>
+0037     spikes.params.refractory_period = 2.5;  <span class="comment">% ms, refractory period (for calculation refractory period violations)</span>
+0038     spikes.params.max_jitter = 0.6;         <span class="comment">% ms, width of window used to detect peak after threshold crossing</span>
+0039     spikes.params.agg_cutoff = .05;         <span class="comment">%  higher = less aggregation, lower = more aggregation</span>
+0040     spikes.params.kmeans_clustersize = 500; <span class="comment">%  target size for clusters</span>
+0041 
+0042     <span class="comment">%%</span>
+0043     <span class="comment">% DISPLAY PARAMETERS</span>
+0044     <span class="comment">%</span>
+0045       
+0046     <span class="comment">% cluster labeling in splitmerge tool, the first option is the default</span>
+0047     spikes.params.display.label_categories = {<span class="string">'in process'</span>, <span class="string">'good unit'</span>, <span class="string">'multi-unit'</span>, <span class="string">'garbage'</span>, <span class="string">'needs outlier removal'</span>};
+0048     spikes.params.display.label_colors = [ .7 .7 .7; .3 .8 .3; .3 .3 .8;  .8 .3 .3; .7 .7 .3];
+0049     
+0050     <span class="comment">% plot_waveforms</span>
+0051     spikes.params.display.default_waveformmode = 3;  <span class="comment">% 1 = show all waveforms, 2 = show 95% waveform bands, 3 = show 2d histogram</span>
+0052     spikes.params.display.time_scalebar = 1;         <span class="comment">% ms, length of scalebar in milliseconds on waveform plots</span>
+0053     spikes.params.display.cmap          = hot(64);      <span class="comment">% default color map</span>
+0054     
+0055     <span class="comment">% outlier tool</span>
+0056     spikes.params.display.default_outlier_method = 1; <span class="comment">% 1 = estimate covariance from cluster, 2 = estimate covariance from background noise</span>
+0057     
+0058     <span class="comment">% spike-train correlations parameters</span>
+0059     spikes.params.display.show_isi = 0;                 <span class="comment">% 0 = show autocorrelation by default, 1 = show ISI histogram</span>
+0060     spikes.params.display.max_autocorr_to_display = .1; <span class="comment">% s, maximum time lag in autocorrelation/cross-correlation plots</span>
+0061     spikes.params.display.max_isi_to_display = .025;    <span class="comment">% s, maximum time lag to show in ISI histograms,</span>
+0062     spikes.params.display.correlations_bin_size = 2;    <span class="comment">% ms, bin width used for spike time correlations</span>
+0063     spikes.params.display.isi_bin_size = .5;            <span class="comment">% ms, bin width used for ISI histograms</span>
+0064     spikes.params.display.default_xcorr_mode = 1;       <span class="comment">% 0 = show autocorrelation of merged spike trains by default, 1 = show x-correlation</span>
+0065     spikes.params.display.trial_spacing = .5;           <span class="comment">% s, time padding between trials</span>
+0066     
+0067     <span class="comment">% plot_stability parameters</span>
+0068     spikes.params.display.stability_bin_size = 10;      <span class="comment">% s, bin used for estimating firing rate</span>
+0069     spikes.params.display.max_scatter = 1000;           <span class="comment">% maximum number of waveforms to show in amplitude scatter plot</span>
+0070     
+0071     <span class="comment">% axes/panels grid parameters</span>
+0072     spikes.params.display.margin = 140;                 <span class="comment">% number of pixels between plots</span>
+0073     spikes.params.display.outer_margin = 80;            <span class="comment">% number of pixels around at figure margin</span>
+0074     spikes.params.display.width = 140;                  <span class="comment">% number of pixels in plot width</span>
+0075     spikes.params.display.aspect_ratio = 2/3;           <span class="comment">% aspect ratio of plots</span>
+0076     
+0077     <span class="comment">% figure layout</span>
+0078     spikes.params.display.default_figure_size = [.05 .1 .9 .8];  <span class="comment">% location of default figure</span>
+0079     spikes.params.display.default_outlier_figure_pos = [ 0.1    0.3    0.75    0.6]; <span class="comment">% location of outlier tool</span>
+0080     spikes.params.display.figure_font_size = 8;  <span class="comment">% default font size</span>
+0081     spikes.params.display.initial_split_figure_panels = 4;
+0082    
+0083     <span class="comment">% tool colors</span>
+0084     spikes.params.display.merge_fig_color = [ .7 .8 .7];  <span class="comment">% main splitmerge_tool screen</span>
+0085     spikes.params.display.split_fig_color = [ .8 .7 .7];  <span class="comment">% split_tool</span>
+0086     spikes.params.display.outlier_fig_color = [ .7 .7 .8]; <span class="comment">% outlier_tool</span>
+0087     
+0088     <span class="comment">% plot_features</span>
+0089     spikes.params.display.xchoice = <span class="string">'PC'</span>;         <span class="comment">% what feature to show by default (x-axis), see &quot;plot_features.m&quot;</span>
+0090     spikes.params.display.xparam = 1;             <span class="comment">% feature parameter (x-axis)</span>
+0091     spikes.params.display.ychoice = <span class="string">'PC'</span>;         <span class="comment">% what feature to show by default (y-axis)</span>
+0092     spikes.params.display.yparam = 2;             <span class="comment">% feature parameter (y-axis)</span>
+0093     spikes.params.display.show_outliers = 1;      <span class="comment">% 0 = hide outliers, 1 = show outliers</span>
+0094     
+0095 <span class="keyword">for</span> j = 1:(length(varargin)/2)
+0096     spikes.params = setfield(spikes.params, varargin{(2*j)-1 }, varargin{2*j} );
+0097 <span class="keyword">end</span>
+0098 
+0099 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

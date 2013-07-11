@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of istable</title>
+  <meta name="keywords" content="istable">
+  <meta name="description" content="istable  True if MySQL table exists     [mym utilities]">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="#">db</a> &gt; <a href="index.html">mym</a> &gt; istable.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for db\mym&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>istable
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>istable  True if MySQL table exists     [mym utilities]</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function[i] = istable(name) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> istable  True if MySQL table exists     [mym utilities]
+ Example  if istable('junk'), tbdrop('junk'), end</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="myisopen.html" class="code" title="function[i] = myisopen">myisopen</a>	myisopen True if MySQL instance active  [mym utilities]</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="dblist.html" class="code" title="function[names] = dblist">dblist</a>	dblist   List MySQL databases           [mym utilities]</li><li><a href="tbadd.html" class="code" title="function tbadd(table,names,types,varargin)">tbadd</a>	tbadd    Create MySQL table             [mym utilities]</li><li><a href="tbattr.html" class="code" title="function[varargout] = tbattr(table)">tbattr</a>	tbattr   List columns of MySQL table    [mym utilities]</li><li><a href="tbprint.html" class="code" title="function tbprint(table)">tbprint</a>	tbprint  List a few rows of MySQL table [mym utilities]</li><li><a href="tbread.html" class="code" title="function tbread(table,cols,vecs,sql)">tbread</a>	tbread   Read from MySQL table          [mym utilities]</li><li><a href="tbrename.html" class="code" title="function tbrename(old,new)">tbrename</a>	tbrename Rename MySQL table             [mym utilities]</li><li><a href="tbsize.html" class="code" title="function[size] = tbsize(table,varargin)">tbsize</a>	tbsize   Size of MySQL table            [mym utilities]</li><li><a href="tbwrite.html" class="code" title="function tbwrite(table,cols,vecs,varargin)">tbwrite</a>	tbwrite  Write to MySQL table           [mym utilities]</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function[i] = istable(name)</a>
+0002 <span class="comment">% istable  True if MySQL table exists     [mym utilities]</span>
+0003 <span class="comment">% Example  if istable('junk'), tbdrop('junk'), end</span>
+0004 <span class="keyword">if</span> ~<a href="myisopen.html" class="code" title="function[i] = myisopen">myisopen</a>
+0005    error(<span class="string">'No MySQL connection active; use ''myopen'' to connect'</span>)
+0006 <span class="keyword">else</span>
+0007    <span class="keyword">try</span> 
+0008      i = false;
+0009      [a,b,c,d,e,f] = myms([<span class="string">'describe '</span> name]);  <span class="comment">%#ok</span>
+0010      i = true;
+0011    <span class="keyword">catch</span>
+0012    <span class="keyword">end</span>
+0013 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

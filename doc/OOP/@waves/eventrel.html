@@ -1,0 +1,70 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of eventrel</title>
+  <meta name="keywords" content="eventrel">
+  <meta name="description" content="data = eventrel(win)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">OOP</a> &gt; <a href="index.html">@waves</a> &gt; eventrel.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for OOP\@waves&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>eventrel
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>data = eventrel(win)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function data = eventrel(obj,win) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> data = eventrel(win)
+ Organize continuous waves into event-related trials
+
+ dim order of output matrix: samples X channels X trials</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="waves.html" class="code" title="">waves</a>	</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function data = eventrel(obj,win)</a>
+0002 <span class="comment">% data = eventrel(win)</span>
+0003 <span class="comment">% Organize continuous waves into event-related trials</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% dim order of output matrix: samples X channels X trials</span>
+0006 
+0007 swin = round(win*obj.Fs);
+0008 svec = 0:diff(swin);
+0009 onst = ceil(obj.params(1).vals(:,2)*obj.Fs+swin(1));
+0010 
+0011 <span class="keyword">if</span> any(onst &lt;= 0)
+0012     error(<span class="string">'eventrel:%d window onsets occur before the first sample of the recording'</span>, <span class="keyword">...</span>
+0013         sum(onst&lt;=0));
+0014 <span class="keyword">end</span>
+0015 
+0016 data = zeros(length(svec),size(obj.data,2),length(onst));
+0017 <span class="keyword">for</span> i = 1:length(onst)
+0018     data(:,:,i) = obj.data(onst(i)+svec,:);
+0019 <span class="keyword">end</span>
+0020</pre></div>
+<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>
