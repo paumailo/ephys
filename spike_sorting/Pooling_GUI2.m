@@ -254,6 +254,8 @@ fprintf('done\n')
 
 %% Save Pools
 function SavePools(h)
+set(h.figure1,'Pointer','watch'); drawnow
+
 % Save pooled data with classed data
 POOLS     = h.POOLS; %#ok<NASGU>
 CLASSLIST = h.CLASSLIST; %#ok<NASGU>
@@ -275,8 +277,15 @@ else
     fprintf('\n*** UNABLE TO SAVE POOLS! ***\n')
 end
 
+
+AutoClass2TDT(poolstr)
+
+
 h.POOLS_SAVED = true;
 guidata(gcbo,h);
+
+set(h.figure1,'Pointer','arrow');
+
 
 function b = EnsurePoolsSaved(h)
 if h.POOLS_SAVED
