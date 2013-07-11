@@ -159,7 +159,7 @@ for i = 1:length(lStores)
             end
             s = 1;
             while 1
-                sorts{s} = TTX.GetSortName(name, s); %#ok<AGROW>
+                sorts{s} = TTX.GetSortName(name, s-1); %#ok<AGROW>
                 if isempty(sorts{s}), sorts{s} = 'TankSort'; break; end %#ok<AGROW>
                 s = s + 1;
             end
