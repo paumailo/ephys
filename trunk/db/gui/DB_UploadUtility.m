@@ -494,7 +494,8 @@ ACtanks = {ACsubdirs.name};
 if ~isempty(Tanks)
     idx = find(ismember(Tanks,ACtanks));
     for i = idx
-        Tanks{i} = sprintf('%s [%d POOLS]',Tanks{i},length(pooledChs{i}));
+        tidx = ismember(ACtanks,Tanks{i});
+        Tanks{i} = sprintf('%s [%d POOLS]',Tanks{i},length(pooledChs{tidx}));
     end
 end
 set(h.ds_list,'Value',length(Tanks),'String',Tanks);
