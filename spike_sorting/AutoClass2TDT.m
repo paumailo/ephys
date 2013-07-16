@@ -79,15 +79,27 @@ for B = 1:length(blocks)
     
     fprintf('Updating tank "%s"\tblock "%s"  \tchannel % 3d ...',tank,blocks{B},channel)
     
-    N = TTX.ReadEventsV(1e6,cfg.event,channel,0,0,0,'IDXPSQ'); %#ok<NASGU>
+    N = TTX.ReadEventsV(1e6,cfg.TankCFG.event,channel,0,0,0,'IDXPSQ');
+    if N == 0
+        fprintf(' NO SPIKES\n')
+        continue
+    end
+    
     tqidx = TTX.GetEvTsqIdx;
     
     bvec = cspikes(B)+1:cspikes(B+1);
     
+    if bvec(end) > length(POOLS)
+        warning('AutoClass2TDT: A mismatch occurred between pooled spikes and spikes in tank.')
+        if bvec(1) > length(POOLS), continue; end                
+        bvec = bvec(1):length(POOLS);
+        tqidx = 1:length(bvec);
+    end
+    
     SCA = uint32([tqidx; POOLS(bvec)]);
     SCA = SCA(:)';
     
-    success = TTX.SaveSortCodes(SORTNAME,cfg.event,channel,SORTCONDITION,SCA);
+    success = TTX.SaveSortCodes(SORTNAME,cfg.TankCFG.event,channel,SORTCONDITION,SCA);
     
     if ~success
         CloseUp(TTX,TTXfig);
