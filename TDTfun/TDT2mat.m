@@ -73,6 +73,11 @@ while strcmp(blocks{i}, '') == 0
 end
 blocks(end) = [];
 
+% make sure blocks are in ascending order
+bidx = cellfun(@(x) str2num(x(find(x=='-',1,'last')+1:end)),blocks); %#ok<ST2NM>
+[~,i] = sort(bidx);
+blocks = blocks(i);
+
 if nargin == 1 || isempty(block)
     data = blocks;
     return
@@ -80,7 +85,7 @@ end
 
 if TTX.SelectBlock(['~' block]) ~= 1
     CloseUp(TTX,TTXfig);
-    if ~ismember(block, blocks)
+    if ismember(block, blocks)
         error(['Block found, but problem selecting it: ' block]);
     end
     error(['Block not found: ' block]);

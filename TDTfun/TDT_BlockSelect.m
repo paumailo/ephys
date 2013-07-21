@@ -1,37 +1,33 @@
-function varargout = TDT_BlockSelect(TT,tank,varargin)
-% varargout = TDT_BlockSelect(TT,tank,varargin)
-% 
-% DJS (c)
+function varargout = TDT_BlockSelect(tank,varargin)
+% varargout = TDT_BlockSelect(tank,varargin)
+%
+%
+% DJS 2013
 
 % set defaults
 smode = 'single';
 sname = 'Select Tank';
 okstr = 'Select';
 castr = 'Cancel';
-blocks = [];
 
 ptags  = {'SelectionMode','Name','OKString','CancelString','tanklist'};
 vnames = {'smode','sname','okstr','castr','tanks'};
 
 ParseVarargin(ptags,vnames,varargin);
 
-c.tank = tank;
-c.datatype = 'BlockInfo';
-c.silently = true;
-c.TT = TT;
+blocks = TDT2mat(tank);
 
-b = getTankData(c);
-
-blocks = cell(size(b));
-for i = 1:length(b)
-    blocks{i} = b(i).name;
+if isempty(blocks)
+    fprintf('No blocks found in tank %s\n',tank)
+    varargout{1} = [];
+    varargout{2} = 0;
+else
+    [bind,ok] = listdlg('ListString',blocks, ...
+        'SelectionMode',smode, ...
+        'Name',sname, ...
+        'OKString',okstr, ...
+        'CancelString',castr);
+    
+    varargout{1} = blocks(bind);
+    varargout{2} = ok;
 end
-
-[bind,ok] = listdlg('ListString',blocks, ...
-                   'SelectionMode',smode, ...
-                   'Name',sname, ...
-                   'OKString',okstr, ...
-                   'CancelString',castr);
-               
-varargout{1} = blocks(bind);
-varargout{2} = ok;
