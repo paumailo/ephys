@@ -394,7 +394,11 @@ for i = 1:length(blocks)
     bstr{i} = sprintf('%s - %s [%s]', ...
         blocks{i},data(i).pname,datestr(data(i).info.duration,'MM:SS'));
     if str2num(datestr(data(i).info.duration,'MM')) > 0, bidx(end+1) = i; end %#ok<ST2NM,AGROW>
-    subfield = char(fieldnames(data(i).snips));
+    if isempty(data(i).snips)
+        subfield = [];
+    else
+        subfield = char(fieldnames(data(i).snips));
+    end
     if ~isempty(subfield)
         sortnames = union(sortnames,data(i).snips.(subfield).sorts);
     end
@@ -423,7 +427,7 @@ Q.data  = getappdata(h.figure1,'QBlockInfo');
 if isempty(Q.data), return; end
 
 Q.experiment = get_string(h.expt_list);
-Q.events     = get_string(h.ds_events);
+Q.events     = cellstr(get_string(h.ds_events));
 for i = 1:length(Q.events)
     [Q.events{i},r] = strtok(Q.events{i});
     Q.eventtype{i}  = r(3:end-1);
@@ -682,7 +686,11 @@ try
             if ~isempty(B(j).epocs)
                 paramspec = fieldnames(B(j).epocs);
                 paramspec(ismember(paramspec,{'PROT','Tick','Tock','Mark'})) = [];
-                B(j).epocs.onset.data = B(j).epocs.(paramspec{1}).onset;
+                if isempty(paramspec)
+                    B(j).epocs.onset.data = B(j).epocs.PROT.onset;
+                else
+                    B(j).epocs.onset.data = B(j).epocs.(paramspec{1}).onset;
+                end
                 paramspec{end+1} = 'onset'; %#ok<AGROW>
                 parcode = nan(size(paramspec));
                 epocs = nan(length(B(j).epocs.(paramspec{1}).data),length(paramspec));
@@ -753,7 +761,7 @@ try
                         pwaveform = mean(snips.data(uind,:),1);
                         pstddev   = std(snips.data(uind,:),0,1);
                         
-                        fprintf('\n\t\tPool %d: % 6.0f spikes ...',u,sum(uind))
+                        fprintf('\n\t\tPool % 9d: % 6.0f spikes ...',u,sum(uind))
                         
                         mym(['INSERT units (channel_id,pool,unit_count,pool_waveform,pool_stddev) VALUES ', ...
                             '({Si},{Si},{Si},"{S}","{S}")'], ...
@@ -770,8 +778,9 @@ try
                                 uid,ts(kk,:));
                         end
                         
-                        fprintf(' done\n')
+                        fprintf(' done')
                     end
+                    fprintf('\n')
                 end
                 
             end
