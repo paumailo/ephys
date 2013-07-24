@@ -145,9 +145,9 @@ This function is called by:
 0099 db = db{get(h.db_list,<span class="string">'Value'</span>)};
 0100 
 0101 <span class="keyword">if</span> ~myisopen
-0102     set(0,<span class="string">'pointer'</span>,<span class="string">'watch'</span>); drawnow
+0102     set(h.figure1,<span class="string">'pointer'</span>,<span class="string">'watch'</span>); drawnow
 0103     DB_Connect; 
-0104     set(0,<span class="string">'pointer'</span>,<span class="string">'arrow'</span>); drawnow
+0104     set(h.figure1,<span class="string">'pointer'</span>,<span class="string">'arrow'</span>); drawnow
 0105 <span class="keyword">end</span>
 0106 
 0107 mym(<span class="string">'use'</span>,db);
@@ -440,165 +440,165 @@ This function is called by:
 0394     bstr{i} = sprintf(<span class="string">'%s - %s [%s]'</span>, <span class="keyword">...</span>
 0395         blocks{i},data(i).pname,datestr(data(i).info.duration,<span class="string">'MM:SS'</span>));
 0396     <span class="keyword">if</span> str2num(datestr(data(i).info.duration,<span class="string">'MM'</span>)) &gt; 0, bidx(end+1) = i; <span class="keyword">end</span> <span class="comment">%#ok&lt;ST2NM,AGROW&gt;</span>
-0397     subfield = char(fieldnames(data(i).snips));
-0398     <span class="keyword">if</span> ~isempty(subfield)
-0399         sortnames = union(sortnames,data(i).snips.(subfield).sorts);
-0400     <span class="keyword">end</span>
-0401 <span class="keyword">end</span>
-0402 
-0403 set(h.ds_blocks,<span class="string">'String'</span>,bstr,<span class="string">'Value'</span>,bidx,<span class="string">'UserData'</span>,data); <span class="comment">% update listbox</span>
-0404 
-0405 sval = 1;
-0406 <span class="keyword">if</span> length(sortnames) &gt; 1
-0407     sval = ismember(sortnames,<span class="string">'TankSort'</span>);
-0408     sval = find(~sval,1);
-0409 <span class="keyword">end</span>
-0410 set(h.ds_sortname,<span class="string">'String'</span>,sortnames,<span class="string">'Value'</span>,sval);
-0411 
-0412 <a href="#_sub20" class="code" title="subfunction ds_blocks_Callback(hObj, ~, h)">ds_blocks_Callback</a>(h.ds_blocks, [], h);
-0413 set(h.figure1,<span class="string">'pointer'</span>,<span class="string">'arrow'</span>);
-0414 
+0397     <span class="keyword">if</span> isempty(data(i).snips)
+0398         subfield = [];
+0399     <span class="keyword">else</span>
+0400         subfield = char(fieldnames(data(i).snips));
+0401     <span class="keyword">end</span>
+0402     <span class="keyword">if</span> ~isempty(subfield)
+0403         sortnames = union(sortnames,data(i).snips.(subfield).sorts);
+0404     <span class="keyword">end</span>
+0405 <span class="keyword">end</span>
+0406 
+0407 set(h.ds_blocks,<span class="string">'String'</span>,bstr,<span class="string">'Value'</span>,bidx,<span class="string">'UserData'</span>,data); <span class="comment">% update listbox</span>
+0408 
+0409 sval = 1;
+0410 <span class="keyword">if</span> length(sortnames) &gt; 1
+0411     sval = ismember(sortnames,<span class="string">'TankSort'</span>);
+0412     sval = find(~sval,1);
+0413 <span class="keyword">end</span>
+0414 set(h.ds_sortname,<span class="string">'String'</span>,sortnames,<span class="string">'Value'</span>,sval);
 0415 
-0416 
-0417 <a name="_sub17" href="#_subfunctions" class="code">function ds_add_to_queue_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;INUSL,DEFNU&gt;</span>
-0418 Queue = getappdata(h.figure1,<span class="string">'UPLOAD_QUEUE'</span>);
+0416 <a href="#_sub20" class="code" title="subfunction ds_blocks_Callback(hObj, ~, h)">ds_blocks_Callback</a>(h.ds_blocks, [], h);
+0417 set(h.figure1,<span class="string">'pointer'</span>,<span class="string">'arrow'</span>);
+0418 
 0419 
-0420 <span class="comment">% Gather all info for uploading</span>
-0421 Q.data  = getappdata(h.figure1,<span class="string">'QBlockInfo'</span>);
-0422 
-0423 <span class="keyword">if</span> isempty(Q.data), <span class="keyword">return</span>; <span class="keyword">end</span>
-0424 
-0425 Q.experiment = get_string(h.expt_list);
-0426 Q.events     = get_string(h.ds_events);
-0427 <span class="keyword">for</span> i = 1:length(Q.events)
-0428     [Q.events{i},r] = strtok(Q.events{i});
-0429     Q.eventtype{i}  = r(3:end-1);
-0430 <span class="keyword">end</span>
-0431 Q.sortname   = get_string(h.ds_sortname);
-0432 Q.condition  = get(h.ds_condition,<span class="string">'String'</span>);
-0433 Q.tanknotes  = get(h.ds_notes,<span class="string">'String'</span>); 
-0434 Q.electrode  = get_string(h.ds_electrode);
-0435 Q.elecdepth  = str2num(get(h.ds_depth,<span class="string">'String'</span>)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
-0436 Q.electarget = get(h.ds_target,<span class="string">'String'</span>);
-0437 
-0438 <span class="keyword">if</span> isempty(Q.condition),  Q.condition = <span class="string">' '</span>;  <span class="keyword">end</span>
-0439 <span class="keyword">if</span> isempty(Q.tanknotes),  Q.tanknotes = <span class="string">' '</span>;  <span class="keyword">end</span>
-0440 <span class="keyword">if</span> isempty(Q.electarget), Q.electarget = <span class="string">' '</span>; <span class="keyword">end</span>
+0420 
+0421 <a name="_sub17" href="#_subfunctions" class="code">function ds_add_to_queue_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;INUSL,DEFNU&gt;</span>
+0422 Queue = getappdata(h.figure1,<span class="string">'UPLOAD_QUEUE'</span>);
+0423 
+0424 <span class="comment">% Gather all info for uploading</span>
+0425 Q.data  = getappdata(h.figure1,<span class="string">'QBlockInfo'</span>);
+0426 
+0427 <span class="keyword">if</span> isempty(Q.data), <span class="keyword">return</span>; <span class="keyword">end</span>
+0428 
+0429 Q.experiment = get_string(h.expt_list);
+0430 Q.events     = cellstr(get_string(h.ds_events));
+0431 <span class="keyword">for</span> i = 1:length(Q.events)
+0432     [Q.events{i},r] = strtok(Q.events{i});
+0433     Q.eventtype{i}  = r(3:end-1);
+0434 <span class="keyword">end</span>
+0435 Q.sortname   = get_string(h.ds_sortname);
+0436 Q.condition  = get(h.ds_condition,<span class="string">'String'</span>);
+0437 Q.tanknotes  = get(h.ds_notes,<span class="string">'String'</span>); 
+0438 Q.electrode  = get_string(h.ds_electrode);
+0439 Q.elecdepth  = str2num(get(h.ds_depth,<span class="string">'String'</span>)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0440 Q.electarget = get(h.ds_target,<span class="string">'String'</span>);
 0441 
-0442 tank = get_string(h.ds_list);
-0443 
-0444 [Q.tank,ac] = strtok(tank,<span class="string">' ['</span>);
-0445 Q.hasACpools = ~isempty(ac);
-0446 
-0447 <span class="keyword">if</span> isempty(Queue)
-0448     Queue = Q;
-0449 <span class="keyword">else</span>
-0450     Queue(end+1) = Q;
-0451 <span class="keyword">end</span>
-0452 
-0453 setappdata(h.figure1,<span class="string">'UPLOAD_QUEUE'</span>,Queue);
-0454 
-0455 <span class="comment">% Update Queue</span>
-0456 qstr = get(h.upload_queue,<span class="string">'String'</span>);
-0457 estr = sprintf(<span class="string">' %s,'</span>,Q.events{:}); estr(end) = [];
-0458 qstr{end+1} = sprintf(<span class="string">'TANK: %s with %d blocks, %s'</span>,Q.tank,length(Q.data),estr);
-0459 set(h.upload_queue,<span class="string">'String'</span>,qstr);
-0460 
-0461 
-0462 
-0463 <a name="_sub18" href="#_subfunctions" class="code">function ds_path_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;DEFNU,INUSL&gt;</span>
-0464 <span class="comment">% Manually locate parent directory</span>
-0465 <a href="#_sub19" class="code" title="subfunction ds_locate_path_Callback(hObj, pn, h) ">ds_locate_path_Callback</a>(h.ds_locate_path, [], h)
+0442 <span class="keyword">if</span> isempty(Q.condition),  Q.condition = <span class="string">' '</span>;  <span class="keyword">end</span>
+0443 <span class="keyword">if</span> isempty(Q.tanknotes),  Q.tanknotes = <span class="string">' '</span>;  <span class="keyword">end</span>
+0444 <span class="keyword">if</span> isempty(Q.electarget), Q.electarget = <span class="string">' '</span>; <span class="keyword">end</span>
+0445 
+0446 tank = get_string(h.ds_list);
+0447 
+0448 [Q.tank,ac] = strtok(tank,<span class="string">' ['</span>);
+0449 Q.hasACpools = ~isempty(ac);
+0450 
+0451 <span class="keyword">if</span> isempty(Queue)
+0452     Queue = Q;
+0453 <span class="keyword">else</span>
+0454     Queue(end+1) = Q;
+0455 <span class="keyword">end</span>
+0456 
+0457 setappdata(h.figure1,<span class="string">'UPLOAD_QUEUE'</span>,Queue);
+0458 
+0459 <span class="comment">% Update Queue</span>
+0460 qstr = get(h.upload_queue,<span class="string">'String'</span>);
+0461 estr = sprintf(<span class="string">' %s,'</span>,Q.events{:}); estr(end) = [];
+0462 qstr{end+1} = sprintf(<span class="string">'TANK: %s with %d blocks, %s'</span>,Q.tank,length(Q.data),estr);
+0463 set(h.upload_queue,<span class="string">'String'</span>,qstr);
+0464 
+0465 
 0466 
-0467 <a name="_sub19" href="#_subfunctions" class="code">function ds_locate_path_Callback(hObj, pn, h) </a><span class="comment">%#ok&lt;INUSL&gt;</span>
-0468 <span class="comment">% optionally pass in a path string for pn</span>
-0469 
-0470 <span class="keyword">if</span> isempty(pn)
-0471     <span class="comment">% Manually locate parent directory</span>
-0472     pn = uigetdir([],<span class="string">'Locate Tank Parent Directory'</span>);
-0473     <span class="keyword">if</span> ~pn, <span class="keyword">return</span>; <span class="keyword">end</span>
-0474 <span class="keyword">end</span>
-0475 
-0476 setpref(<span class="string">'UploadUtility'</span>,<span class="string">'datasetpath'</span>,pn);
-0477 
-0478 <span class="keyword">if</span> pn(end) ~= <span class="string">'\'</span>, pn(end+1) = <span class="string">'\'</span>; <span class="keyword">end</span>
-0479 set(h.ds_path,<span class="string">'String'</span>,pn);
-0480 
-0481 Tanks = CheckForTanks(pn);
-0482 
-0483 <span class="comment">% Find valid pooled datasets</span>
-0484 ACpath = <span class="string">'C:\AutoClass_Files\AC2_RESULTS\'</span>;
-0485 ACsubdirs = dir(ACpath);
-0486 ACsubdirs = ACsubdirs([ACsubdirs.isdir]);
-0487 ACsubdirs(ismember({ACsubdirs.name},{<span class="string">'.'</span>,<span class="string">'..'</span>})) = [];
-0488 pooledChs = cell(size(ACsubdirs)); hasPools = false(size(ACsubdirs));
-0489 <span class="keyword">for</span> i = 1:length(ACsubdirs)
-0490     pooledChs{i} = dir(fullfile(ACpath,ACsubdirs(i).name,<span class="string">'*POOLS.mat'</span>));
-0491     hasPools(i)  = ~isempty(pooledChs{i});
-0492 <span class="keyword">end</span>
-0493 ACtanks = {ACsubdirs.name};
-0494 <span class="keyword">if</span> ~isempty(Tanks)
-0495     idx = find(ismember(Tanks,ACtanks));
-0496     <span class="keyword">for</span> i = idx
-0497         Tanks{i} = sprintf(<span class="string">'%s [%d POOLS]'</span>,Tanks{i},length(pooledChs{i}));
-0498     <span class="keyword">end</span>
-0499 <span class="keyword">end</span>
-0500 set(h.ds_list,<span class="string">'Value'</span>,length(Tanks),<span class="string">'String'</span>,Tanks);
-0501 
-0502 <a name="_sub20" href="#_subfunctions" class="code">function ds_blocks_Callback(hObj, ~, h)</a>
-0503 v = get(hObj,<span class="string">'Value'</span>);
-0504 <span class="keyword">if</span> isempty(v) <span class="comment">% no blocks are selected</span>
-0505     set(h.ds_add_to_queue,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0506     <span class="keyword">return</span>
-0507 <span class="keyword">end</span>
-0508 
-0509 data = get(hObj,<span class="string">'UserData'</span>);
-0510 
-0511 dfltvals = [];
-0512 
-0513 str = {[]};
-0514 fn = fieldnames(data(1).snips);
-0515 <span class="keyword">if</span> ~isempty(fn)
-0516     dfltvals = 1;
-0517     <span class="keyword">for</span> i = 1:length(fn)
-0518         str{i} = sprintf(<span class="string">'%s (snips)'</span>,fn{i});
-0519     <span class="keyword">end</span>
-0520 <span class="keyword">end</span>
-0521 
-0522 fn = fieldnames(data(1).streams);
-0523 <span class="keyword">if</span> ~isempty(fn)
-0524     n = length(str);
-0525     dfltvals(end+1) = n+1;
-0526     <span class="keyword">for</span> i = 1:length(fn)
-0527         str{n+i} = sprintf(<span class="string">'%s (streams)'</span>,fn{i});
-0528     <span class="keyword">end</span>
-0529 <span class="keyword">end</span>
-0530 
-0531 <span class="keyword">if</span> isempty(str{1})
-0532     errordlg(<span class="string">'No events were found for this block.'</span>,<span class="string">'DB_UploadUtility'</span>,<span class="string">'modal'</span>)
-0533     set(h.ds_events,<span class="string">'String'</span>,<span class="string">''</span>,<span class="string">'Value'</span>,1);
-0534     set(h.ds_add_to_queue,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0535     <span class="keyword">return</span>
-0536 <span class="keyword">else</span>
-0537     set(h.ds_add_to_queue,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0538 <span class="keyword">end</span>
-0539 
-0540 vals = getpref(<span class="string">'DB_UploadUtility'</span>,<span class="string">'datatypes'</span>,dfltvals);
-0541 <span class="keyword">if</span> vals == 0, vals = dfltvals; <span class="keyword">end</span>
-0542 
-0543 set(h.ds_events,<span class="string">'String'</span>,str,<span class="string">'Value'</span>,vals);
+0467 <a name="_sub18" href="#_subfunctions" class="code">function ds_path_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;DEFNU,INUSL&gt;</span>
+0468 <span class="comment">% Manually locate parent directory</span>
+0469 <a href="#_sub19" class="code" title="subfunction ds_locate_path_Callback(hObj, pn, h) ">ds_locate_path_Callback</a>(h.ds_locate_path, [], h)
+0470 
+0471 <a name="_sub19" href="#_subfunctions" class="code">function ds_locate_path_Callback(hObj, pn, h) </a><span class="comment">%#ok&lt;INUSL&gt;</span>
+0472 <span class="comment">% optionally pass in a path string for pn</span>
+0473 
+0474 <span class="keyword">if</span> isempty(pn)
+0475     <span class="comment">% Manually locate parent directory</span>
+0476     pn = uigetdir([],<span class="string">'Locate Tank Parent Directory'</span>);
+0477     <span class="keyword">if</span> ~pn, <span class="keyword">return</span>; <span class="keyword">end</span>
+0478 <span class="keyword">end</span>
+0479 
+0480 setpref(<span class="string">'UploadUtility'</span>,<span class="string">'datasetpath'</span>,pn);
+0481 
+0482 <span class="keyword">if</span> pn(end) ~= <span class="string">'\'</span>, pn(end+1) = <span class="string">'\'</span>; <span class="keyword">end</span>
+0483 set(h.ds_path,<span class="string">'String'</span>,pn);
+0484 
+0485 Tanks = CheckForTanks(pn);
+0486 
+0487 <span class="comment">% Find valid pooled datasets</span>
+0488 ACpath = <span class="string">'C:\AutoClass_Files\AC2_RESULTS\'</span>;
+0489 ACsubdirs = dir(ACpath);
+0490 ACsubdirs = ACsubdirs([ACsubdirs.isdir]);
+0491 ACsubdirs(ismember({ACsubdirs.name},{<span class="string">'.'</span>,<span class="string">'..'</span>})) = [];
+0492 pooledChs = cell(size(ACsubdirs)); hasPools = false(size(ACsubdirs));
+0493 <span class="keyword">for</span> i = 1:length(ACsubdirs)
+0494     pooledChs{i} = dir(fullfile(ACpath,ACsubdirs(i).name,<span class="string">'*POOLS.mat'</span>));
+0495     hasPools(i)  = ~isempty(pooledChs{i});
+0496 <span class="keyword">end</span>
+0497 ACtanks = {ACsubdirs.name};
+0498 <span class="keyword">if</span> ~isempty(Tanks)
+0499     idx = find(ismember(Tanks,ACtanks));
+0500     <span class="keyword">for</span> i = idx
+0501         tidx = ismember(ACtanks,Tanks{i});
+0502         Tanks{i} = sprintf(<span class="string">'%s [%d POOLS]'</span>,Tanks{i},length(pooledChs{tidx}));
+0503     <span class="keyword">end</span>
+0504 <span class="keyword">end</span>
+0505 set(h.ds_list,<span class="string">'Value'</span>,length(Tanks),<span class="string">'String'</span>,Tanks);
+0506 
+0507 <a name="_sub20" href="#_subfunctions" class="code">function ds_blocks_Callback(hObj, ~, h)</a>
+0508 v = get(hObj,<span class="string">'Value'</span>);
+0509 <span class="keyword">if</span> isempty(v) <span class="comment">% no blocks are selected</span>
+0510     set(h.ds_add_to_queue,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0511     <span class="keyword">return</span>
+0512 <span class="keyword">end</span>
+0513 
+0514 data = get(hObj,<span class="string">'UserData'</span>);
+0515 
+0516 dfltvals = [];
+0517 
+0518 str = {[]};
+0519 fn = fieldnames(data(1).snips);
+0520 <span class="keyword">if</span> ~isempty(fn)
+0521     dfltvals = 1;
+0522     <span class="keyword">for</span> i = 1:length(fn)
+0523         str{i} = sprintf(<span class="string">'%s (snips)'</span>,fn{i});
+0524     <span class="keyword">end</span>
+0525 <span class="keyword">end</span>
+0526 
+0527 fn = fieldnames(data(1).streams);
+0528 <span class="keyword">if</span> ~isempty(fn)
+0529     n = length(str);
+0530     dfltvals(end+1) = n+1;
+0531     <span class="keyword">for</span> i = 1:length(fn)
+0532         str{n+i} = sprintf(<span class="string">'%s (streams)'</span>,fn{i});
+0533     <span class="keyword">end</span>
+0534 <span class="keyword">end</span>
+0535 
+0536 <span class="keyword">if</span> isempty(str{1})
+0537     errordlg(<span class="string">'No events were found for this block.'</span>,<span class="string">'DB_UploadUtility'</span>,<span class="string">'modal'</span>)
+0538     set(h.ds_events,<span class="string">'String'</span>,<span class="string">''</span>,<span class="string">'Value'</span>,1);
+0539     set(h.ds_add_to_queue,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0540     <span class="keyword">return</span>
+0541 <span class="keyword">else</span>
+0542     set(h.ds_add_to_queue,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0543 <span class="keyword">end</span>
 0544 
-0545 setappdata(h.figure1,<span class="string">'QBlockInfo'</span>,data(v));
-0546 
+0545 vals = getpref(<span class="string">'DB_UploadUtility'</span>,<span class="string">'datatypes'</span>,dfltvals);
+0546 <span class="keyword">if</span> vals == 0, vals = dfltvals; <span class="keyword">end</span>
 0547 
-0548 <a name="_sub21" href="#_subfunctions" class="code">function ds_events_Callback(hObj, ~, ~  ) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
-0549 vals = get(hObj,<span class="string">'Value'</span>);
-0550 setpref(<span class="string">'DB_UploadUtility'</span>,<span class="string">'datatypes'</span>,vals);
+0548 set(h.ds_events,<span class="string">'String'</span>,str,<span class="string">'Value'</span>,vals);
+0549 
+0550 setappdata(h.figure1,<span class="string">'QBlockInfo'</span>,data(v));
 0551 
 0552 
-0553 
-0554 
-0555 
+0553 <a name="_sub21" href="#_subfunctions" class="code">function ds_events_Callback(hObj, ~, ~  ) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+0554 vals = get(hObj,<span class="string">'Value'</span>);
+0555 setpref(<span class="string">'DB_UploadUtility'</span>,<span class="string">'datatypes'</span>,vals);
 0556 
 0557 
 0558 
@@ -630,238 +630,248 @@ This function is called by:
 0584 
 0585 
 0586 
-0587 <span class="comment">%% Upload</span>
-0588 <a name="_sub22" href="#_subfunctions" class="code">function upload_data_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;INUSL,DEFNU&gt;</span>
-0589 Queue = getappdata(h.figure1,<span class="string">'UPLOAD_QUEUE'</span>);
-0590 <span class="keyword">if</span> isempty(Queue), <span class="keyword">return</span>; <span class="keyword">end</span>
+0587 
+0588 
+0589 
+0590 
 0591 
-0592 curdb = get_string(h.db_list);
-0593 
-0594 <span class="keyword">if</span> ~myisopen, DB_Connect; <span class="keyword">end</span>
-0595 <span class="keyword">if</span> ~strcmp(dbcurr,curdb), dbopen(curdb); <span class="keyword">end</span>
+0592 <span class="comment">%% Upload</span>
+0593 <a name="_sub22" href="#_subfunctions" class="code">function upload_data_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;INUSL,DEFNU&gt;</span>
+0594 Queue = getappdata(h.figure1,<span class="string">'UPLOAD_QUEUE'</span>);
+0595 <span class="keyword">if</span> isempty(Queue), <span class="keyword">return</span>; <span class="keyword">end</span>
 0596 
-0597 allobjs = findobj(h.figure1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0598 set(allobjs,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0599 
-0600 <span class="keyword">try</span>
-0601     <span class="keyword">for</span> i = 1:length(Queue)
-0602         Q = Queue(i);
-0603         
-0604         B = Q.data;
-0605         
-0606         exptid = myms(sprintf(<span class="string">'SELECT id FROM experiments WHERE name = &quot;%s&quot;'</span>,Q.experiment));
-0607         
-0608         <span class="comment">% Delete any existing data for this tank</span>
-0609         oldtid = myms(sprintf(<span class="string">'SELECT id FROM tanks WHERE name = &quot;%s&quot;'</span>,Q.tank));
-0610         <span class="keyword">if</span> ~isempty(oldtid)
-0611             oldbid = myms(sprintf(<span class="string">'SELECT id FROM blocks WHERE tank_id = %d'</span>,oldtid));
-0612             <span class="keyword">for</span> b = 1:length(oldbid)
-0613                 oldcid = myms(sprintf(<span class="string">'SELECT id FROM channels WHERE block_id = %d'</span>,oldbid(b)));
-0614                 mym(<span class="string">'DELETE IGNORE FROM channels WHERE block_id = {Si}'</span>,oldbid(b));
-0615                 mym(<span class="string">'DELETE FROM protocols WHERE block_id = {Si}'</span>,oldbid(b));
-0616                 <span class="keyword">if</span> ~isempty(oldcid)
-0617                     s = sprintf(<span class="string">'%d,'</span>,oldcid); s(end) = [];
-0618                     mym(<span class="string">'DELETE IGNORE FROM wave_data WHERE channel_id IN ({S})'</span>,s);
-0619                     olduid = myms(sprintf(<span class="string">'SELECT id FROM units WHERE channel_id IN (%s)'</span>,s));
-0620                     <span class="keyword">if</span> ~isempty(olduid)
-0621                         s = sprintf(<span class="string">'%d,'</span>,olduid); s(end) = [];
-0622                         mym(<span class="string">'DELETE IGNORE FROM spike_data WHERE unit_id IN ({S})'</span>,s);
-0623                         mym(<span class="string">'DELETE IGNORE FROM units WHERE id IN ({S})'</span>,s);
-0624                     <span class="keyword">end</span>
-0625                 <span class="keyword">end</span>
-0626                 
-0627             <span class="keyword">end</span>
-0628             mym(<span class="string">'DELETE IGNORE FROM tanks WHERE id = {Si}'</span>,oldtid);
-0629             mym(<span class="string">'DELETE IGNORE FROM blocks WHERE tank_id = {Si}'</span>,oldtid);
-0630         <span class="keyword">end</span>
-0631         
-0632         
-0633         <span class="comment">% update tanks</span>
-0634         snipsFs   = 1;
-0635         streamsFs = 1;
+0597 curdb = get_string(h.db_list);
+0598 
+0599 <span class="keyword">if</span> ~myisopen, DB_Connect; <span class="keyword">end</span>
+0600 <span class="keyword">if</span> ~strcmp(dbcurr,curdb), dbopen(curdb); <span class="keyword">end</span>
+0601 
+0602 allobjs = findobj(h.figure1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0603 set(allobjs,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0604 
+0605 <span class="comment">% try</span>
+0606     <span class="keyword">for</span> i = 1:length(Queue)
+0607         Q = Queue(i);
+0608         
+0609         B = Q.data;
+0610         
+0611         exptid = myms(sprintf(<span class="string">'SELECT id FROM experiments WHERE name = &quot;%s&quot;'</span>,Q.experiment));
+0612         
+0613         <span class="comment">% Delete any existing data for this tank</span>
+0614         oldtid = myms(sprintf(<span class="string">'SELECT id FROM tanks WHERE name = &quot;%s&quot;'</span>,Q.tank));
+0615         <span class="keyword">if</span> ~isempty(oldtid)
+0616             oldbid = myms(sprintf(<span class="string">'SELECT id FROM blocks WHERE tank_id = %d'</span>,oldtid));
+0617             <span class="keyword">for</span> b = 1:length(oldbid)
+0618                 oldcid = myms(sprintf(<span class="string">'SELECT id FROM channels WHERE block_id = %d'</span>,oldbid(b)));
+0619                 mym(<span class="string">'DELETE IGNORE FROM channels WHERE block_id = {Si}'</span>,oldbid(b));
+0620                 mym(<span class="string">'DELETE FROM protocols WHERE block_id = {Si}'</span>,oldbid(b));
+0621                 <span class="keyword">if</span> ~isempty(oldcid)
+0622                     s = sprintf(<span class="string">'%d,'</span>,oldcid); s(end) = [];
+0623                     mym(<span class="string">'DELETE IGNORE FROM wave_data WHERE channel_id IN ({S})'</span>,s);
+0624                     olduid = myms(sprintf(<span class="string">'SELECT id FROM units WHERE channel_id IN (%s)'</span>,s));
+0625                     <span class="keyword">if</span> ~isempty(olduid)
+0626                         s = sprintf(<span class="string">'%d,'</span>,olduid); s(end) = [];
+0627                         mym(<span class="string">'DELETE IGNORE FROM spike_data WHERE unit_id IN ({S})'</span>,s);
+0628                         mym(<span class="string">'DELETE IGNORE FROM units WHERE id IN ({S})'</span>,s);
+0629                     <span class="keyword">end</span>
+0630                 <span class="keyword">end</span>
+0631                 
+0632             <span class="keyword">end</span>
+0633             mym(<span class="string">'DELETE IGNORE FROM tanks WHERE id = {Si}'</span>,oldtid);
+0634             mym(<span class="string">'DELETE IGNORE FROM blocks WHERE tank_id = {Si}'</span>,oldtid);
+0635         <span class="keyword">end</span>
 0636         
-0637         <span class="keyword">for</span> j = 1:length(Q.eventtype)
-0638             eval(sprintf(<span class="string">'%sFs = B(1).%s.%s.fs;'</span>,Q.eventtype{j},Q.eventtype{j},Q.events{j}));
-0639         <span class="keyword">end</span>
-0640         
-0641         snipEvent   = Q.events{strcmp(<span class="string">'snips'</span>,Q.eventtype)};
-0642         streamEvent = Q.events{strcmp(<span class="string">'streams'</span>,Q.eventtype)};
-0643         
-0644         mym([<span class="string">'INSERT tanks (exp_id,tank_condition,tank_date,tank_time,name,spike_fs,wave_fs,tank_notes) '</span>, <span class="keyword">...</span>
-0645             <span class="string">'VALUES ({Si},&quot;{S}&quot;,&quot;{S}&quot;,&quot;{S}&quot;,&quot;{S}&quot;,{S},{S},&quot;{S}&quot;)'</span>], <span class="keyword">...</span>
-0646             exptid,Q.condition,datestr(B(1).info.date,<span class="string">'yyyy-mm-dd'</span>),datestr(B(1).info.begintime,<span class="string">'HH:MM:SS'</span>), <span class="keyword">...</span>
-0647             Q.tank,num2str(snipsFs,<span class="string">'%0.5f'</span>),num2str(streamsFs,<span class="string">'%0.5f'</span>),Q.tanknotes);
-0648         tid = myms(sprintf(<span class="string">'SELECT DISTINCT id FROM tanks WHERE name = &quot;%s&quot;'</span>,Q.tank));
-0649                 
-0650         <span class="comment">% update electrode</span>
-0651         e = Q.electrode(find(Q.electrode==<span class="string">'-'</span>,1,<span class="string">'first'</span>)+2:end);
-0652         mym([<span class="string">'INSERT electrodes (tank_id,type,depth,target) VALUES '</span>, <span class="keyword">...</span>
-0653             <span class="string">'({Si},(SELECT id FROM db_util.electrode_types WHERE NOT STRCMP(product_id,&quot;{S}&quot;)),'</span> <span class="keyword">...</span>
-0654             <span class="string">'{S},&quot;{S}&quot;)'</span>],tid,e,Q.elecdepth,Q.electarget);
-0655         
-0656         <span class="keyword">for</span> j = 1:length(B)
-0657             fprintf(<span class="string">'\nUploading tank ''%s'', block ''%s'' (%d of %d)\n'</span>, <span class="keyword">...</span>
-0658                 Q.tank,B(j).info.blockname,j,length(B))
-0659             <span class="comment">% update blocks</span>
-0660             <span class="keyword">if</span> strcmp(B(j).pname,<span class="string">'Unknown'</span>), B(j).pname = <span class="string">'?'</span>; <span class="keyword">end</span>
-0661             pid = myms(sprintf(<span class="string">'SELECT DISTINCT pid FROM db_util.protocol_types WHERE alias = &quot;%s&quot;'</span>,<span class="keyword">...</span>
-0662                 B(j).pname));
-0663             
-0664             
-0665             assert(isscalar(pid),<span class="string">'DB_UploadUtility:upload_data_Callback: Redundant protocol types (pid) on protocol_types table in db_util database.'</span>)
-0666             
-0667             
-0668             blockidx = str2num(B(j).info.blockname(find(B(j).info.blockname==<span class="string">'-'</span>,1,<span class="string">'last'</span>)+1:end)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
-0669             mym([<span class="string">'REPLACE blocks (tank_id,block,protocol,block_date,block_time) VALUES '</span>, <span class="keyword">...</span>
-0670                 <span class="string">'({Si},{Si},{Si},&quot;{S}&quot;,&quot;{S}&quot;)'</span>], <span class="keyword">...</span>
-0671                 tid,blockidx,pid, <span class="keyword">...</span>
-0672                 datestr(datevec(B(j).info.date,<span class="string">'yyyy-mmm-dd'</span>),<span class="string">'yyyy-mm-dd'</span>), <span class="keyword">...</span>
-0673                 B(j).info.begintime);
-0674             
-0675             <span class="comment">% update protocols</span>
-0676             blockid = myms(sprintf(<span class="string">'SELECT id FROM blocks WHERE tank_id = %d AND block = %d'</span>,tid,blockidx));
-0677             
-0678             fprintf(<span class="string">'\tUploading protocol data ...'</span>)
+0637         
+0638         <span class="comment">% update tanks</span>
+0639         snipsFs   = 1;
+0640         streamsFs = 1;
+0641         
+0642         <span class="keyword">for</span> j = 1:length(Q.eventtype)
+0643             eval(sprintf(<span class="string">'%sFs = B(1).%s.%s.fs;'</span>,Q.eventtype{j},Q.eventtype{j},Q.events{j}));
+0644         <span class="keyword">end</span>
+0645         
+0646         snipEvent   = Q.events{strcmp(<span class="string">'snips'</span>,Q.eventtype)};
+0647         streamEvent = Q.events{strcmp(<span class="string">'streams'</span>,Q.eventtype)};
+0648         
+0649         mym([<span class="string">'INSERT tanks (exp_id,tank_condition,tank_date,tank_time,name,spike_fs,wave_fs,tank_notes) '</span>, <span class="keyword">...</span>
+0650             <span class="string">'VALUES ({Si},&quot;{S}&quot;,&quot;{S}&quot;,&quot;{S}&quot;,&quot;{S}&quot;,{S},{S},&quot;{S}&quot;)'</span>], <span class="keyword">...</span>
+0651             exptid,Q.condition,datestr(B(1).info.date,<span class="string">'yyyy-mm-dd'</span>),datestr(B(1).info.begintime,<span class="string">'HH:MM:SS'</span>), <span class="keyword">...</span>
+0652             Q.tank,num2str(snipsFs,<span class="string">'%0.5f'</span>),num2str(streamsFs,<span class="string">'%0.5f'</span>),Q.tanknotes);
+0653         tid = myms(sprintf(<span class="string">'SELECT DISTINCT id FROM tanks WHERE name = &quot;%s&quot;'</span>,Q.tank));
+0654                 
+0655         <span class="comment">% update electrode</span>
+0656         e = Q.electrode(find(Q.electrode==<span class="string">'-'</span>,1,<span class="string">'first'</span>)+2:end);
+0657         mym([<span class="string">'INSERT electrodes (tank_id,type,depth,target) VALUES '</span>, <span class="keyword">...</span>
+0658             <span class="string">'({Si},(SELECT id FROM db_util.electrode_types WHERE NOT STRCMP(product_id,&quot;{S}&quot;)),'</span> <span class="keyword">...</span>
+0659             <span class="string">'{S},&quot;{S}&quot;)'</span>],tid,e,Q.elecdepth,Q.electarget);
+0660         
+0661         <span class="keyword">for</span> j = 1:length(B)
+0662             fprintf(<span class="string">'\nUploading tank ''%s'', block ''%s'' (%d of %d)\n'</span>, <span class="keyword">...</span>
+0663                 Q.tank,B(j).info.blockname,j,length(B))
+0664             <span class="comment">% update blocks</span>
+0665             <span class="keyword">if</span> strcmp(B(j).pname,<span class="string">'Unknown'</span>), B(j).pname = <span class="string">'?'</span>; <span class="keyword">end</span>
+0666             pid = myms(sprintf(<span class="string">'SELECT DISTINCT pid FROM db_util.protocol_types WHERE alias = &quot;%s&quot;'</span>,<span class="keyword">...</span>
+0667                 B(j).pname));
+0668             
+0669             
+0670             assert(isscalar(pid),<span class="string">'DB_UploadUtility:upload_data_Callback: Redundant protocol types (pid) on protocol_types table in db_util database.'</span>)
+0671             
+0672             
+0673             blockidx = str2num(B(j).info.blockname(find(B(j).info.blockname==<span class="string">'-'</span>,1,<span class="string">'last'</span>)+1:end)); <span class="comment">%#ok&lt;ST2NM&gt;</span>
+0674             mym([<span class="string">'REPLACE blocks (tank_id,block,protocol,block_date,block_time) VALUES '</span>, <span class="keyword">...</span>
+0675                 <span class="string">'({Si},{Si},{Si},&quot;{S}&quot;,&quot;{S}&quot;)'</span>], <span class="keyword">...</span>
+0676                 tid,blockidx,pid, <span class="keyword">...</span>
+0677                 datestr(datevec(B(j).info.date,<span class="string">'yyyy-mmm-dd'</span>),<span class="string">'yyyy-mm-dd'</span>), <span class="keyword">...</span>
+0678                 B(j).info.begintime);
 0679             
-0680             <span class="comment">% get parameter codes from db_util.param_types; insert new codes if does not exist</span>
-0681             <span class="keyword">if</span> ~isempty(B(j).epocs)
-0682                 paramspec = fieldnames(B(j).epocs);
-0683                 paramspec(ismember(paramspec,{<span class="string">'PROT'</span>,<span class="string">'Tick'</span>,<span class="string">'Tock'</span>,<span class="string">'Mark'</span>})) = [];
-0684                 B(j).epocs.onset.data = B(j).epocs.(paramspec{1}).onset;
-0685                 paramspec{end+1} = <span class="string">'onset'</span>; <span class="comment">%#ok&lt;AGROW&gt;</span>
-0686                 parcode = nan(size(paramspec));
-0687                 epocs = nan(length(B(j).epocs.(paramspec{1}).data),length(paramspec));
-0688                 <span class="keyword">for</span> k = 1:length(paramspec)
-0689                     checkpar = myms(sprintf(<span class="string">'SELECT id FROM db_util.param_types WHERE param = &quot;%s&quot;'</span>,paramspec{k}));
-0690                     <span class="keyword">if</span> isempty(checkpar)
-0691                         mym(<span class="string">'INSERT db_util.param_types (param) VALUE (&quot;{S}&quot;)'</span>,paramspec{k});
-0692                         parcode(k) = myms(sprintf(<span class="string">'SELECT id FROM db_util.param_types WHERE param = &quot;%s&quot;'</span>,paramspec{k}));
-0693                     <span class="keyword">else</span>
-0694                         parcode(k) = checkpar;
-0695                     <span class="keyword">end</span>
-0696                     epocs(:,k) = B(j).epocs.(paramspec{k}).data;
-0697                 <span class="keyword">end</span>
-0698                 <span class="comment">% create matrix for protocol</span>
-0699                 param_id      = repmat(1:size(epocs,1),size(epocs,2),1);
-0700                 param_type    = repmat(parcode(:),1,size(epocs,1));
-0701                 param_value   = epocs';
-0702                 nepochs       = numel(epocs);
-0703                 protdata(:,1) = repmat(blockid,nepochs,1);
-0704                 protdata(:,2) = param_id(:);
-0705                 protdata(:,3) = param_type(:);
-0706                 protdata(:,4) = param_value(:);
-0707                 
-0708                 <span class="comment">% upload each row of the protocol</span>
-0709                 <span class="keyword">for</span> k = 1:size(protdata,1)
-0710                     mym([<span class="string">'INSERT protocols (block_id,param_id,param_type,param_value) VALUES '</span>, <span class="keyword">...</span>
-0711                         <span class="string">'({Si},{Si},{Si},{S})'</span>], <span class="keyword">...</span>
-0712                         protdata(k,1),protdata(k,2),protdata(k,3),num2str(protdata(k,4),<span class="string">'%0.6f'</span>));
-0713                 <span class="keyword">end</span>
-0714                 clear protdata
-0715                 fprintf(<span class="string">' done\n'</span>)
-0716             <span class="keyword">else</span>
-0717                 fprintf(<span class="string">' no protocol data found\n'</span>)
-0718             <span class="keyword">end</span>
-0719             
-0720             <span class="comment">% get snips from tank block</span>
-0721             data = TDT2mat(Q.tank,B(j).info.blockname,<span class="string">'silent'</span>,true,<span class="string">'type'</span>,[2 3], <span class="keyword">...</span>
-0722                 <span class="string">'SortName'</span>,Q.sortname);
-0723             
-0724             <span class="comment">% update channels</span>
-0725             <span class="keyword">if</span> ~isempty(data.streams)
-0726                 channels = data.streams.(streamEvent).chan;
-0727             <span class="keyword">else</span>
-0728                 channels = unique(data.snips.(snipEvent).chan);
-0729             <span class="keyword">end</span>
-0730             
-0731             fprintf(<span class="string">'\tAdding %d channels ... '</span>,length(channels))
-0732             <span class="keyword">for</span> k = channels
-0733                 mym([<span class="string">'INSERT channels (block_id,channel,target) VALUES '</span>, <span class="keyword">...</span>
-0734                     <span class="string">'({Si},{Si},&quot;{S}&quot;)'</span>],blockid,k,Q.electarget);
-0735             <span class="keyword">end</span>
-0736             fprintf(<span class="string">'done\n'</span>)
-0737             
-0738             <span class="comment">% update units</span>
-0739             <span class="keyword">if</span> ~isempty(data.snips)
-0740                 snips = data.snips.(snipEvent);
-0741                 schans = unique(snips.chan);
-0742                 <span class="keyword">for</span> k = 1:length(schans)
-0743                     fprintf(<span class="string">'\tUploading spikes on channel% 3.0f (%d of %d)'</span>, <span class="keyword">...</span>
-0744                         schans(k),k,length(schans))
-0745                     channel_id = myms(sprintf(<span class="string">'SELECT id FROM channels WHERE channel = %d AND block_id = %d'</span>, <span class="keyword">...</span>
-0746                         schans(k),blockid));
-0747                     
-0748                     units = unique(snips.sort(snips.chan==schans(k)));
-0749                     
-0750                     <span class="keyword">for</span> u = units
-0751                         uind = snips.sort == u &amp; snips.chan == schans(k);
-0752                         pwaveform = mean(snips.data(uind,:),1);
-0753                         pstddev   = std(snips.data(uind,:),0,1);
-0754                         
-0755                         fprintf(<span class="string">'\n\t\tPool %d: % 6.0f spikes ...'</span>,u,sum(uind))
-0756                         
-0757                         mym([<span class="string">'INSERT units (channel_id,pool,unit_count,pool_waveform,pool_stddev) VALUES '</span>, <span class="keyword">...</span>
-0758                             <span class="string">'({Si},{Si},{Si},&quot;{S}&quot;,&quot;{S}&quot;)'</span>], <span class="keyword">...</span>
-0759                             channel_id,u,sum(uind),num2str(pwaveform),num2str(pstddev));
-0760                         
-0761                         uid = myms(sprintf([<span class="string">'SELECT id FROM units '</span>, <span class="keyword">...</span>
-0762                             <span class="string">'WHERE channel_id = %d AND pool = %d'</span>], <span class="keyword">...</span>
-0763                             channel_id,u));
-0764                         
-0765                         <span class="comment">% update spike_data</span>
-0766                         ts = num2str(snips.ts(uind)',<span class="string">'%0.6f'</span>);
-0767                         <span class="keyword">for</span> kk = 1:size(ts,1)
-0768                             mym(<span class="string">'INSERT spike_data (unit_id,spike_time) VALUES ({Si},{S})'</span>, <span class="keyword">...</span>
-0769                                 uid,ts(kk,:));
-0770                         <span class="keyword">end</span>
-0771                         
-0772                         fprintf(<span class="string">' done\n'</span>)
-0773                     <span class="keyword">end</span>
-0774                 <span class="keyword">end</span>
-0775                 
-0776             <span class="keyword">end</span>
-0777             
-0778             <span class="keyword">if</span> ~isempty(data.streams)
-0779                 <span class="comment">% update wave_data</span>
-0780                 DB_UploadWaveData(Q.tank,B(j).info.blockname,streamEvent);
-0781                 
-0782             <span class="keyword">end</span>
-0783         <span class="keyword">end</span>
-0784     <span class="keyword">end</span>
-0785     fprintf(<span class="string">'\nCompleted upload at %s\n\n'</span>,datestr(now,<span class="string">'dd-mmm-yyyy HH:MM:SS'</span>))
-0786 <span class="keyword">catch</span> ME
-0787    set(allobjs,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0788    rethrow(ME)
-0789 <span class="keyword">end</span>
-0790 set(allobjs,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0791 
-0792 
-0793 
-0794 
-0795 
-0796 
-0797 
-0798 
-0799 
-0800 
+0680             <span class="comment">% update protocols</span>
+0681             blockid = myms(sprintf(<span class="string">'SELECT id FROM blocks WHERE tank_id = %d AND block = %d'</span>,tid,blockidx));
+0682             
+0683             fprintf(<span class="string">'\tUploading protocol data ...'</span>)
+0684             
+0685             <span class="comment">% get parameter codes from db_util.param_types; insert new codes if does not exist</span>
+0686             <span class="keyword">if</span> ~isempty(B(j).epocs)
+0687                 paramspec = fieldnames(B(j).epocs);
+0688                 paramspec(ismember(paramspec,{<span class="string">'PROT'</span>,<span class="string">'Tick'</span>,<span class="string">'Tock'</span>,<span class="string">'Mark'</span>})) = [];
+0689                 <span class="keyword">if</span> isempty(paramspec)
+0690                     B(j).epocs.onset.data = B(j).epocs.PROT.onset;
+0691                 <span class="keyword">else</span>
+0692                     B(j).epocs.onset.data = B(j).epocs.(paramspec{1}).onset;
+0693                 <span class="keyword">end</span>
+0694                 paramspec{end+1} = <span class="string">'onset'</span>; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0695                 parcode = nan(size(paramspec));
+0696                 epocs = nan(length(B(j).epocs.(paramspec{1}).data),length(paramspec));
+0697                 <span class="keyword">for</span> k = 1:length(paramspec)
+0698                     checkpar = myms(sprintf(<span class="string">'SELECT id FROM db_util.param_types WHERE param = &quot;%s&quot;'</span>,paramspec{k}));
+0699                     <span class="keyword">if</span> isempty(checkpar)
+0700                         mym(<span class="string">'INSERT db_util.param_types (param) VALUE (&quot;{S}&quot;)'</span>,paramspec{k});
+0701                         parcode(k) = myms(sprintf(<span class="string">'SELECT id FROM db_util.param_types WHERE param = &quot;%s&quot;'</span>,paramspec{k}));
+0702                     <span class="keyword">else</span>
+0703                         parcode(k) = checkpar;
+0704                     <span class="keyword">end</span>
+0705                     epocs(:,k) = B(j).epocs.(paramspec{k}).data;
+0706                 <span class="keyword">end</span>
+0707                 <span class="comment">% create matrix for protocol</span>
+0708                 param_id      = repmat(1:size(epocs,1),size(epocs,2),1);
+0709                 param_type    = repmat(parcode(:),1,size(epocs,1));
+0710                 param_value   = epocs';
+0711                 nepochs       = numel(epocs);
+0712                 protdata(:,1) = repmat(blockid,nepochs,1);
+0713                 protdata(:,2) = param_id(:);
+0714                 protdata(:,3) = param_type(:);
+0715                 protdata(:,4) = param_value(:);
+0716                 
+0717                 <span class="comment">% upload each row of the protocol</span>
+0718                 <span class="keyword">for</span> k = 1:size(protdata,1)
+0719                     mym([<span class="string">'INSERT protocols (block_id,param_id,param_type,param_value) VALUES '</span>, <span class="keyword">...</span>
+0720                         <span class="string">'({Si},{Si},{Si},{S})'</span>], <span class="keyword">...</span>
+0721                         protdata(k,1),protdata(k,2),protdata(k,3),num2str(protdata(k,4),<span class="string">'%0.6f'</span>));
+0722                 <span class="keyword">end</span>
+0723                 clear protdata
+0724                 fprintf(<span class="string">' done\n'</span>)
+0725             <span class="keyword">else</span>
+0726                 fprintf(<span class="string">' no protocol data found\n'</span>)
+0727             <span class="keyword">end</span>
+0728             
+0729             <span class="comment">% get snips from tank block</span>
+0730             data = TDT2mat(Q.tank,B(j).info.blockname,<span class="string">'silent'</span>,true,<span class="string">'type'</span>,[2 3], <span class="keyword">...</span>
+0731                 <span class="string">'SortName'</span>,Q.sortname);
+0732             
+0733             <span class="comment">% update channels</span>
+0734             <span class="keyword">if</span> ~isempty(data.streams)
+0735                 channels = data.streams.(streamEvent).chan;
+0736             <span class="keyword">else</span>
+0737                 channels = unique(data.snips.(snipEvent).chan);
+0738             <span class="keyword">end</span>
+0739             
+0740             fprintf(<span class="string">'\tAdding %d channels ... '</span>,length(channels))
+0741             <span class="keyword">for</span> k = channels
+0742                 mym([<span class="string">'INSERT channels (block_id,channel,target) VALUES '</span>, <span class="keyword">...</span>
+0743                     <span class="string">'({Si},{Si},&quot;{S}&quot;)'</span>],blockid,k,Q.electarget);
+0744             <span class="keyword">end</span>
+0745             fprintf(<span class="string">'done\n'</span>)
+0746             
+0747             <span class="comment">% update units</span>
+0748             <span class="keyword">if</span> ~isempty(data.snips)
+0749                 snips = data.snips.(snipEvent);
+0750                 schans = unique(snips.chan);
+0751                 <span class="keyword">for</span> k = 1:length(schans)
+0752                     fprintf(<span class="string">'\tUploading spikes on channel% 3.0f (%d of %d)'</span>, <span class="keyword">...</span>
+0753                         schans(k),k,length(schans))
+0754                     channel_id = myms(sprintf(<span class="string">'SELECT id FROM channels WHERE channel = %d AND block_id = %d'</span>, <span class="keyword">...</span>
+0755                         schans(k),blockid));
+0756                     
+0757                     units = unique(snips.sort(snips.chan==schans(k)));
+0758                     
+0759                     <span class="keyword">for</span> u = units
+0760                         uind = snips.sort == u &amp; snips.chan == schans(k);
+0761                         pwaveform = mean(snips.data(uind,:),1);
+0762                         pstddev   = std(snips.data(uind,:),0,1);
+0763                         
+0764                         fprintf(<span class="string">'\n\t\tPool % 4d: % 6.0f spikes ...'</span>,u,sum(uind))
+0765                         
+0766                         mym([<span class="string">'INSERT units (channel_id,pool,unit_count,pool_waveform,pool_stddev) VALUES '</span>, <span class="keyword">...</span>
+0767                             <span class="string">'({Si},{Si},{Si},&quot;{S}&quot;,&quot;{S}&quot;)'</span>], <span class="keyword">...</span>
+0768                             channel_id,u,sum(uind),num2str(pwaveform),num2str(pstddev));
+0769                         
+0770                         uid = myms(sprintf([<span class="string">'SELECT id FROM units '</span>, <span class="keyword">...</span>
+0771                             <span class="string">'WHERE channel_id = %d AND pool = %d'</span>], <span class="keyword">...</span>
+0772                             channel_id,u));
+0773                         
+0774                         <span class="comment">% update spike_data</span>
+0775                         ts = num2str(snips.ts(uind)',<span class="string">'%0.6f'</span>);
+0776                         <span class="keyword">for</span> kk = 1:size(ts,1)
+0777                             mym(<span class="string">'INSERT spike_data (unit_id,spike_time) VALUES ({Si},{S})'</span>, <span class="keyword">...</span>
+0778                                 uid,ts(kk,:));
+0779                         <span class="keyword">end</span>
+0780                         
+0781                         fprintf(<span class="string">' done'</span>)
+0782                     <span class="keyword">end</span>
+0783                     fprintf(<span class="string">'\n'</span>)
+0784                 <span class="keyword">end</span>
+0785                 
+0786             <span class="keyword">end</span>
+0787             
+0788             <span class="keyword">if</span> ~isempty(data.streams)
+0789                 <span class="comment">% update wave_data</span>
+0790                 DB_UploadWaveData(Q.tank,B(j).info.blockname,streamEvent);
+0791                 
+0792             <span class="keyword">end</span>
+0793         <span class="keyword">end</span>
+0794     <span class="keyword">end</span>
+0795     fprintf(<span class="string">'\nCompleted upload at %s\n\n'</span>,datestr(now,<span class="string">'dd-mmm-yyyy HH:MM:SS'</span>))
+0796 <span class="comment">% catch ME</span>
+0797 <span class="comment">%    set(allobjs,'Enable','on');</span>
+0798 <span class="comment">%    rethrow(ME)</span>
+0799 <span class="comment">% end</span>
+0800 set(allobjs,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
 0801 
 0802 
 0803 
 0804 
 0805 
 0806 
-0807 <a name="_sub23" href="#_subfunctions" class="code">function upload_remove_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;INUSL,DEFNU&gt;</span>
-0808 Queue = getappdata(h.figure1,<span class="string">'UPLOAD_QUEUE'</span>);
-0809 <span class="keyword">if</span> isempty(Queue), <span class="keyword">return</span>; <span class="keyword">end</span>
+0807 
+0808 
+0809 
 0810 
-0811 v = get(h.upload_queue,<span class="string">'Value'</span>);
-0812 Queue(v) = [];
-0813 setappdata(h.figure1,<span class="string">'UPLOAD_QUEUE'</span>,Queue);
+0811 
+0812 
+0813 
 0814 
-0815 qstr = get(h.upload_queue,<span class="string">'String'</span>);
-0816 qstr(v) = [];
-0817 <span class="keyword">if</span> isempty(qstr), v = 1; <span class="keyword">elseif</span> v &gt; length(qstr),v = length(qstr); <span class="keyword">end</span>
-0818 set(h.upload_queue,<span class="string">'Value'</span>,v,<span class="string">'String'</span>,qstr);</pre></div>
-<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+0815 
+0816 
+0817 <a name="_sub23" href="#_subfunctions" class="code">function upload_remove_Callback(hObj, ~, h) </a><span class="comment">%#ok&lt;INUSL,DEFNU&gt;</span>
+0818 Queue = getappdata(h.figure1,<span class="string">'UPLOAD_QUEUE'</span>);
+0819 <span class="keyword">if</span> isempty(Queue), <span class="keyword">return</span>; <span class="keyword">end</span>
+0820 
+0821 v = get(h.upload_queue,<span class="string">'Value'</span>);
+0822 Queue(v) = [];
+0823 setappdata(h.figure1,<span class="string">'UPLOAD_QUEUE'</span>,Queue);
+0824 
+0825 qstr = get(h.upload_queue,<span class="string">'String'</span>);
+0826 qstr(v) = [];
+0827 <span class="keyword">if</span> isempty(qstr), v = 1; <span class="keyword">elseif</span> v &gt; length(qstr),v = length(qstr); <span class="keyword">end</span>
+0828 set(h.upload_queue,<span class="string">'Value'</span>,v,<span class="string">'String'</span>,qstr);</pre></div>
+<hr><address>Generated on Wed 24-Jul-2013 19:48:12 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>
