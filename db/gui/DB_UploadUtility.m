@@ -99,9 +99,9 @@ db = cellstr(get(h.db_list,'String'));
 db = db{get(h.db_list,'Value')};
 
 if ~myisopen
-    set(0,'pointer','watch'); drawnow
+    set(h.figure1,'pointer','watch'); drawnow
     DB_Connect; 
-    set(0,'pointer','arrow'); drawnow
+    set(h.figure1,'pointer','arrow'); drawnow
 end
 
 mym('use',db);
@@ -602,7 +602,7 @@ if ~strcmp(dbcurr,curdb), dbopen(curdb); end
 allobjs = findobj(h.figure1,'Enable','on');
 set(allobjs,'Enable','off');
 
-try
+% try
     for i = 1:length(Queue)
         Q = Queue(i);
         
@@ -761,7 +761,7 @@ try
                         pwaveform = mean(snips.data(uind,:),1);
                         pstddev   = std(snips.data(uind,:),0,1);
                         
-                        fprintf('\n\t\tPool % 9d: % 6.0f spikes ...',u,sum(uind))
+                        fprintf('\n\t\tPool % 4d: % 6.0f spikes ...',u,sum(uind))
                         
                         mym(['INSERT units (channel_id,pool,unit_count,pool_waveform,pool_stddev) VALUES ', ...
                             '({Si},{Si},{Si},"{S}","{S}")'], ...
@@ -793,10 +793,10 @@ try
         end
     end
     fprintf('\nCompleted upload at %s\n\n',datestr(now,'dd-mmm-yyyy HH:MM:SS'))
-catch ME
-   set(allobjs,'Enable','on');
-   rethrow(ME)
-end
+% catch ME
+%    set(allobjs,'Enable','on');
+%    rethrow(ME)
+% end
 set(allobjs,'Enable','on');
 
 
