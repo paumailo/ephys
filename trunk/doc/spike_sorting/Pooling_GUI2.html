@@ -35,7 +35,7 @@
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../matlabicon.gif)">
-</ul>
+<li><a href="AutoClass2TDT.html" class="code" title="function AutoClass2TDT(poolfn,varargin)">AutoClass2TDT</a>	AutoClass2TDT(poolfn)</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../matlabicon.gif)">
 </ul>
@@ -302,599 +302,599 @@ This function is called by:
 0254 
 0255 <span class="comment">%% Save Pools</span>
 0256 <a name="_sub8" href="#_subfunctions" class="code">function SavePools(h)</a>
-0257 <span class="comment">% Save pooled data with classed data</span>
-0258 POOLS     = h.POOLS; <span class="comment">%#ok&lt;NASGU&gt;</span>
-0259 CLASSLIST = h.CLASSLIST; <span class="comment">%#ok&lt;NASGU&gt;</span>
-0260 
-0261 chstr = sprintf(<span class="string">'%d_'</span>,h.DATAFILE.Spikes.channel); chstr(end) = [];
-0262 <span class="keyword">if</span> length(h.DATAFILE.Spikes.channel) &gt; 1
-0263     polystr = sprintf(<span class="string">'PTRODE%d'</span>,h.DATAFILEIDX);
-0264 <span class="keyword">else</span>
-0265     polystr = sprintf(<span class="string">'Ch_%s'</span>,chstr);
-0266 <span class="keyword">end</span>
-0267 poolstr = sprintf(<span class="string">'%s\\%s_%s_POOLS.mat'</span>, <span class="keyword">...</span>
-0268     h.CFG.AutoClass.resultsdir,h.DATAFILE.tank,polystr);
-0269 
-0270 save(poolstr,<span class="string">'POOLS'</span>,<span class="string">'CLASSLIST'</span>);
+0257 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); drawnow
+0258 
+0259 <span class="comment">% Save pooled data with classed data</span>
+0260 POOLS     = h.POOLS; <span class="comment">%#ok&lt;NASGU&gt;</span>
+0261 CLASSLIST = h.CLASSLIST; <span class="comment">%#ok&lt;NASGU&gt;</span>
+0262 
+0263 chstr = sprintf(<span class="string">'%d_'</span>,h.DATAFILE.Spikes.channel); chstr(end) = [];
+0264 <span class="keyword">if</span> length(h.DATAFILE.Spikes.channel) &gt; 1
+0265     polystr = sprintf(<span class="string">'PTRODE%d'</span>,h.DATAFILEIDX);
+0266 <span class="keyword">else</span>
+0267     polystr = sprintf(<span class="string">'Ch_%s'</span>,chstr);
+0268 <span class="keyword">end</span>
+0269 poolstr = sprintf(<span class="string">'%s\\%s_%s_POOLS.mat'</span>, <span class="keyword">...</span>
+0270     h.CFG.AutoClass.resultsdir,h.DATAFILE.tank,polystr);
 0271 
-0272 <span class="keyword">if</span> exist(poolstr,<span class="string">'file'</span>)
-0273     fprintf(<span class="string">'Saved: %s | %s %s\n'</span>,h.DATAFILE.tank,polystr,chstr)
-0274 <span class="keyword">else</span>
-0275     fprintf(<span class="string">'\n*** UNABLE TO SAVE POOLS! ***\n'</span>)
-0276 <span class="keyword">end</span>
-0277 
-0278 h.POOLS_SAVED = true;
-0279 guidata(gcbo,h);
+0272 save(poolstr,<span class="string">'POOLS'</span>,<span class="string">'CLASSLIST'</span>);
+0273 
+0274 <span class="keyword">if</span> exist(poolstr,<span class="string">'file'</span>)
+0275     fprintf(<span class="string">'Saved: %s | %s %s\n'</span>,h.DATAFILE.tank,polystr,chstr)
+0276 <span class="keyword">else</span>
+0277     fprintf(<span class="string">'\n*** UNABLE TO SAVE POOLS! ***\n'</span>)
+0278 <span class="keyword">end</span>
+0279 
 0280 
-0281 <a name="_sub9" href="#_subfunctions" class="code">function b = EnsurePoolsSaved(h)</a>
-0282 <span class="keyword">if</span> h.POOLS_SAVED
-0283     b = <span class="string">'Continue'</span>;
-0284 <span class="keyword">else</span>
-0285     b = questdlg([<span class="string">'Pools have been modified.  '</span>, <span class="keyword">...</span>
-0286         <span class="string">'Would you like to save the current pools?'</span>], <span class="keyword">...</span>
-0287         <span class="string">'Save Pools'</span>,<span class="string">'Save'</span>,<span class="string">'Continue'</span>,<span class="string">'Cancel'</span>,<span class="string">'Save'</span>);
-0288     <span class="keyword">switch</span> b
-0289         <span class="keyword">case</span> <span class="string">'Cancel'</span>
-0290             <span class="keyword">return</span>
-0291         <span class="keyword">case</span> <span class="string">'Save'</span>
-0292             <a href="#_sub8" class="code" title="subfunction SavePools(h)">SavePools</a>(h);
-0293     <span class="keyword">end</span>
-0294 <span class="keyword">end</span>
-0295 
-0296 
-0297 
-0298 
-0299 
-0300 
-0301 
-0302 
-0303 
+0281 <a href="AutoClass2TDT.html" class="code" title="function AutoClass2TDT(poolfn,varargin)">AutoClass2TDT</a>(poolstr)
+0282 
+0283 
+0284 h.POOLS_SAVED = true;
+0285 guidata(gcbo,h);
+0286 
+0287 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);
+0288 
+0289 
+0290 <a name="_sub9" href="#_subfunctions" class="code">function b = EnsurePoolsSaved(h)</a>
+0291 <span class="keyword">if</span> h.POOLS_SAVED
+0292     b = <span class="string">'Continue'</span>;
+0293 <span class="keyword">else</span>
+0294     b = questdlg([<span class="string">'Pools have been modified.  '</span>, <span class="keyword">...</span>
+0295         <span class="string">'Would you like to save the current pools?'</span>], <span class="keyword">...</span>
+0296         <span class="string">'Save Pools'</span>,<span class="string">'Save'</span>,<span class="string">'Continue'</span>,<span class="string">'Cancel'</span>,<span class="string">'Save'</span>);
+0297     <span class="keyword">switch</span> b
+0298         <span class="keyword">case</span> <span class="string">'Cancel'</span>
+0299             <span class="keyword">return</span>
+0300         <span class="keyword">case</span> <span class="string">'Save'</span>
+0301             <a href="#_sub8" class="code" title="subfunction SavePools(h)">SavePools</a>(h);
+0302     <span class="keyword">end</span>
+0303 <span class="keyword">end</span>
 0304 
 0305 
 0306 
-0307 <span class="comment">%% Plotting functions</span>
-0308 <a name="_sub10" href="#_subfunctions" class="code">function PlotClasses(h)</a>
-0309 W  = h.WAVEFORMS;
-0310 C  = h.CLASSLIST;
-0311 uc = h.UCLASSES;
-0312 colors = hsv(length(h.UCLASSES));
+0307 
+0308 
+0309 
+0310 
+0311 
+0312 
 0313 
-0314 t = get(h.toolbar_bands,<span class="string">'State'</span>);
-0315 <span class="keyword">if</span> strcmp(t,<span class="string">'on'</span>)
-0316     opt = <span class="string">'bands'</span>;
-0317 <span class="keyword">else</span>
-0318     opt = <span class="string">'lines'</span>;
-0319 <span class="keyword">end</span>
-0320 
-0321 nrows = floor(sqrt(length(uc)));
-0322 ncols = ceil(length(uc) / nrows);
-0323 <span class="keyword">if</span> nrows &lt; 2, nrows = 2; <span class="keyword">end</span>
-0324 
-0325 <span class="comment">% scale together by maximum absolute voltage</span>
-0326 maxV = max(abs(W),[],2);
-0327 maxV = quantile(maxV,0.999);
-0328 
-0329 delete(get(h.panel_classes,<span class="string">'Children'</span>));
-0330 
-0331 ax = zeros(size(uc));
-0332 <span class="keyword">for</span> i = 1:length(uc)
-0333     ax(i) = subplot(nrows,ncols,i,<span class="string">'Parent'</span>,h.panel_classes, <span class="keyword">...</span>
-0334         <span class="string">'Tag'</span>,num2str(uc(i),<span class="string">'axclass%02.0f'</span>));
-0335     
-0336     ind = C(2,:) == uc(i);
-0337         
-0338     <span class="keyword">if</span> sum(ind) &lt;= 1
-0339         op = <span class="string">'lines'</span>;
-0340     <span class="keyword">else</span>
-0341         op = opt;
-0342     <span class="keyword">end</span>
-0343     
-0344     <span class="keyword">switch</span> op
-0345         <span class="keyword">case</span> <span class="string">'lines'</span>
-0346             <span class="comment">% if lots of lines, then just display a random sampling</span>
-0347             <span class="keyword">if</span> sum(ind) &gt; 500, ind = find(ind); ind = ind(randperm(500)); <span class="keyword">end</span>
-0348             plot(ax(i),1:size(W,2),W(ind,:)',<span class="string">'Color'</span>,colors(i,:))
-0349        
-0350         <span class="keyword">case</span> <span class="string">'bands'</span>
-0351             q = quantile(W(ind,:),[0.025 0.975])';
-0352             y = [q(:,1); flipud(q(:,2))];
-0353             x = [1:size(W,2) size(W,2):-1:1];
-0354             fill(x',y,colors(i,:),<span class="string">'Parent'</span>,ax(i));
-0355     <span class="keyword">end</span>
-0356     xlim(ax(i),[1 size(W,2)]);  ylim(ax(i),[-maxV maxV]);
-0357     
-0358     uim = uicontextmenu(<span class="string">'UserData'</span>,uc(i));
-0359     uimenu(uim,<span class="string">'Label'</span>,<span class="string">'Select Class'</span>,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>,<span class="string">'UserData'</span>,uc(i), <span class="keyword">...</span>
-0360         <span class="string">'Checked'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,{@<a href="#_sub20" class="code" title="subfunction SelectClass(hObj,evnt) ">SelectClass</a>});
-0361     uimenu(uim,<span class="string">'Label'</span>,<span class="string">'Edit Class'</span>,<span class="string">'Tag'</span>,<span class="string">'Edit_Class'</span>,<span class="string">'UserData'</span>,uc(i), <span class="keyword">...</span>
-0362         <span class="string">'Callback'</span>,{@<a href="#_sub11" class="code" title="subfunction EditClass(hObj,evnt,cid) ">EditClass</a>,uc(i)});
-0363     <span class="keyword">for</span> j = 1:length(h.POOLIDS)
-0364         <span class="keyword">if</span> j == 1, s = <span class="string">'on'</span>; <span class="keyword">else</span> s = <span class="string">'off'</span>; <span class="keyword">end</span>
-0365         uimenu(uim,<span class="string">'Label'</span>,h.POOLIDS{j},<span class="string">'Tag'</span>,[<span class="string">'ut_'</span> lower(h.POOLIDS{j})], <span class="keyword">...</span>
-0366             <span class="string">'UserData'</span>,j-1,<span class="string">'Checked'</span>,<span class="string">'on'</span>,<span class="string">'Separator'</span>,s, <span class="keyword">...</span>
-0367             <span class="string">'Callback'</span>,{@<a href="#_sub22" class="code" title="subfunction UpdateUnitType(hObj,evnt,ax,classid) ">UpdateUnitType</a>,ax(i),uc(i)});
-0368     <span class="keyword">end</span>
-0369     
-0370     set(ax(i),<span class="string">'UIContextMenu'</span>,uim);
-0371     set(ax(i),<span class="string">'ButtonDownFcn'</span>,@<a href="#_sub20" class="code" title="subfunction SelectClass(hObj,evnt) ">SelectClass</a>);
-0372     set(ax(i),<span class="string">'UserData'</span>,uc(i),<span class="string">'XGrid'</span>,<span class="string">'on'</span>,<span class="string">'XMinorGrid'</span>,<span class="string">'off'</span>, <span class="keyword">...</span>
-0373         <span class="string">'YGrid'</span>,<span class="string">'on'</span>,<span class="string">'YMinorGrid'</span>,<span class="string">'off'</span>,<span class="string">'YTickLabel'</span>,[],<span class="string">'XTickLabel'</span>,[], <span class="keyword">...</span>
-0374         <span class="string">'Box'</span>,<span class="string">'on'</span>);
-0375 <span class="keyword">end</span>
-0376 
-0377 x = (nrows-1)*ncols+1;
-0378 <span class="keyword">if</span> x &gt; length(ax); x =(nrows-2)*ncols+1; <span class="keyword">end</span>
-0379 yt = get(ax(x),<span class="string">'YTick'</span>);
-0380 set(ax(x),<span class="string">'YTickLabel'</span>,num2str((yt)'*1000,<span class="string">'%0.2f'</span>));
-0381 
-0382 <span class="comment">% SetRegKey(h.regKey,'PLOTSPIKESSTYLE',opt);</span>
-0383 setpref(<span class="string">'Pooling_GUI2'</span>,<span class="string">'PLOTSPIKESSTYLE'</span>,opt);
-0384 
-0385 <a name="_sub11" href="#_subfunctions" class="code">function EditClass(hObj,evnt,cid) </a><span class="comment">%#ok&lt;INUSL&gt;</span>
-0386 h = guidata(hObj);
-0387 W  = h.WAVEFORMS;
-0388 C  = h.CLASSLIST;
-0389 uc = h.UCLASSES;
-0390 <span class="comment">% colors = hsv(length(h.UCLASSES));</span>
-0391 
-0392 ind = C(2,:) == cid;
-0393 orind = find(ind);
-0394 sW = W(ind,:);
-0395 
-0396 <span class="comment">% uid = uc == cid;</span>
-0397 
-0398 f = figure(<span class="string">'Name'</span>,sprintf(<span class="string">'Class ID: %d | %d spikes'</span>,cid,sum(ind)));
-0399 
-0400 ax = axes(<span class="string">'Parent'</span>,f,<span class="string">'XGrid'</span>,<span class="string">'on'</span>,<span class="string">'YGrid'</span>,<span class="string">'on'</span>,<span class="string">'XTickLabel'</span>,[]);
-0401 
-0402 hl = line(repmat((1:size(sW,2))',1,size(sW,1)),sW', <span class="keyword">...</span>
-0403     <span class="string">'Parent'</span>,ax);
-0404 <span class="comment">% hl = line(repmat((1:size(sW,2))',1,size(sW,1)),sW', ...</span>
-0405 <span class="comment">%     'Parent',ax,'Color',colors(uid,:));</span>
+0314 
+0315 
+0316 <span class="comment">%% Plotting functions</span>
+0317 <a name="_sub10" href="#_subfunctions" class="code">function PlotClasses(h)</a>
+0318 W  = h.WAVEFORMS;
+0319 C  = h.CLASSLIST;
+0320 uc = h.UCLASSES;
+0321 colors = hsv(length(h.UCLASSES));
+0322 
+0323 t = get(h.toolbar_bands,<span class="string">'State'</span>);
+0324 <span class="keyword">if</span> strcmp(t,<span class="string">'on'</span>)
+0325     opt = <span class="string">'bands'</span>;
+0326 <span class="keyword">else</span>
+0327     opt = <span class="string">'lines'</span>;
+0328 <span class="keyword">end</span>
+0329 
+0330 nrows = floor(sqrt(length(uc)));
+0331 ncols = ceil(length(uc) / nrows);
+0332 <span class="keyword">if</span> nrows &lt; 2, nrows = 2; <span class="keyword">end</span>
+0333 
+0334 <span class="comment">% scale together by maximum absolute voltage</span>
+0335 maxV = max(abs(W),[],2);
+0336 maxV = quantile(maxV,0.999);
+0337 
+0338 delete(get(h.panel_classes,<span class="string">'Children'</span>));
+0339 
+0340 ax = zeros(size(uc));
+0341 <span class="keyword">for</span> i = 1:length(uc)
+0342     ax(i) = subplot(nrows,ncols,i,<span class="string">'Parent'</span>,h.panel_classes, <span class="keyword">...</span>
+0343         <span class="string">'Tag'</span>,num2str(uc(i),<span class="string">'axclass%02.0f'</span>));
+0344     
+0345     ind = C(2,:) == uc(i);
+0346         
+0347     <span class="keyword">if</span> sum(ind) &lt;= 1
+0348         op = <span class="string">'lines'</span>;
+0349     <span class="keyword">else</span>
+0350         op = opt;
+0351     <span class="keyword">end</span>
+0352     
+0353     <span class="keyword">switch</span> op
+0354         <span class="keyword">case</span> <span class="string">'lines'</span>
+0355             <span class="comment">% if lots of lines, then just display a random sampling</span>
+0356             <span class="keyword">if</span> sum(ind) &gt; 500, ind = find(ind); ind = ind(randperm(500)); <span class="keyword">end</span>
+0357             plot(ax(i),1:size(W,2),W(ind,:)',<span class="string">'Color'</span>,colors(i,:))
+0358        
+0359         <span class="keyword">case</span> <span class="string">'bands'</span>
+0360             q = quantile(W(ind,:),[0.025 0.975])';
+0361             y = [q(:,1); flipud(q(:,2))];
+0362             x = [1:size(W,2) size(W,2):-1:1];
+0363             fill(x',y,colors(i,:),<span class="string">'Parent'</span>,ax(i));
+0364     <span class="keyword">end</span>
+0365     xlim(ax(i),[1 size(W,2)]);  ylim(ax(i),[-maxV maxV]);
+0366     
+0367     uim = uicontextmenu(<span class="string">'UserData'</span>,uc(i));
+0368     uimenu(uim,<span class="string">'Label'</span>,<span class="string">'Select Class'</span>,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>,<span class="string">'UserData'</span>,uc(i), <span class="keyword">...</span>
+0369         <span class="string">'Checked'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,{@<a href="#_sub20" class="code" title="subfunction SelectClass(hObj,evnt) ">SelectClass</a>});
+0370     uimenu(uim,<span class="string">'Label'</span>,<span class="string">'Edit Class'</span>,<span class="string">'Tag'</span>,<span class="string">'Edit_Class'</span>,<span class="string">'UserData'</span>,uc(i), <span class="keyword">...</span>
+0371         <span class="string">'Callback'</span>,{@<a href="#_sub11" class="code" title="subfunction EditClass(hObj,evnt,cid) ">EditClass</a>,uc(i)});
+0372     <span class="keyword">for</span> j = 1:length(h.POOLIDS)
+0373         <span class="keyword">if</span> j == 1, s = <span class="string">'on'</span>; <span class="keyword">else</span> s = <span class="string">'off'</span>; <span class="keyword">end</span>
+0374         uimenu(uim,<span class="string">'Label'</span>,h.POOLIDS{j},<span class="string">'Tag'</span>,[<span class="string">'ut_'</span> lower(h.POOLIDS{j})], <span class="keyword">...</span>
+0375             <span class="string">'UserData'</span>,j-1,<span class="string">'Checked'</span>,<span class="string">'on'</span>,<span class="string">'Separator'</span>,s, <span class="keyword">...</span>
+0376             <span class="string">'Callback'</span>,{@<a href="#_sub22" class="code" title="subfunction UpdateUnitType(hObj,evnt,ax,classid) ">UpdateUnitType</a>,ax(i),uc(i)});
+0377     <span class="keyword">end</span>
+0378     
+0379     set(ax(i),<span class="string">'UIContextMenu'</span>,uim);
+0380     set(ax(i),<span class="string">'ButtonDownFcn'</span>,@<a href="#_sub20" class="code" title="subfunction SelectClass(hObj,evnt) ">SelectClass</a>);
+0381     set(ax(i),<span class="string">'UserData'</span>,uc(i),<span class="string">'XGrid'</span>,<span class="string">'on'</span>,<span class="string">'XMinorGrid'</span>,<span class="string">'off'</span>, <span class="keyword">...</span>
+0382         <span class="string">'YGrid'</span>,<span class="string">'on'</span>,<span class="string">'YMinorGrid'</span>,<span class="string">'off'</span>,<span class="string">'YTickLabel'</span>,[],<span class="string">'XTickLabel'</span>,[], <span class="keyword">...</span>
+0383         <span class="string">'Box'</span>,<span class="string">'on'</span>);
+0384 <span class="keyword">end</span>
+0385 
+0386 x = (nrows-1)*ncols+1;
+0387 <span class="keyword">if</span> x &gt; length(ax); x =(nrows-2)*ncols+1; <span class="keyword">end</span>
+0388 yt = get(ax(x),<span class="string">'YTick'</span>);
+0389 set(ax(x),<span class="string">'YTickLabel'</span>,num2str((yt)'*1000,<span class="string">'%0.2f'</span>));
+0390 
+0391 <span class="comment">% SetRegKey(h.regKey,'PLOTSPIKESSTYLE',opt);</span>
+0392 setpref(<span class="string">'Pooling_GUI2'</span>,<span class="string">'PLOTSPIKESSTYLE'</span>,opt);
+0393 
+0394 <a name="_sub11" href="#_subfunctions" class="code">function EditClass(hObj,evnt,cid) </a><span class="comment">%#ok&lt;INUSL&gt;</span>
+0395 h = guidata(hObj);
+0396 W  = h.WAVEFORMS;
+0397 C  = h.CLASSLIST;
+0398 uc = h.UCLASSES;
+0399 <span class="comment">% colors = hsv(length(h.UCLASSES));</span>
+0400 
+0401 ind = C(2,:) == cid;
+0402 orind = find(ind);
+0403 sW = W(ind,:);
+0404 
+0405 <span class="comment">% uid = uc == cid;</span>
 0406 
-0407 maxV = max(max(abs(sW)));
-0408 ylim(ax,[-maxV maxV]); xlim(ax,[1 size(sW,2)]);
-0409 ylabel(ax,<span class="string">'Amp (V)'</span>);
+0407 f = figure(<span class="string">'Name'</span>,sprintf(<span class="string">'Class ID: %d | %d spikes'</span>,cid,sum(ind)));
+0408 
+0409 ax = axes(<span class="string">'Parent'</span>,f,<span class="string">'XGrid'</span>,<span class="string">'on'</span>,<span class="string">'YGrid'</span>,<span class="string">'on'</span>,<span class="string">'XTickLabel'</span>,[]);
 0410 
-0411 hold(ax,<span class="string">'on'</span>);
-0412 [xa,ya] = ginput(1); xa = round(xa); plot(ax,xa,ya,<span class="string">'xk'</span>);
-0413 [xb,yb] = ginput(1); xb = round(xb); plot(ax,xb,yb,<span class="string">'xk'</span>);
-0414 x = min([xa xb]); xb = max([xa xb]); xa = x;
-0415 y = min([ya yb]); yb = max([ya yb]); ya = y;
-0416 
-0417 xl = [xa xa xb xb xa]; yl = [ya yb yb ya ya];
-0418 plot(ax,xl,yl,<span class="string">'--k'</span>);
-0419 hold(ax,<span class="string">'off'</span>);
-0420 
-0421 ind = any(sW(:,xa:xb) &gt;= ya &amp; sW(:,xa:xb) &lt;= yb,2);
-0422 
-0423 set(hl(ind),<span class="string">'LineWidth'</span>,3);
-0424 set(hl(~ind),<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'LineStyle'</span>,<span class="string">':'</span>);
+0411 hl = line(repmat((1:size(sW,2))',1,size(sW,1)),sW', <span class="keyword">...</span>
+0412     <span class="string">'Parent'</span>,ax);
+0413 <span class="comment">% hl = line(repmat((1:size(sW,2))',1,size(sW,1)),sW', ...</span>
+0414 <span class="comment">%     'Parent',ax,'Color',colors(uid,:));</span>
+0415 
+0416 maxV = max(max(abs(sW)));
+0417 ylim(ax,[-maxV maxV]); xlim(ax,[1 size(sW,2)]);
+0418 ylabel(ax,<span class="string">'Amp (V)'</span>);
+0419 
+0420 hold(ax,<span class="string">'on'</span>);
+0421 [xa,ya] = ginput(1); xa = round(xa); plot(ax,xa,ya,<span class="string">'xk'</span>);
+0422 [xb,yb] = ginput(1); xb = round(xb); plot(ax,xb,yb,<span class="string">'xk'</span>);
+0423 x = min([xa xb]); xb = max([xa xb]); xa = x;
+0424 y = min([ya yb]); yb = max([ya yb]); ya = y;
 0425 
-0426 r = questdlg(sprintf(<span class="string">'%d spikes have been selected.  Would you like to create a new class with these spikes?'</span>, <span class="keyword">...</span>
-0427     sum(ind)),<span class="string">'Split Class'</span>,<span class="string">'Yes'</span>,<span class="string">'No'</span>,<span class="string">'No'</span>);
-0428 
-0429 <span class="keyword">if</span> strcmp(r,<span class="string">'No'</span>), close(f); <span class="keyword">return</span>; <span class="keyword">end</span>
-0430 
-0431 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); set(f,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); drawnow
-0432 
-0433 C(:,orind(ind)) = max(uc) + 1;
+0426 xl = [xa xa xb xb xa]; yl = [ya yb yb ya ya];
+0427 plot(ax,xl,yl,<span class="string">'--k'</span>);
+0428 hold(ax,<span class="string">'off'</span>);
+0429 
+0430 ind = any(sW(:,xa:xb) &gt;= ya &amp; sW(:,xa:xb) &lt;= yb,2);
+0431 
+0432 set(hl(ind),<span class="string">'LineWidth'</span>,3);
+0433 set(hl(~ind),<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'LineStyle'</span>,<span class="string">':'</span>);
 0434 
-0435 h.CLASSLIST = C;
-0436 h.UCLASSES  = unique(C(2,:));
+0435 r = questdlg(sprintf(<span class="string">'%d spikes have been selected.  Would you like to create a new class with these spikes?'</span>, <span class="keyword">...</span>
+0436     sum(ind)),<span class="string">'Split Class'</span>,<span class="string">'Yes'</span>,<span class="string">'No'</span>,<span class="string">'No'</span>);
 0437 
-0438 guidata(hObj,h);
+0438 <span class="keyword">if</span> strcmp(r,<span class="string">'No'</span>), close(f); <span class="keyword">return</span>; <span class="keyword">end</span>
 0439 
-0440 close(f);
+0440 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); set(f,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); drawnow
 0441 
-0442 <a href="#_sub10" class="code" title="subfunction PlotClasses(h)">PlotClasses</a>(h);
-0443 <a href="#_sub23" class="code" title="subfunction UpdateClassInfo(h)">UpdateClassInfo</a>(h);
-0444 <a href="#_sub13" class="code" title="subfunction PlotPCA(h)">PlotPCA</a>(h);
-0445 <a href="#_sub14" class="code" title="subfunction PlotTime(h)">PlotTime</a>(h);
-0446 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);
-0447 
-0448 <a name="_sub12" href="#_subfunctions" class="code">function PlotPools(h)</a>
-0449 W  = h.WAVEFORMS;
-0450 P  = h.POOLS;
-0451 up = unique(P);
-0452 colors = lines(7);
-0453 
-0454 t = get(h.toolbar_bands,<span class="string">'State'</span>);
-0455 <span class="keyword">if</span> strcmp(t,<span class="string">'on'</span>)
-0456     opt = <span class="string">'bands'</span>;
-0457 <span class="keyword">else</span>
-0458     opt = <span class="string">'lines'</span>;
-0459 <span class="keyword">end</span>
-0460 
-0461 delete(get(h.panel_pools,<span class="string">'Children'</span>));
+0442 C(:,orind(ind)) = max(uc) + 1;
+0443 
+0444 h.CLASSLIST = C;
+0445 h.UCLASSES  = unique(C(2,:));
+0446 
+0447 guidata(hObj,h);
+0448 
+0449 close(f);
+0450 
+0451 <a href="#_sub10" class="code" title="subfunction PlotClasses(h)">PlotClasses</a>(h);
+0452 <a href="#_sub23" class="code" title="subfunction UpdateClassInfo(h)">UpdateClassInfo</a>(h);
+0453 <a href="#_sub13" class="code" title="subfunction PlotPCA(h)">PlotPCA</a>(h);
+0454 <a href="#_sub14" class="code" title="subfunction PlotTime(h)">PlotTime</a>(h);
+0455 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);
+0456 
+0457 <a name="_sub12" href="#_subfunctions" class="code">function PlotPools(h)</a>
+0458 W  = h.WAVEFORMS;
+0459 P  = h.POOLS;
+0460 up = unique(P);
+0461 colors = lines(7);
 0462 
-0463 <span class="keyword">if</span> isempty(P), <span class="keyword">return</span>; <span class="keyword">end</span>
-0464 
-0465 ind = ismember(P,up);
-0466 maxV = max(abs(W(ind,:)),[],2);
-0467 maxV = quantile(maxV,0.9999);
-0468 
-0469 <span class="keyword">if</span> length(up) &lt; 3, ncol = 3; <span class="keyword">else</span> ncol = length(up); <span class="keyword">end</span>
-0470 
-0471 <span class="keyword">for</span> i = 1:length(up)
-0472     ax = subplot(1,ncol,i,<span class="string">'Parent'</span>,h.panel_pools);
-0473     
-0474     ind = up(i) == P;
-0475     nc = sum(ind);
-0476     <span class="keyword">switch</span> opt
-0477         <span class="keyword">case</span> <span class="string">'lines'</span>
-0478             <span class="comment">% if lots of lines, then just display a random subsample</span>
-0479             <span class="keyword">if</span> nc &gt; 1000, ind = find(ind); ind = ind(randperm(1000)); <span class="keyword">end</span>
-0480             plot(ax,1:size(W,2),W(ind,:)',<span class="string">'Color'</span>,colors(i,:))    
-0481             
-0482         <span class="keyword">case</span> <span class="string">'bands'</span>
-0483             q = quantile(W(ind,:),[0.025 0.975])';
-0484             y = [q(:,1); flipud(q(:,2))];
-0485             x = [1:size(W,2) size(W,2):-1:1];
-0486             fill(x',y,colors(i,:),<span class="string">'Parent'</span>,ax);
-0487     <span class="keyword">end</span>
-0488 
-0489     xlim(ax,[1 size(W,2)]);
-0490     ylim(ax,[-maxV maxV]);
-0491     
-0492     <span class="keyword">if</span> i == 1
-0493         yt = get(ax,<span class="string">'YTick'</span>);
-0494         set(ax,<span class="string">'YTickLabel'</span>,num2str((yt)'*1000,<span class="string">'%0.2f'</span>));
-0495     <span class="keyword">else</span>
-0496         set(ax,<span class="string">'YTickLabel'</span>,[]);
-0497     <span class="keyword">end</span>
-0498 
-0499     set(ax,<span class="string">'XTickLabel'</span>,[],<span class="string">'XGrid'</span>,<span class="string">'on'</span>,<span class="string">'YGrid'</span>,<span class="string">'on'</span>);
-0500         
-0501     x = xlim(ax); y = ylim(ax);
-0502     text(x(1),y(2),num2str(nc,<span class="string">'%d'</span>), <span class="keyword">...</span>
-0503         <span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,10, <span class="keyword">...</span>
-0504         <span class="string">'VerticalAlignment'</span>,<span class="string">'Bottom'</span>, <span class="keyword">...</span>
-0505         <span class="string">'HorizontalAlignment'</span>,<span class="string">'Left'</span>);
-0506     
-0507     text(x(2),y(2),h.POOLIDS{up(i)+1}, <span class="keyword">...</span>
-0508         <span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,10,<span class="string">'Color'</span>,[1 1 1],<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>, <span class="keyword">...</span>
-0509         <span class="string">'BackgroundColor'</span>,colors(i,:), <span class="keyword">...</span>
-0510         <span class="string">'VerticalAlignment'</span>,<span class="string">'Bottom'</span>, <span class="keyword">...</span>
-0511         <span class="string">'HorizontalAlignment'</span>,<span class="string">'Right'</span>);
-0512      
-0513     uim = uicontextmenu;
-0514     uimenu(uim,<span class="string">'Tag'</span>,<span class="string">'Select_Pool'</span>,<span class="string">'Label'</span>,<span class="string">'Select Pool'</span>, <span class="keyword">...</span>
-0515         <span class="string">'UserData'</span>,up(i),<span class="string">'Callback'</span>,{@<a href="#_sub21" class="code" title="subfunction SelectPool(hObj,event) ">SelectPool</a>});
-0516     set(ax,<span class="string">'UIContextMenu'</span>,uim,<span class="string">'UserData'</span>,up(i));
-0517 
-0518     set(ax,<span class="string">'ButtonDownFcn'</span>,{@<a href="#_sub21" class="code" title="subfunction SelectPool(hObj,event) ">SelectPool</a>});
-0519     
-0520 <span class="keyword">end</span>
-0521 
-0522 <a name="_sub13" href="#_subfunctions" class="code">function PlotPCA(h)</a>
-0523 PCA    = h.PCA;
-0524 C      = h.CLASSLIST;
-0525 uc     = h.UCLASSES;
-0526 colors = hsv(length(h.UCLASSES));
-0527 
-0528 <span class="keyword">if</span> isempty(PCA), <span class="keyword">return</span>; <span class="keyword">end</span>
-0529 
-0530 set(h.panel_pca,<span class="string">'Title'</span>,<span class="string">'Rendering...'</span>); drawnow
-0531 
-0532 hlclass = get(findall(h.panel_classes,<span class="string">'XColor'</span>,<span class="string">'r'</span>),<span class="string">'UserData'</span>);
-0533 <span class="keyword">if</span> iscell(hlclass), hlclass = cell2mat(hlclass); <span class="keyword">end</span>
-0534     
-0535 ui = get(h.panel_pca,<span class="string">'UIContextMenu'</span>);
-0536 is2d = strcmp(get(findobj(ui,<span class="string">'Tag'</span>,<span class="string">'PCA_2D'</span>),<span class="string">'Checked'</span>),<span class="string">'on'</span>);
-0537 is2d_density = strcmp(get(findobj(ui,<span class="string">'Tag'</span>,<span class="string">'PCA_2D_DENSITY'</span>),<span class="string">'Checked'</span>),<span class="string">'on'</span>);
+0463 t = get(h.toolbar_bands,<span class="string">'State'</span>);
+0464 <span class="keyword">if</span> strcmp(t,<span class="string">'on'</span>)
+0465     opt = <span class="string">'bands'</span>;
+0466 <span class="keyword">else</span>
+0467     opt = <span class="string">'lines'</span>;
+0468 <span class="keyword">end</span>
+0469 
+0470 delete(get(h.panel_pools,<span class="string">'Children'</span>));
+0471 
+0472 <span class="keyword">if</span> isempty(P), <span class="keyword">return</span>; <span class="keyword">end</span>
+0473 
+0474 ind = ismember(P,up);
+0475 maxV = max(abs(W(ind,:)),[],2);
+0476 maxV = quantile(maxV,0.9999);
+0477 
+0478 <span class="keyword">if</span> length(up) &lt; 3, ncol = 3; <span class="keyword">else</span> ncol = length(up); <span class="keyword">end</span>
+0479 
+0480 <span class="keyword">for</span> i = 1:length(up)
+0481     ax = subplot(1,ncol,i,<span class="string">'Parent'</span>,h.panel_pools);
+0482     
+0483     ind = up(i) == P;
+0484     nc = sum(ind);
+0485     <span class="keyword">switch</span> opt
+0486         <span class="keyword">case</span> <span class="string">'lines'</span>
+0487             <span class="comment">% if lots of lines, then just display a random subsample</span>
+0488             <span class="keyword">if</span> nc &gt; 1000, ind = find(ind); ind = ind(randperm(1000)); <span class="keyword">end</span>
+0489             plot(ax,1:size(W,2),W(ind,:)',<span class="string">'Color'</span>,colors(i,:))    
+0490             
+0491         <span class="keyword">case</span> <span class="string">'bands'</span>
+0492             q = quantile(W(ind,:),[0.025 0.975])';
+0493             y = [q(:,1); flipud(q(:,2))];
+0494             x = [1:size(W,2) size(W,2):-1:1];
+0495             fill(x',y,colors(i,:),<span class="string">'Parent'</span>,ax);
+0496     <span class="keyword">end</span>
+0497 
+0498     xlim(ax,[1 size(W,2)]);
+0499     ylim(ax,[-maxV maxV]);
+0500     
+0501     <span class="keyword">if</span> i == 1
+0502         yt = get(ax,<span class="string">'YTick'</span>);
+0503         set(ax,<span class="string">'YTickLabel'</span>,num2str((yt)'*1000,<span class="string">'%0.2f'</span>));
+0504     <span class="keyword">else</span>
+0505         set(ax,<span class="string">'YTickLabel'</span>,[]);
+0506     <span class="keyword">end</span>
+0507 
+0508     set(ax,<span class="string">'XTickLabel'</span>,[],<span class="string">'XGrid'</span>,<span class="string">'on'</span>,<span class="string">'YGrid'</span>,<span class="string">'on'</span>);
+0509         
+0510     x = xlim(ax); y = ylim(ax);
+0511     text(x(1),y(2),num2str(nc,<span class="string">'%d'</span>), <span class="keyword">...</span>
+0512         <span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,10, <span class="keyword">...</span>
+0513         <span class="string">'VerticalAlignment'</span>,<span class="string">'Bottom'</span>, <span class="keyword">...</span>
+0514         <span class="string">'HorizontalAlignment'</span>,<span class="string">'Left'</span>);
+0515     
+0516     text(x(2),y(2),h.POOLIDS{up(i)+1}, <span class="keyword">...</span>
+0517         <span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,10,<span class="string">'Color'</span>,[1 1 1],<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>, <span class="keyword">...</span>
+0518         <span class="string">'BackgroundColor'</span>,colors(i,:), <span class="keyword">...</span>
+0519         <span class="string">'VerticalAlignment'</span>,<span class="string">'Bottom'</span>, <span class="keyword">...</span>
+0520         <span class="string">'HorizontalAlignment'</span>,<span class="string">'Right'</span>);
+0521      
+0522     uim = uicontextmenu;
+0523     uimenu(uim,<span class="string">'Tag'</span>,<span class="string">'Select_Pool'</span>,<span class="string">'Label'</span>,<span class="string">'Select Pool'</span>, <span class="keyword">...</span>
+0524         <span class="string">'UserData'</span>,up(i),<span class="string">'Callback'</span>,{@<a href="#_sub21" class="code" title="subfunction SelectPool(hObj,event) ">SelectPool</a>});
+0525     set(ax,<span class="string">'UIContextMenu'</span>,uim,<span class="string">'UserData'</span>,up(i));
+0526 
+0527     set(ax,<span class="string">'ButtonDownFcn'</span>,{@<a href="#_sub21" class="code" title="subfunction SelectPool(hObj,event) ">SelectPool</a>});
+0528     
+0529 <span class="keyword">end</span>
+0530 
+0531 <a name="_sub13" href="#_subfunctions" class="code">function PlotPCA(h)</a>
+0532 PCA    = h.PCA;
+0533 C      = h.CLASSLIST;
+0534 uc     = h.UCLASSES;
+0535 colors = hsv(length(h.UCLASSES));
+0536 
+0537 <span class="keyword">if</span> isempty(PCA), <span class="keyword">return</span>; <span class="keyword">end</span>
 0538 
-0539 ax = get(h.panel_pca,<span class="string">'Children'</span>);
-0540 <span class="keyword">if</span> ~is2d &amp;&amp; ~isempty(ax), [az,el] = view(ax); <span class="keyword">else</span> az = 3; el = []; <span class="keyword">end</span>
-0541 delete(ax);
-0542 
-0543 PCAx = PCA.scores(:,1); PCAy = PCA.scores(:,2); PCAz = PCA.scores(:,3);
-0544 
-0545 <span class="keyword">if</span> is2d
-0546     set(findobj(h.figure1,<span class="string">'Tag'</span>,<span class="string">'toolbar_r3d'</span>),<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0547 <span class="keyword">else</span>
-0548     set(findobj(h.figure1,<span class="string">'Tag'</span>,<span class="string">'toolbar_r3d'</span>),<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0549 <span class="keyword">end</span>
-0550 
-0551 <span class="keyword">if</span> is2d &amp;&amp; is2d_density
-0552     <span class="keyword">for</span> i = 1:3
-0553         subax(i) = subplot(2,2,i,<span class="string">'Parent'</span>,h.panel_pca); <span class="comment">%#ok&lt;AGROW&gt;</span>
-0554         hold(subax(i),<span class="string">'on'</span>);
-0555         axis square
-0556     <span class="keyword">end</span>
-0557     
-0558     <span class="comment">% compute 2D histogram PC1 vs PC2</span>
-0559     xbins = linspace(min(PCAx),max(PCAx),50);
-0560     ybins = linspace(min(PCAy),max(PCAy),50);
-0561     
-0562     hd = zeros(length(xbins),length(ybins));
-0563     <span class="keyword">for</span> i = 1:length(xbins)-1
-0564         <span class="keyword">for</span> j = 1:length(ybins)-1
-0565             hd(i,j) = sum(PCAx &gt;= xbins(i) &amp; PCAx &lt; xbins(i+1) <span class="keyword">...</span>
-0566                 &amp; PCAy &gt;= ybins(j) &amp; PCAy &lt; ybins(j+1));
-0567             
-0568         <span class="keyword">end</span>
-0569     <span class="keyword">end</span>
-0570     imagesc(interp2(hd,2)',<span class="string">'Parent'</span>,subax(1));
-0571     xlabel(subax(1),<span class="string">'PC1'</span>); ylabel(subax(1),<span class="string">'PC2'</span>);
-0572     axis square
-0573 
-0574     <span class="comment">% compute 2D histogram PC1 vs PC3</span>
-0575     xbins = linspace(min(PCAx),max(PCAx),50);
-0576     ybins = linspace(min(PCAz),max(PCAz),50);
-0577     
-0578     hd = zeros(length(xbins),length(ybins));
-0579     <span class="keyword">for</span> i = 1:length(xbins)-1
-0580         <span class="keyword">for</span> j = 1:length(ybins)-1
-0581             hd(i,j) = sum(PCAx &gt;= xbins(i) &amp; PCAx &lt; xbins(i+1) <span class="keyword">...</span>
-0582                 &amp; PCAz &gt;= ybins(j) &amp; PCAz &lt; ybins(j+1));
-0583             
-0584         <span class="keyword">end</span>
-0585     <span class="keyword">end</span>
-0586     imagesc(interp2(hd,2)',<span class="string">'Parent'</span>,subax(2));
-0587     xlabel(subax(2),<span class="string">'PC1'</span>); ylabel(subax(2),<span class="string">'PC3'</span>);
-0588     axis square
-0589 
-0590     <span class="comment">% compute 2D histogram PC2 vs PC3</span>
-0591     xbins = linspace(min(PCAy),max(PCAy),50);
-0592     ybins = linspace(min(PCAz),max(PCAz),50);
-0593     
-0594     hd = zeros(length(xbins),length(ybins));
-0595     <span class="keyword">for</span> i = 1:length(xbins)-1
-0596         <span class="keyword">for</span> j = 1:length(ybins)-1
-0597             hd(i,j) = sum(PCAy &gt;= xbins(i) &amp; PCAy &lt; xbins(i+1) <span class="keyword">...</span>
-0598                 &amp; PCAz &gt;= ybins(j) &amp; PCAz &lt; ybins(j+1));
-0599             
-0600         <span class="keyword">end</span>
-0601     <span class="keyword">end</span>
+0539 set(h.panel_pca,<span class="string">'Title'</span>,<span class="string">'Rendering...'</span>); drawnow
+0540 
+0541 hlclass = get(findall(h.panel_classes,<span class="string">'XColor'</span>,<span class="string">'r'</span>),<span class="string">'UserData'</span>);
+0542 <span class="keyword">if</span> iscell(hlclass), hlclass = cell2mat(hlclass); <span class="keyword">end</span>
+0543     
+0544 ui = get(h.panel_pca,<span class="string">'UIContextMenu'</span>);
+0545 is2d = strcmp(get(findobj(ui,<span class="string">'Tag'</span>,<span class="string">'PCA_2D'</span>),<span class="string">'Checked'</span>),<span class="string">'on'</span>);
+0546 is2d_density = strcmp(get(findobj(ui,<span class="string">'Tag'</span>,<span class="string">'PCA_2D_DENSITY'</span>),<span class="string">'Checked'</span>),<span class="string">'on'</span>);
+0547 
+0548 ax = get(h.panel_pca,<span class="string">'Children'</span>);
+0549 <span class="keyword">if</span> ~is2d &amp;&amp; ~isempty(ax), [az,el] = view(ax); <span class="keyword">else</span> az = 3; el = []; <span class="keyword">end</span>
+0550 delete(ax);
+0551 
+0552 PCAx = PCA.scores(:,1); PCAy = PCA.scores(:,2); PCAz = PCA.scores(:,3);
+0553 
+0554 <span class="keyword">if</span> is2d
+0555     set(findobj(h.figure1,<span class="string">'Tag'</span>,<span class="string">'toolbar_r3d'</span>),<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0556 <span class="keyword">else</span>
+0557     set(findobj(h.figure1,<span class="string">'Tag'</span>,<span class="string">'toolbar_r3d'</span>),<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0558 <span class="keyword">end</span>
+0559 
+0560 <span class="keyword">if</span> is2d &amp;&amp; is2d_density
+0561     <span class="keyword">for</span> i = 1:3
+0562         subax(i) = subplot(2,2,i,<span class="string">'Parent'</span>,h.panel_pca); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0563         hold(subax(i),<span class="string">'on'</span>);
+0564         axis square
+0565     <span class="keyword">end</span>
+0566     
+0567     <span class="comment">% compute 2D histogram PC1 vs PC2</span>
+0568     xbins = linspace(min(PCAx),max(PCAx),50);
+0569     ybins = linspace(min(PCAy),max(PCAy),50);
+0570     
+0571     hd = zeros(length(xbins),length(ybins));
+0572     <span class="keyword">for</span> i = 1:length(xbins)-1
+0573         <span class="keyword">for</span> j = 1:length(ybins)-1
+0574             hd(i,j) = sum(PCAx &gt;= xbins(i) &amp; PCAx &lt; xbins(i+1) <span class="keyword">...</span>
+0575                 &amp; PCAy &gt;= ybins(j) &amp; PCAy &lt; ybins(j+1));
+0576             
+0577         <span class="keyword">end</span>
+0578     <span class="keyword">end</span>
+0579     imagesc(interp2(hd,2)',<span class="string">'Parent'</span>,subax(1));
+0580     xlabel(subax(1),<span class="string">'PC1'</span>); ylabel(subax(1),<span class="string">'PC2'</span>);
+0581     axis square
+0582 
+0583     <span class="comment">% compute 2D histogram PC1 vs PC3</span>
+0584     xbins = linspace(min(PCAx),max(PCAx),50);
+0585     ybins = linspace(min(PCAz),max(PCAz),50);
+0586     
+0587     hd = zeros(length(xbins),length(ybins));
+0588     <span class="keyword">for</span> i = 1:length(xbins)-1
+0589         <span class="keyword">for</span> j = 1:length(ybins)-1
+0590             hd(i,j) = sum(PCAx &gt;= xbins(i) &amp; PCAx &lt; xbins(i+1) <span class="keyword">...</span>
+0591                 &amp; PCAz &gt;= ybins(j) &amp; PCAz &lt; ybins(j+1));
+0592             
+0593         <span class="keyword">end</span>
+0594     <span class="keyword">end</span>
+0595     imagesc(interp2(hd,2)',<span class="string">'Parent'</span>,subax(2));
+0596     xlabel(subax(2),<span class="string">'PC1'</span>); ylabel(subax(2),<span class="string">'PC3'</span>);
+0597     axis square
+0598 
+0599     <span class="comment">% compute 2D histogram PC2 vs PC3</span>
+0600     xbins = linspace(min(PCAy),max(PCAy),50);
+0601     ybins = linspace(min(PCAz),max(PCAz),50);
 0602     
-0603     imagesc(interp2(hd,2)',<span class="string">'Parent'</span>,subax(3));
-0604     xlabel(subax(3),<span class="string">'PC2'</span>); ylabel(subax(3),<span class="string">'PC3'</span>);
-0605     axis square
-0606     
-0607     set(subax,<span class="string">'XTick'</span>,[],<span class="string">'YTick'</span>,[],<span class="string">'ydir'</span>,<span class="string">'normal'</span>);
-0608     
-0609 <span class="keyword">elseif</span> is2d
-0610     
-0611     <span class="keyword">for</span> i = 1:3
-0612         subax(i) = subplot(2,2,i,<span class="string">'Parent'</span>,h.panel_pca); <span class="comment">%#ok&lt;AGROW&gt;</span>
-0613         hold(subax(i),<span class="string">'on'</span>);
-0614         axis square
-0615     <span class="keyword">end</span>
-0616     
-0617     <span class="keyword">for</span> i = 1:length(uc)
-0618         <span class="keyword">if</span> isempty(hlclass)
-0619             c = colors(i,:);
-0620             mrk = <span class="string">'*'</span>; msz = 3;
-0621         <span class="keyword">elseif</span> any(uc(i) == hlclass)
-0622             c = colors(i,:);
-0623             mrk = <span class="string">'*'</span>; msz = 3;
-0624         <span class="keyword">else</span>
-0625             c = [0.8 0.8 0.8];
-0626             mrk = <span class="string">'s'</span>; msz = 1;
-0627         <span class="keyword">end</span>
-0628         
-0629         ind = C(2,:) == uc(i);
-0630         
-0631         plot(PCAx(ind),PCAy(ind), <span class="keyword">...</span>
-0632             mrk,<span class="string">'MarkerEdgeColor'</span>,c, <span class="keyword">...</span>
-0633             <span class="string">'MarkerFaceColor'</span>,c,<span class="string">'MarkerSize'</span>,msz,<span class="string">'Parent'</span>,subax(1))
-0634         
-0635         plot(PCAx(ind),PCAz(ind), <span class="keyword">...</span>
-0636             mrk,<span class="string">'MarkerEdgeColor'</span>,c, <span class="keyword">...</span>
-0637             <span class="string">'MarkerFaceColor'</span>,c,<span class="string">'MarkerSize'</span>,msz,<span class="string">'Parent'</span>,subax(2))
-0638         
-0639         plot(PCAy(ind),PCAz(ind), <span class="keyword">...</span>
-0640             mrk,<span class="string">'MarkerEdgeColor'</span>,c, <span class="keyword">...</span>
-0641             <span class="string">'MarkerFaceColor'</span>,c,<span class="string">'MarkerSize'</span>,msz,<span class="string">'Parent'</span>,subax(3))
-0642     <span class="keyword">end</span>
-0643     
-0644     q = quantile([PCAx PCAy PCAz],[1e-5 1-1e-5]);
-0645     <span class="keyword">for</span> i = 1:3, hold(subax(i),<span class="string">'off'</span>); <span class="keyword">end</span>
-0646     <span class="keyword">if</span> ~all(q)
-0647         q(:,~all(q)) = [-0.1e-4 0.1e-4]; <span class="comment">% catch for 0 scales</span>
-0648     <span class="keyword">end</span>
-0649     xlim(subax(1),q(:,1)); ylim(subax(1),q(:,2));
-0650     xlim(subax(2),q(:,1)); ylim(subax(2),q(:,3));
-0651     xlim(subax(3),q(:,2)); ylim(subax(3),q(:,3));
-0652     set(subax,<span class="string">'XTick'</span>,[],<span class="string">'YTick'</span>,[],<span class="string">'Box'</span>,<span class="string">'on'</span>);
-0653     xlabel(subax(1),<span class="string">'PC1'</span>); xlabel(subax(2),<span class="string">'PC1'</span>); xlabel(subax(3),<span class="string">'PC2'</span>);
-0654     ylabel(subax(1),<span class="string">'PC2'</span>); ylabel(subax(2),<span class="string">'PC3'</span>); ylabel(subax(3),<span class="string">'PC3'</span>);
-0655 <span class="keyword">else</span>
-0656     ax = axes(<span class="string">'Parent'</span>,h.panel_pca,<span class="string">'DrawMode'</span>,<span class="string">'fast'</span>);
-0657     hold(ax,<span class="string">'on'</span>);
-0658     <span class="keyword">for</span> i = 1:length(uc)
-0659         <span class="keyword">if</span> isempty(hlclass)
-0660             c = colors(i,:);
-0661         <span class="keyword">elseif</span> any(uc(i) == hlclass)
-0662             c = colors(i,:);
-0663         <span class="keyword">else</span>
-0664             c = [0.8 0.8 0.8];
-0665         <span class="keyword">end</span>
-0666         ind = C(2,:) == uc(i);
-0667         
-0668         hold(ax,<span class="string">'on'</span>);
-0669         plot3(PCAx(ind),PCAy(ind),PCAz(ind), <span class="keyword">...</span>
-0670             <span class="string">'s'</span>,<span class="string">'MarkerEdgeColor'</span>,c, <span class="keyword">...</span>
-0671             <span class="string">'MarkerFaceColor'</span>,c,<span class="string">'MarkerSize'</span>,2,<span class="string">'Parent'</span>,ax);
-0672     <span class="keyword">end</span>
-0673     hold(ax,<span class="string">'off'</span>);
-0674     <span class="comment">%         m = mean(PCA.scores(:,1:3));</span>
-0675     q = quantile([PCAx PCAy PCAz],[.001 .999]);
-0676     xlim(ax,q(:,1)); ylim(ax,q(:,2)); zlim(ax,q(:,3));
-0677     view(ax,[az,el]);
-0678     set(ax,<span class="string">'XTick'</span>,[],<span class="string">'YTick'</span>,[],<span class="string">'ZTick'</span>,[]);
-0679     box(ax,<span class="string">'on'</span>);
-0680     xlabel(ax,<span class="string">'PC1'</span>); ylabel(ax,<span class="string">'PC2'</span>); zlabel(ax,<span class="string">'PC3'</span>);
-0681     
-0682 <span class="keyword">end</span>
-0683 
-0684 lat = h.PCA.latent;
-0685 expvar = sum(lat(1:3))/sum(lat) * 100;
-0686 iexpvar = lat(1:3)/sum(lat) * 100;
-0687 set(h.panel_pca,<span class="string">'Title'</span>,sprintf(<span class="string">'PCA (%0.1f%% of variance explained [%0.0f%% | %0.0f%% | %0.0f%%])'</span>, <span class="keyword">...</span>
-0688     expvar,iexpvar));
-0689 
-0690 
-0691 <a name="_sub14" href="#_subfunctions" class="code">function PlotTime(h)</a>
-0692 C = h.CLASSLIST;
-0693 uc = h.UCLASSES;
-0694 colors = hsv(length(h.UCLASSES));
-0695 
-0696 suc = <a href="#_sub17" class="code" title="subfunction suc = GetSelectedUnitClasses(h)">GetSelectedUnitClasses</a>(h);
-0697 
-0698 <span class="comment">% Plot time panel</span>
-0699 ax = findobj(h.figure1,<span class="string">'tag'</span>,<span class="string">'timeaxis'</span>);
-0700 <span class="keyword">if</span> isempty(ax)
-0701     ax = axes(<span class="string">'Parent'</span>,h.panel_time,<span class="string">'tag'</span>,<span class="string">'timeaxis'</span>);
-0702 <span class="keyword">end</span>
-0703 cla(ax)
-0704 hold(ax,<span class="string">'on'</span>)
-0705 ind = ~ismember(C(2,:),suc);
-0706 <span class="keyword">if</span> ~all(ind)
-0707     plot(ax,h.PCA.scores(ind,1),h.TS_UNWRAPPED(ind)/60,<span class="string">'s'</span>, <span class="keyword">...</span>
-0708         <span class="string">'color'</span>,[0.8 0.8 0.8],<span class="string">'markersize'</span>,1);
-0709 <span class="keyword">else</span>
-0710     suc = uc;
+0603     hd = zeros(length(xbins),length(ybins));
+0604     <span class="keyword">for</span> i = 1:length(xbins)-1
+0605         <span class="keyword">for</span> j = 1:length(ybins)-1
+0606             hd(i,j) = sum(PCAy &gt;= xbins(i) &amp; PCAy &lt; xbins(i+1) <span class="keyword">...</span>
+0607                 &amp; PCAz &gt;= ybins(j) &amp; PCAz &lt; ybins(j+1));
+0608             
+0609         <span class="keyword">end</span>
+0610     <span class="keyword">end</span>
+0611     
+0612     imagesc(interp2(hd,2)',<span class="string">'Parent'</span>,subax(3));
+0613     xlabel(subax(3),<span class="string">'PC2'</span>); ylabel(subax(3),<span class="string">'PC3'</span>);
+0614     axis square
+0615     
+0616     set(subax,<span class="string">'XTick'</span>,[],<span class="string">'YTick'</span>,[],<span class="string">'ydir'</span>,<span class="string">'normal'</span>);
+0617     
+0618 <span class="keyword">elseif</span> is2d
+0619     
+0620     <span class="keyword">for</span> i = 1:3
+0621         subax(i) = subplot(2,2,i,<span class="string">'Parent'</span>,h.panel_pca); <span class="comment">%#ok&lt;AGROW&gt;</span>
+0622         hold(subax(i),<span class="string">'on'</span>);
+0623         axis square
+0624     <span class="keyword">end</span>
+0625     
+0626     <span class="keyword">for</span> i = 1:length(uc)
+0627         <span class="keyword">if</span> isempty(hlclass)
+0628             c = colors(i,:);
+0629             mrk = <span class="string">'*'</span>; msz = 3;
+0630         <span class="keyword">elseif</span> any(uc(i) == hlclass)
+0631             c = colors(i,:);
+0632             mrk = <span class="string">'*'</span>; msz = 3;
+0633         <span class="keyword">else</span>
+0634             c = [0.8 0.8 0.8];
+0635             mrk = <span class="string">'s'</span>; msz = 1;
+0636         <span class="keyword">end</span>
+0637         
+0638         ind = C(2,:) == uc(i);
+0639         
+0640         plot(PCAx(ind),PCAy(ind), <span class="keyword">...</span>
+0641             mrk,<span class="string">'MarkerEdgeColor'</span>,c, <span class="keyword">...</span>
+0642             <span class="string">'MarkerFaceColor'</span>,c,<span class="string">'MarkerSize'</span>,msz,<span class="string">'Parent'</span>,subax(1))
+0643         
+0644         plot(PCAx(ind),PCAz(ind), <span class="keyword">...</span>
+0645             mrk,<span class="string">'MarkerEdgeColor'</span>,c, <span class="keyword">...</span>
+0646             <span class="string">'MarkerFaceColor'</span>,c,<span class="string">'MarkerSize'</span>,msz,<span class="string">'Parent'</span>,subax(2))
+0647         
+0648         plot(PCAy(ind),PCAz(ind), <span class="keyword">...</span>
+0649             mrk,<span class="string">'MarkerEdgeColor'</span>,c, <span class="keyword">...</span>
+0650             <span class="string">'MarkerFaceColor'</span>,c,<span class="string">'MarkerSize'</span>,msz,<span class="string">'Parent'</span>,subax(3))
+0651     <span class="keyword">end</span>
+0652     
+0653     q = quantile([PCAx PCAy PCAz],[1e-5 1-1e-5]);
+0654     <span class="keyword">for</span> i = 1:3, hold(subax(i),<span class="string">'off'</span>); <span class="keyword">end</span>
+0655     <span class="keyword">if</span> ~all(q)
+0656         q(:,~all(q)) = [-0.1e-4 0.1e-4]; <span class="comment">% catch for 0 scales</span>
+0657     <span class="keyword">end</span>
+0658     xlim(subax(1),q(:,1)); ylim(subax(1),q(:,2));
+0659     xlim(subax(2),q(:,1)); ylim(subax(2),q(:,3));
+0660     xlim(subax(3),q(:,2)); ylim(subax(3),q(:,3));
+0661     set(subax,<span class="string">'XTick'</span>,[],<span class="string">'YTick'</span>,[],<span class="string">'Box'</span>,<span class="string">'on'</span>);
+0662     xlabel(subax(1),<span class="string">'PC1'</span>); xlabel(subax(2),<span class="string">'PC1'</span>); xlabel(subax(3),<span class="string">'PC2'</span>);
+0663     ylabel(subax(1),<span class="string">'PC2'</span>); ylabel(subax(2),<span class="string">'PC3'</span>); ylabel(subax(3),<span class="string">'PC3'</span>);
+0664 <span class="keyword">else</span>
+0665     ax = axes(<span class="string">'Parent'</span>,h.panel_pca,<span class="string">'DrawMode'</span>,<span class="string">'fast'</span>);
+0666     hold(ax,<span class="string">'on'</span>);
+0667     <span class="keyword">for</span> i = 1:length(uc)
+0668         <span class="keyword">if</span> isempty(hlclass)
+0669             c = colors(i,:);
+0670         <span class="keyword">elseif</span> any(uc(i) == hlclass)
+0671             c = colors(i,:);
+0672         <span class="keyword">else</span>
+0673             c = [0.8 0.8 0.8];
+0674         <span class="keyword">end</span>
+0675         ind = C(2,:) == uc(i);
+0676         
+0677         hold(ax,<span class="string">'on'</span>);
+0678         plot3(PCAx(ind),PCAy(ind),PCAz(ind), <span class="keyword">...</span>
+0679             <span class="string">'s'</span>,<span class="string">'MarkerEdgeColor'</span>,c, <span class="keyword">...</span>
+0680             <span class="string">'MarkerFaceColor'</span>,c,<span class="string">'MarkerSize'</span>,2,<span class="string">'Parent'</span>,ax);
+0681     <span class="keyword">end</span>
+0682     hold(ax,<span class="string">'off'</span>);
+0683     <span class="comment">%         m = mean(PCA.scores(:,1:3));</span>
+0684     q = quantile([PCAx PCAy PCAz],[.001 .999]);
+0685     xlim(ax,q(:,1)); ylim(ax,q(:,2)); zlim(ax,q(:,3));
+0686     view(ax,[az,el]);
+0687     set(ax,<span class="string">'XTick'</span>,[],<span class="string">'YTick'</span>,[],<span class="string">'ZTick'</span>,[]);
+0688     box(ax,<span class="string">'on'</span>);
+0689     xlabel(ax,<span class="string">'PC1'</span>); ylabel(ax,<span class="string">'PC2'</span>); zlabel(ax,<span class="string">'PC3'</span>);
+0690     
+0691 <span class="keyword">end</span>
+0692 
+0693 lat = h.PCA.latent;
+0694 expvar = sum(lat(1:3))/sum(lat) * 100;
+0695 iexpvar = lat(1:3)/sum(lat) * 100;
+0696 set(h.panel_pca,<span class="string">'Title'</span>,sprintf(<span class="string">'PCA (%0.1f%% of variance explained [%0.0f%% | %0.0f%% | %0.0f%%])'</span>, <span class="keyword">...</span>
+0697     expvar,iexpvar));
+0698 
+0699 
+0700 <a name="_sub14" href="#_subfunctions" class="code">function PlotTime(h)</a>
+0701 C = h.CLASSLIST;
+0702 uc = h.UCLASSES;
+0703 colors = hsv(length(h.UCLASSES));
+0704 
+0705 suc = <a href="#_sub17" class="code" title="subfunction suc = GetSelectedUnitClasses(h)">GetSelectedUnitClasses</a>(h);
+0706 
+0707 <span class="comment">% Plot time panel</span>
+0708 ax = findobj(h.figure1,<span class="string">'tag'</span>,<span class="string">'timeaxis'</span>);
+0709 <span class="keyword">if</span> isempty(ax)
+0710     ax = axes(<span class="string">'Parent'</span>,h.panel_time,<span class="string">'tag'</span>,<span class="string">'timeaxis'</span>);
 0711 <span class="keyword">end</span>
-0712 <span class="keyword">for</span> i = suc
-0713     ind = C(2,:) == i;
-0714     c = colors(uc==i,:);
-0715     plot(ax,h.PCA.scores(ind,1),h.TS_UNWRAPPED(ind)/60,<span class="string">'*'</span>, <span class="keyword">...</span>
-0716         <span class="string">'color'</span>,c,<span class="string">'markersize'</span>,4);
-0717 <span class="keyword">end</span>
-0718 hold(ax,<span class="string">'off'</span>)
-0719 axis(ax,<span class="string">'tight'</span>);
-0720 xlabel(<span class="string">'PC1'</span>); ylabel(<span class="string">'time (m)'</span>);
-0721 box(ax,<span class="string">'on'</span>);
-0722 
-0723 <a name="_sub15" href="#_subfunctions" class="code">function PlotAnalytics(h,results)</a>
-0724 <span class="comment">% following a call to to ComputeAnalytics</span>
-0725 delete(get(h.panel_analytics,<span class="string">'Children'</span>));
-0726 
-0727 C = h.CLASSLIST;
-0728 W  = h.WAVEFORMS;
-0729 uc = h.UCLASSES;
-0730 colors = hsv(length(h.UCLASSES));
+0712 cla(ax)
+0713 hold(ax,<span class="string">'on'</span>)
+0714 ind = ~ismember(C(2,:),suc);
+0715 <span class="keyword">if</span> ~all(ind)
+0716     plot(ax,h.PCA.scores(ind,1),h.TS_UNWRAPPED(ind)/60,<span class="string">'s'</span>, <span class="keyword">...</span>
+0717         <span class="string">'color'</span>,[0.8 0.8 0.8],<span class="string">'markersize'</span>,1);
+0718 <span class="keyword">else</span>
+0719     suc = uc;
+0720 <span class="keyword">end</span>
+0721 <span class="keyword">for</span> i = suc
+0722     ind = C(2,:) == i;
+0723     c = colors(uc==i,:);
+0724     plot(ax,h.PCA.scores(ind,1),h.TS_UNWRAPPED(ind)/60,<span class="string">'*'</span>, <span class="keyword">...</span>
+0725         <span class="string">'color'</span>,c,<span class="string">'markersize'</span>,4);
+0726 <span class="keyword">end</span>
+0727 hold(ax,<span class="string">'off'</span>)
+0728 axis(ax,<span class="string">'tight'</span>);
+0729 xlabel(<span class="string">'PC1'</span>); ylabel(<span class="string">'time (m)'</span>);
+0730 box(ax,<span class="string">'on'</span>);
 0731 
-0732 t = get(h.toolbar_bands,<span class="string">'State'</span>);
-0733 <span class="keyword">if</span> strcmp(t,<span class="string">'on'</span>)
-0734     opt = <span class="string">'bands'</span>;
-0735 <span class="keyword">else</span>
-0736     opt = <span class="string">'lines'</span>;
-0737 <span class="keyword">end</span>
-0738 
-0739 ISI          = results.ISI;
-0740 AUTOCORR     = results.AUTOCORR;
-0741 TIMESEQUENCE = results.TIMESEQUENCE;
-0742 
-0743 <span class="keyword">for</span> i = 1:4
-0744     subplot(1,4,i,<span class="string">'Parent'</span>,h.panel_analytics);
-0745 <span class="keyword">end</span>
-0746 
-0747 <span class="keyword">if</span> isempty(TIMESEQUENCE.firingrate) || isempty(ISI.counts)
-0748     <span class="keyword">return</span>
-0749 <span class="keyword">end</span>
-0750 
-0751 ax = subplot(1,4,1);
-0752 bar(ax,ISI.bins*1000,ISI.counts,<span class="string">'BarWidth'</span>,1,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>);
-0753 <span class="comment">% ylabel(ax,'counts'); xlabel(ax,'ISI (ms)');</span>
-0754 xlim(ax,[0 max(ISI.bins)*1000]);
-0755 set(ax,<span class="string">'XTick'</span>,[]);
-0756 text(max(xlim(ax)),max(ylim(ax)), <span class="keyword">...</span>
-0757     sprintf(<span class="string">'peak count = %d\npeak bin = %0.1f ms\nmedian = %0.1f\nmode = %0.1f'</span>, <span class="keyword">...</span>
-0758     ISI.peak,ISI.peakbin*1000,ISI.median,ISI.mode), <span class="keyword">...</span>
-0759     <span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,7, <span class="keyword">...</span>
-0760     <span class="string">'BackgroundColor'</span>,[1 1 1], <span class="keyword">...</span>
-0761     <span class="string">'VerticalAlignment'</span>,<span class="string">'Top'</span>, <span class="keyword">...</span>
-0762     <span class="string">'HorizontalAlignment'</span>,<span class="string">'Right'</span>);
-0763 
-0764 
-0765 ax = subplot(1,4,2);
-0766 bar(ax,AUTOCORR.lags,AUTOCORR.corr,<span class="string">'BarWidth'</span>,1,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>);
-0767 <span class="comment">% title(ax,'correlation');</span>
-0768 xlim(ax,[min(AUTOCORR.lags) max(AUTOCORR.lags)]);
-0769 ylim(ax,[0 max(ylim(ax))]);
-0770 set(ax,<span class="string">'XTick'</span>,[]);
-0771 
-0772 suc = <a href="#_sub17" class="code" title="subfunction suc = GetSelectedUnitClasses(h)">GetSelectedUnitClasses</a>(h);
+0732 <a name="_sub15" href="#_subfunctions" class="code">function PlotAnalytics(h,results)</a>
+0733 <span class="comment">% following a call to to ComputeAnalytics</span>
+0734 delete(get(h.panel_analytics,<span class="string">'Children'</span>));
+0735 
+0736 C = h.CLASSLIST;
+0737 W  = h.WAVEFORMS;
+0738 uc = h.UCLASSES;
+0739 colors = hsv(length(h.UCLASSES));
+0740 
+0741 t = get(h.toolbar_bands,<span class="string">'State'</span>);
+0742 <span class="keyword">if</span> strcmp(t,<span class="string">'on'</span>)
+0743     opt = <span class="string">'bands'</span>;
+0744 <span class="keyword">else</span>
+0745     opt = <span class="string">'lines'</span>;
+0746 <span class="keyword">end</span>
+0747 
+0748 ISI          = results.ISI;
+0749 AUTOCORR     = results.AUTOCORR;
+0750 TIMESEQUENCE = results.TIMESEQUENCE;
+0751 
+0752 <span class="keyword">for</span> i = 1:4
+0753     subplot(1,4,i,<span class="string">'Parent'</span>,h.panel_analytics);
+0754 <span class="keyword">end</span>
+0755 
+0756 <span class="keyword">if</span> isempty(TIMESEQUENCE.firingrate) || isempty(ISI.counts)
+0757     <span class="keyword">return</span>
+0758 <span class="keyword">end</span>
+0759 
+0760 ax = subplot(1,4,1);
+0761 bar(ax,ISI.bins*1000,ISI.counts,<span class="string">'BarWidth'</span>,1,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>);
+0762 <span class="comment">% ylabel(ax,'counts'); xlabel(ax,'ISI (ms)');</span>
+0763 xlim(ax,[0 max(ISI.bins)*1000]);
+0764 set(ax,<span class="string">'XTick'</span>,[]);
+0765 text(max(xlim(ax)),max(ylim(ax)), <span class="keyword">...</span>
+0766     sprintf(<span class="string">'peak count = %d\npeak bin = %0.1f ms\nmedian = %0.1f\nmode = %0.1f'</span>, <span class="keyword">...</span>
+0767     ISI.peak,ISI.peakbin*1000,ISI.median,ISI.mode), <span class="keyword">...</span>
+0768     <span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,7, <span class="keyword">...</span>
+0769     <span class="string">'BackgroundColor'</span>,[1 1 1], <span class="keyword">...</span>
+0770     <span class="string">'VerticalAlignment'</span>,<span class="string">'Top'</span>, <span class="keyword">...</span>
+0771     <span class="string">'HorizontalAlignment'</span>,<span class="string">'Right'</span>);
+0772 
 0773 
-0774 ax = subplot(1,4,3);
-0775 cla(ax)
-0776 hold(ax,<span class="string">'on'</span>)
-0777 <span class="keyword">for</span> i = 1:length(suc)
-0778     ind = C(2,:) == suc(i);
-0779     [mW,hW] = hist(min(W(ind,:),[],2),100);
-0780     barh(ax,hW,mW,<span class="string">'Barwidth'</span>,1,<span class="string">'Edgecolor'</span>,<span class="string">'none'</span>,<span class="string">'FaceColor'</span>,colors(uc==suc(i),:));
-0781 <span class="keyword">end</span>
-0782 axis tight
-0783 box on
-0784 hold(ax,<span class="string">'off'</span>)
-0785 y = min(ylim);
-0786 <span class="keyword">if</span> y &gt;= 0, y = -1; <span class="keyword">end</span>
-0787 set(ax,<span class="string">'ylim'</span>,[y 0],<span class="string">'XTick'</span>,[]);
-0788 
-0789 ax = subplot(1,4,4);
-0790 <span class="comment">% bar(ax,TIMESEQUENCE.bins,TIMESEQUENCE.firingrate,'BarWidth',1,'EdgeColor','none');</span>
-0791 <span class="comment">% xlim(ax,[0 TIMESEQUENCE.bins(end)]);</span>
-0792 <span class="comment">% set(ax,'XTick',[]);</span>
-0793 <span class="comment">% ylabel(ax,'Firing Rate (Hz)');</span>
-0794 <span class="comment">% maxV = max(max(abs(W)));</span>
-0795 cla(ax);
-0796 hold(ax,<span class="string">'on'</span>);
-0797 <span class="keyword">for</span> i = 1:length(suc)
-0798     ind = C(2,:) == suc(i);
-0799         
-0800     <span class="keyword">if</span> sum(ind) &lt;= 1
-0801         op = <span class="string">'lines'</span>;
-0802     <span class="keyword">else</span>
-0803         op = opt;
-0804     <span class="keyword">end</span>
-0805     
-0806 
-0807     <span class="keyword">switch</span> op
-0808         <span class="keyword">case</span> <span class="string">'lines'</span>
-0809             <span class="comment">% if lots of spikes, then just display a random subsample</span>
-0810             <span class="keyword">if</span> sum(ind) &gt; 1000, ind = find(ind); ind = ind(randperm(1000)); <span class="keyword">end</span>
-0811             plot(ax,1:size(W,2),W(ind,:)',<span class="string">'Color'</span>,colors(uc==suc(i),:))
-0812         <span class="keyword">case</span> <span class="string">'bands'</span>
-0813             q = quantile(W(ind,:),[0.025 0.975])';
-0814             y = [q(:,1); flipud(q(:,2))];
-0815             x = [1:size(W,2) size(W,2):-1:1];
-0816             hl = fill(x',y,colors(uc==suc(i),:),<span class="string">'Parent'</span>,ax,<span class="string">'LineStyle'</span>,<span class="string">'none'</span>);
-0817             set(hl,<span class="string">'ButtonDownFcn'</span>,{@<a href="#_sub16" class="code" title="subfunction ChangePlotOrder(hObj,evnt,hl,ax) ">ChangePlotOrder</a>,hl,ax});
-0818     <span class="keyword">end</span>
-0819 <span class="keyword">end</span>
-0820 hold(ax,<span class="string">'off'</span>);
-0821 box(ax,<span class="string">'on'</span>);
-0822 xlim(ax,[1 size(W,2)]);
-0823 <span class="comment">% ylim(ax,[-maxV maxV]);</span>
-0824 
-0825 
-0826 
-0827 
-0828 <a name="_sub16" href="#_subfunctions" class="code">function ChangePlotOrder(hObj,evnt,hl,ax) </a><span class="comment">%#ok&lt;INUSL&gt;</span>
-0829 c = get(ax,<span class="string">'Children'</span>);
-0830 ind = hl == c;
-0831 
-0832 <span class="keyword">if</span> hl == c(1)
-0833     t = c(~ind);
-0834     t(end+1) = hObj;
-0835 <span class="keyword">else</span>
-0836     t = hObj;
-0837     t(end+1:length(c)) = c(~ind);
-0838 <span class="keyword">end</span>
-0839 
-0840 set(ax,<span class="string">'Children'</span>,t);
-0841 
-0842 
-0843 
-0844 
-0845 
-0846 
-0847 
+0774 ax = subplot(1,4,2);
+0775 bar(ax,AUTOCORR.lags,AUTOCORR.corr,<span class="string">'BarWidth'</span>,1,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>);
+0776 <span class="comment">% title(ax,'correlation');</span>
+0777 xlim(ax,[min(AUTOCORR.lags) max(AUTOCORR.lags)]);
+0778 ylim(ax,[0 max(ylim(ax))]);
+0779 set(ax,<span class="string">'XTick'</span>,[]);
+0780 
+0781 suc = <a href="#_sub17" class="code" title="subfunction suc = GetSelectedUnitClasses(h)">GetSelectedUnitClasses</a>(h);
+0782 
+0783 ax = subplot(1,4,3);
+0784 cla(ax)
+0785 hold(ax,<span class="string">'on'</span>)
+0786 <span class="keyword">for</span> i = 1:length(suc)
+0787     ind = C(2,:) == suc(i);
+0788     [mW,hW] = hist(min(W(ind,:),[],2),100);
+0789     barh(ax,hW,mW,<span class="string">'Barwidth'</span>,1,<span class="string">'Edgecolor'</span>,<span class="string">'none'</span>,<span class="string">'FaceColor'</span>,colors(uc==suc(i),:));
+0790 <span class="keyword">end</span>
+0791 axis tight
+0792 box on
+0793 hold(ax,<span class="string">'off'</span>)
+0794 y = min(ylim);
+0795 <span class="keyword">if</span> y &gt;= 0, y = -1; <span class="keyword">end</span>
+0796 set(ax,<span class="string">'ylim'</span>,[y 0],<span class="string">'XTick'</span>,[]);
+0797 
+0798 ax = subplot(1,4,4);
+0799 <span class="comment">% bar(ax,TIMESEQUENCE.bins,TIMESEQUENCE.firingrate,'BarWidth',1,'EdgeColor','none');</span>
+0800 <span class="comment">% xlim(ax,[0 TIMESEQUENCE.bins(end)]);</span>
+0801 <span class="comment">% set(ax,'XTick',[]);</span>
+0802 <span class="comment">% ylabel(ax,'Firing Rate (Hz)');</span>
+0803 <span class="comment">% maxV = max(max(abs(W)));</span>
+0804 cla(ax);
+0805 hold(ax,<span class="string">'on'</span>);
+0806 <span class="keyword">for</span> i = 1:length(suc)
+0807     ind = C(2,:) == suc(i);
+0808         
+0809     <span class="keyword">if</span> sum(ind) &lt;= 1
+0810         op = <span class="string">'lines'</span>;
+0811     <span class="keyword">else</span>
+0812         op = opt;
+0813     <span class="keyword">end</span>
+0814     
+0815 
+0816     <span class="keyword">switch</span> op
+0817         <span class="keyword">case</span> <span class="string">'lines'</span>
+0818             <span class="comment">% if lots of spikes, then just display a random subsample</span>
+0819             <span class="keyword">if</span> sum(ind) &gt; 1000, ind = find(ind); ind = ind(randperm(1000)); <span class="keyword">end</span>
+0820             plot(ax,1:size(W,2),W(ind,:)',<span class="string">'Color'</span>,colors(uc==suc(i),:))
+0821         <span class="keyword">case</span> <span class="string">'bands'</span>
+0822             q = quantile(W(ind,:),[0.025 0.975])';
+0823             y = [q(:,1); flipud(q(:,2))];
+0824             x = [1:size(W,2) size(W,2):-1:1];
+0825             hl = fill(x',y,colors(uc==suc(i),:),<span class="string">'Parent'</span>,ax,<span class="string">'LineStyle'</span>,<span class="string">'none'</span>);
+0826             set(hl,<span class="string">'ButtonDownFcn'</span>,{@<a href="#_sub16" class="code" title="subfunction ChangePlotOrder(hObj,evnt,hl,ax) ">ChangePlotOrder</a>,hl,ax});
+0827     <span class="keyword">end</span>
+0828 <span class="keyword">end</span>
+0829 hold(ax,<span class="string">'off'</span>);
+0830 box(ax,<span class="string">'on'</span>);
+0831 xlim(ax,[1 size(W,2)]);
+0832 <span class="comment">% ylim(ax,[-maxV maxV]);</span>
+0833 
+0834 
+0835 
+0836 
+0837 <a name="_sub16" href="#_subfunctions" class="code">function ChangePlotOrder(hObj,evnt,hl,ax) </a><span class="comment">%#ok&lt;INUSL&gt;</span>
+0838 c = get(ax,<span class="string">'Children'</span>);
+0839 ind = hl == c;
+0840 
+0841 <span class="keyword">if</span> hl == c(1)
+0842     t = c(~ind);
+0843     t(end+1) = hObj;
+0844 <span class="keyword">else</span>
+0845     t = hObj;
+0846     t(end+1:length(c)) = c(~ind);
+0847 <span class="keyword">end</span>
 0848 
-0849 
+0849 set(ax,<span class="string">'Children'</span>,t);
 0850 
 0851 
 0852 
@@ -911,65 +911,65 @@ This function is called by:
 0863 
 0864 
 0865 
-0866 <span class="comment">%% Helpers</span>
-0867 <a name="_sub17" href="#_subfunctions" class="code">function suc = GetSelectedUnitClasses(h)</a>
-0868 axc = get(h.panel_classes,<span class="string">'Children'</span>);
-0869 um  = cell2mat(get(axc,<span class="string">'UIContextMenu'</span>));
-0870 umc = findall(um,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0871 suc = get(umc,<span class="string">'UserData'</span>);
-0872 <span class="keyword">if</span> iscell(suc), suc = cell2mat(suc); <span class="keyword">end</span>
-0873 suc = suc(:)';
+0866 
+0867 
+0868 
+0869 
+0870 
+0871 
+0872 
+0873 
 0874 
-0875 
-0876 
-0877 
-0878 <span class="comment">%% Analysis Functions</span>
-0879 <a name="_sub18" href="#_subfunctions" class="code">function results = ComputeAnalytics(timestamps)</a>
-0880 <span class="comment">% timestamps is either an N x 1 matrix for individual dataset or N x 1 cell</span>
-0881 <span class="comment">% array of N x 1 matrices for multiple datasets</span>
-0882 
-0883 <span class="keyword">if</span> ~iscell(timestamps), timestamps = {timestamps}; <span class="keyword">end</span>
+0875 <span class="comment">%% Helpers</span>
+0876 <a name="_sub17" href="#_subfunctions" class="code">function suc = GetSelectedUnitClasses(h)</a>
+0877 axc = get(h.panel_classes,<span class="string">'Children'</span>);
+0878 um  = cell2mat(get(axc,<span class="string">'UIContextMenu'</span>));
+0879 umc = findall(um,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0880 suc = get(umc,<span class="string">'UserData'</span>);
+0881 <span class="keyword">if</span> iscell(suc), suc = cell2mat(suc); <span class="keyword">end</span>
+0882 suc = suc(:)';
+0883 
 0884 
-0885 timestamps = reshape(timestamps,numel(timestamps),1);
-0886 ts = cell2mat(timestamps');
-0887 
-0888 <span class="comment">% compute ISI</span>
-0889 bins = 0:0.001:0.099;
-0890 d = diff(sort(ts));
-0891 counts = histc(d,bins);
-0892 results.ISI.counts = counts;
-0893 results.ISI.bins   = bins;
-0894 [p,pb] = max(counts);
-0895 results.ISI.peak   = p;
-0896 results.ISI.peakbin = bins(pb);
-0897 results.ISI.mode   = mode(counts);
-0898 results.ISI.median = median(counts);
-0899 
-0900 <span class="comment">% compute autocorrelation</span>
-0901 binsize = 0.005;
-0902 bins = 0:binsize:max(ts)-binsize;
-0903 bts = histc(ts,bins);
-0904 [c,lags] = xcorr(bts,100);
-0905 lags = lags * binsize;
-0906 x = lags == 0;
-0907 results.AUTOCORR.lags = lags(~x);
-0908 results.AUTOCORR.corr = c(~x);
-0909 
-0910 <span class="comment">% binned timestamps</span>
-0911 binsize = 60;
-0912 bins = 0:binsize:max(ts)-binsize;
-0913 c = histc(ts,bins);
-0914 results.TIMESEQUENCE.firingrate = c / binsize;
-0915 results.TIMESEQUENCE.bins = bins;
-0916 
-0917 
+0885 
+0886 
+0887 <span class="comment">%% Analysis Functions</span>
+0888 <a name="_sub18" href="#_subfunctions" class="code">function results = ComputeAnalytics(timestamps)</a>
+0889 <span class="comment">% timestamps is either an N x 1 matrix for individual dataset or N x 1 cell</span>
+0890 <span class="comment">% array of N x 1 matrices for multiple datasets</span>
+0891 
+0892 <span class="keyword">if</span> ~iscell(timestamps), timestamps = {timestamps}; <span class="keyword">end</span>
+0893 
+0894 timestamps = reshape(timestamps,numel(timestamps),1);
+0895 ts = cell2mat(timestamps');
+0896 
+0897 <span class="comment">% compute ISI</span>
+0898 bins = 0:0.001:0.099;
+0899 d = diff(sort(ts));
+0900 counts = histc(d,bins);
+0901 results.ISI.counts = counts;
+0902 results.ISI.bins   = bins;
+0903 [p,pb] = max(counts);
+0904 results.ISI.peak   = p;
+0905 results.ISI.peakbin = bins(pb);
+0906 results.ISI.mode   = mode(counts);
+0907 results.ISI.median = median(counts);
+0908 
+0909 <span class="comment">% compute autocorrelation</span>
+0910 binsize = 0.005;
+0911 bins = 0:binsize:max(ts)-binsize;
+0912 bts = histc(ts,bins);
+0913 [c,lags] = xcorr(bts,100);
+0914 lags = lags * binsize;
+0915 x = lags == 0;
+0916 results.AUTOCORR.lags = lags(~x);
+0917 results.AUTOCORR.corr = c(~x);
 0918 
-0919 
-0920 
-0921 
-0922 
-0923 
-0924 
+0919 <span class="comment">% binned timestamps</span>
+0920 binsize = 60;
+0921 bins = 0:binsize:max(ts)-binsize;
+0922 c = histc(ts,bins);
+0923 results.TIMESEQUENCE.firingrate = c / binsize;
+0924 results.TIMESEQUENCE.bins = bins;
 0925 
 0926 
 0927 
@@ -977,231 +977,240 @@ This function is called by:
 0929 
 0930 
 0931 
-0932 <span class="comment">%% Update GUI</span>
+0932 
 0933 
-0934 <a name="_sub19" href="#_subfunctions" class="code">function UIPCA(hObj,evnt,opt) </a><span class="comment">%#ok&lt;INUSD&gt;</span>
-0935 h = guidata(hObj);
+0934 
+0935 
 0936 
-0937 p = get(hObj,<span class="string">'Parent'</span>);
+0937 
 0938 
-0939 h2D.h = findobj(p,<span class="string">'Tag'</span>,<span class="string">'PCA_2D'</span>);
-0940 h2D.density = findobj(p,<span class="string">'Tag'</span>,<span class="string">'PCA_2D_DENSITY'</span>);
-0941 h3D.h = findobj(p,<span class="string">'Tag'</span>,<span class="string">'PCA_3D'</span>);
+0939 
+0940 
+0941 <span class="comment">%% Update GUI</span>
 0942 
-0943 n = get(hObj,<span class="string">'Tag'</span>);
-0944 
-0945 <span class="keyword">switch</span> n
-0946     <span class="keyword">case</span> <span class="string">'PCA_2D'</span>
-0947         set(h2D.density,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0948         set(h2D.h,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0949         set(h3D.h,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
-0950         
-0951     <span class="keyword">case</span> <span class="string">'PCA_2D_DENSITY'</span>
-0952         <span class="keyword">if</span> strcmp(get(h2D.density,<span class="string">'Checked'</span>),<span class="string">'on'</span>)
-0953             set(h2D.density,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
-0954         <span class="keyword">else</span>
-0955             set(h2D.density,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0956         <span class="keyword">end</span>
-0957         
-0958     <span class="keyword">case</span> <span class="string">'PCA_3D'</span>
-0959         set(h2D.density,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0960         set(h2D.h,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
-0961         set(h3D.h,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0962 <span class="keyword">end</span>   
-0963 
-0964 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); drawnow
-0965 <a href="#_sub13" class="code" title="subfunction PlotPCA(h)">PlotPCA</a>(h);
-0966 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);
-0967 
-0968 <a name="_sub20" href="#_subfunctions" class="code">function SelectClass(hObj,evnt) </a><span class="comment">%#ok&lt;INUSD&gt;</span>
-0969 h = guidata(hObj);
-0970 
-0971 <span class="keyword">if</span> strcmp(get(h.figure1,<span class="string">'SelectionType'</span>),<span class="string">'alt'</span>) <span class="keyword">...</span>
-0972         &amp;&amp; ~any(strcmp(get(gcbo,<span class="string">'Type'</span>),{<span class="string">'uimenu'</span>,<span class="string">'uipushtool'</span>}))
-0973     <span class="keyword">return</span>
-0974 <span class="keyword">end</span>
-0975 
-0976 <span class="keyword">if</span> strcmp(get(hObj,<span class="string">'Type'</span>),<span class="string">'axes'</span>)
-0977     umc = get(hObj,<span class="string">'UIContextMenu'</span>);
-0978     hObj = findobj(umc,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>);
-0979 <span class="keyword">end</span>
-0980 
-0981 ax = get(h.panel_classes,<span class="string">'Children'</span>);
-0982 um = cell2mat(get(ax,<span class="string">'UIContextMenu'</span>));
-0983 umc = findall(um,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>);
+0943 <a name="_sub19" href="#_subfunctions" class="code">function UIPCA(hObj,evnt,opt) </a><span class="comment">%#ok&lt;INUSD&gt;</span>
+0944 h = guidata(hObj);
+0945 
+0946 p = get(hObj,<span class="string">'Parent'</span>);
+0947 
+0948 h2D.h = findobj(p,<span class="string">'Tag'</span>,<span class="string">'PCA_2D'</span>);
+0949 h2D.density = findobj(p,<span class="string">'Tag'</span>,<span class="string">'PCA_2D_DENSITY'</span>);
+0950 h3D.h = findobj(p,<span class="string">'Tag'</span>,<span class="string">'PCA_3D'</span>);
+0951 
+0952 n = get(hObj,<span class="string">'Tag'</span>);
+0953 
+0954 <span class="keyword">switch</span> n
+0955     <span class="keyword">case</span> <span class="string">'PCA_2D'</span>
+0956         set(h2D.density,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0957         set(h2D.h,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0958         set(h3D.h,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+0959         
+0960     <span class="keyword">case</span> <span class="string">'PCA_2D_DENSITY'</span>
+0961         <span class="keyword">if</span> strcmp(get(h2D.density,<span class="string">'Checked'</span>),<span class="string">'on'</span>)
+0962             set(h2D.density,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+0963         <span class="keyword">else</span>
+0964             set(h2D.density,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0965         <span class="keyword">end</span>
+0966         
+0967     <span class="keyword">case</span> <span class="string">'PCA_3D'</span>
+0968         set(h2D.density,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0969         set(h2D.h,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+0970         set(h3D.h,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0971 <span class="keyword">end</span>   
+0972 
+0973 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); drawnow
+0974 <a href="#_sub13" class="code" title="subfunction PlotPCA(h)">PlotPCA</a>(h);
+0975 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);
+0976 
+0977 <a name="_sub20" href="#_subfunctions" class="code">function SelectClass(hObj,evnt) </a><span class="comment">%#ok&lt;INUSD&gt;</span>
+0978 h = guidata(hObj);
+0979 
+0980 <span class="keyword">if</span> strcmp(get(h.figure1,<span class="string">'SelectionType'</span>),<span class="string">'alt'</span>) <span class="keyword">...</span>
+0981         &amp;&amp; ~any(strcmp(get(gcbo,<span class="string">'Type'</span>),{<span class="string">'uimenu'</span>,<span class="string">'uipushtool'</span>}))
+0982     <span class="keyword">return</span>
+0983 <span class="keyword">end</span>
 0984 
-0985 ht = get(hObj,<span class="string">'Tag'</span>);
-0986 <span class="keyword">if</span> strcmp(ht,<span class="string">'toolbar_all_classes'</span>)
-0987     set(umc,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0988 <span class="keyword">elseif</span> strcmp(ht,<span class="string">'toolbar_no_classes'</span>)
-0989     set(umc,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
-0990 <span class="keyword">elseif</span> ~strcmp(ht,<span class="string">'figure1'</span>)
-0991     <span class="comment">% toggle current selection</span>
-0992     c = get(hObj,<span class="string">'Checked'</span>);
-0993     <span class="keyword">if</span> strcmp(c,<span class="string">'off'</span>)
-0994         set(hObj,<span class="string">'Checked'</span>,<span class="string">'on'</span>)
-0995     <span class="keyword">else</span>
-0996         set(hObj,<span class="string">'Checked'</span>,<span class="string">'off'</span>)
-0997     <span class="keyword">end</span>
-0998 <span class="keyword">end</span>
-0999 
-1000 
-1001 <span class="comment">% Update which classes are highlighted</span>
-1002 selclass = [];
-1003 <span class="keyword">for</span> i = 1:length(umc)
-1004     <span class="keyword">if</span> strcmp(get(umc(i),<span class="string">'Checked'</span>),<span class="string">'on'</span>) 
-1005         set(ax(i),<span class="string">'XColor'</span>,<span class="string">'r'</span>,<span class="string">'YColor'</span>,<span class="string">'r'</span>);
-1006         selclass(end+1) = get(ax(i),<span class="string">'UserData'</span>); <span class="comment">%#ok&lt;AGROW&gt;</span>
-1007     <span class="keyword">else</span>
-1008         set(ax(i),<span class="string">'XColor'</span>,<span class="string">'k'</span>,<span class="string">'YColor'</span>,<span class="string">'k'</span>);
-1009     <span class="keyword">end</span>
-1010 <span class="keyword">end</span>
-1011 
-1012 <span class="comment">% replot based on selections</span>
-1013 <a href="#_sub13" class="code" title="subfunction PlotPCA(h)">PlotPCA</a>(h);
-1014 <a href="#_sub14" class="code" title="subfunction PlotTime(h)">PlotTime</a>(h);
-1015 
-1016 timestamps = cell(size(selclass));
-1017 <span class="keyword">for</span> i = 1:length(selclass)
-1018     ind = h.CLASSLIST(2,:) == selclass(i);
-1019     timestamps{i} = h.TS_UNWRAPPED(ind)';
-1020 <span class="keyword">end</span>
-1021 results = <a href="#_sub18" class="code" title="subfunction results = ComputeAnalytics(timestamps)">ComputeAnalytics</a>(timestamps);
-1022 <a href="#_sub15" class="code" title="subfunction PlotAnalytics(h,results)">PlotAnalytics</a>(h,results);
-1023 
-1024 <a name="_sub21" href="#_subfunctions" class="code">function SelectPool(hObj,event) </a><span class="comment">%#ok&lt;INUSD&gt;</span>
-1025 h = guidata(hObj);
-1026 C = h.CLASSLIST;
-1027 P = h.POOLS;
-1028 
-1029 <span class="keyword">if</span> strcmp(get(h.figure1,<span class="string">'SelectionType'</span>),<span class="string">'alt'</span>) <span class="keyword">...</span>
-1030         &amp;&amp; ~any(strcmp(get(gcbo,<span class="string">'Type'</span>),{<span class="string">'uimenu'</span>,<span class="string">'uipushtool'</span>}))
-1031     <span class="keyword">return</span>;
-1032 <span class="keyword">end</span>
-1033 
-1034 cax = get(h.panel_classes,<span class="string">'Children'</span>);
-1035 cum = cell2mat(get(cax,<span class="string">'UIContextMenu'</span>));
-1036 cumc = findall(cum,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>);
+0985 <span class="keyword">if</span> strcmp(get(hObj,<span class="string">'Type'</span>),<span class="string">'axes'</span>)
+0986     umc = get(hObj,<span class="string">'UIContextMenu'</span>);
+0987     hObj = findobj(umc,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>);
+0988 <span class="keyword">end</span>
+0989 
+0990 ax = get(h.panel_classes,<span class="string">'Children'</span>);
+0991 um = cell2mat(get(ax,<span class="string">'UIContextMenu'</span>));
+0992 umc = findall(um,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>);
+0993 
+0994 ht = get(hObj,<span class="string">'Tag'</span>);
+0995 <span class="keyword">if</span> strcmp(ht,<span class="string">'toolbar_all_classes'</span>)
+0996     set(umc,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0997 <span class="keyword">elseif</span> strcmp(ht,<span class="string">'toolbar_no_classes'</span>)
+0998     set(umc,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+0999 <span class="keyword">elseif</span> ~strcmp(ht,<span class="string">'figure1'</span>)
+1000     <span class="comment">% toggle current selection</span>
+1001     c = get(hObj,<span class="string">'Checked'</span>);
+1002     <span class="keyword">if</span> strcmp(c,<span class="string">'off'</span>)
+1003         set(hObj,<span class="string">'Checked'</span>,<span class="string">'on'</span>)
+1004     <span class="keyword">else</span>
+1005         set(hObj,<span class="string">'Checked'</span>,<span class="string">'off'</span>)
+1006     <span class="keyword">end</span>
+1007 <span class="keyword">end</span>
+1008 
+1009 
+1010 <span class="comment">% Update which classes are highlighted</span>
+1011 selclass = [];
+1012 <span class="keyword">for</span> i = 1:length(umc)
+1013     <span class="keyword">if</span> strcmp(get(umc(i),<span class="string">'Checked'</span>),<span class="string">'on'</span>) 
+1014         set(ax(i),<span class="string">'XColor'</span>,<span class="string">'r'</span>,<span class="string">'YColor'</span>,<span class="string">'r'</span>);
+1015         selclass(end+1) = get(ax(i),<span class="string">'UserData'</span>); <span class="comment">%#ok&lt;AGROW&gt;</span>
+1016     <span class="keyword">else</span>
+1017         set(ax(i),<span class="string">'XColor'</span>,<span class="string">'k'</span>,<span class="string">'YColor'</span>,<span class="string">'k'</span>);
+1018     <span class="keyword">end</span>
+1019 <span class="keyword">end</span>
+1020 
+1021 <span class="comment">% replot based on selections</span>
+1022 <a href="#_sub13" class="code" title="subfunction PlotPCA(h)">PlotPCA</a>(h);
+1023 <a href="#_sub14" class="code" title="subfunction PlotTime(h)">PlotTime</a>(h);
+1024 
+1025 timestamps = cell(size(selclass));
+1026 <span class="keyword">for</span> i = 1:length(selclass)
+1027     ind = h.CLASSLIST(2,:) == selclass(i);
+1028     timestamps{i} = h.TS_UNWRAPPED(ind)';
+1029 <span class="keyword">end</span>
+1030 results = <a href="#_sub18" class="code" title="subfunction results = ComputeAnalytics(timestamps)">ComputeAnalytics</a>(timestamps);
+1031 <a href="#_sub15" class="code" title="subfunction PlotAnalytics(h,results)">PlotAnalytics</a>(h,results);
+1032 
+1033 <a name="_sub21" href="#_subfunctions" class="code">function SelectPool(hObj,event) </a><span class="comment">%#ok&lt;INUSD&gt;</span>
+1034 h = guidata(hObj);
+1035 C = h.CLASSLIST;
+1036 P = h.POOLS;
 1037 
-1038 pud = get(hObj,<span class="string">'UserData'</span>);
-1039 cud = get(cum,<span class="string">'UserData'</span>);
-1040 <span class="keyword">if</span> iscell(cud), cud = cell2mat(cud); <span class="keyword">end</span>
-1041 
-1042 pcind = P == pud;
-1043 uc = unique(C(2,pcind));
-1044 
-1045 set(cumc,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
-1046 set(cumc(ismember(cud,uc)),<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-1047 
-1048 <a href="#_sub20" class="code" title="subfunction SelectClass(hObj,evnt) ">SelectClass</a>(h.figure1);
-1049 
-1050 <a name="_sub22" href="#_subfunctions" class="code">function UpdateUnitType(hObj,evnt,ax,classid) </a><span class="comment">%#ok&lt;INUSD&gt;</span>
-1051 h = guidata(hObj);
-1052 C = h.CLASSLIST;
+1038 <span class="keyword">if</span> strcmp(get(h.figure1,<span class="string">'SelectionType'</span>),<span class="string">'alt'</span>) <span class="keyword">...</span>
+1039         &amp;&amp; ~any(strcmp(get(gcbo,<span class="string">'Type'</span>),{<span class="string">'uimenu'</span>,<span class="string">'uipushtool'</span>}))
+1040     <span class="keyword">return</span>;
+1041 <span class="keyword">end</span>
+1042 
+1043 cax = get(h.panel_classes,<span class="string">'Children'</span>);
+1044 cum = cell2mat(get(cax,<span class="string">'UIContextMenu'</span>));
+1045 cumc = findall(cum,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>);
+1046 
+1047 pud = get(hObj,<span class="string">'UserData'</span>);
+1048 cud = get(cum,<span class="string">'UserData'</span>);
+1049 <span class="keyword">if</span> iscell(cud), cud = cell2mat(cud); <span class="keyword">end</span>
+1050 
+1051 pcind = P == pud;
+1052 uc = unique(C(2,pcind));
 1053 
-1054 <span class="comment">% alter all selected classes</span>
-1055 ax = get(h.panel_classes,<span class="string">'Children'</span>);
-1056 um = cell2mat(get(ax,<span class="string">'UIContextMenu'</span>));
-1057 f = findall(um,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>,<span class="string">'-and'</span>,<span class="string">'Checked'</span>,<span class="string">'on'</span>); <span class="comment">% friends</span>
-1058 <span class="keyword">if</span> isempty(f), f  = hObj; <span class="keyword">end</span>
-1059 pf = get(f,<span class="string">'Parent'</span>);
-1060 <span class="keyword">if</span> iscell(pf), pf = cell2mat(pf); <span class="keyword">end</span>
-1061 
+1054 set(cumc,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+1055 set(cumc(ismember(cud,uc)),<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+1056 
+1057 <a href="#_sub20" class="code" title="subfunction SelectClass(hObj,evnt) ">SelectClass</a>(h.figure1);
+1058 
+1059 <a name="_sub22" href="#_subfunctions" class="code">function UpdateUnitType(hObj,evnt,ax,classid) </a><span class="comment">%#ok&lt;INUSD&gt;</span>
+1060 h = guidata(hObj);
+1061 C = h.CLASSLIST;
 1062 
-1063 <span class="comment">% NT = get(hObj,'Tag');</span>
-1064 set(findall(pf,<span class="string">'-regexp'</span>,<span class="string">'Tag'</span>,<span class="string">'ut*'</span>),<span class="string">'Checked'</span>,<span class="string">'off'</span>);
-1065 set(hObj,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-1066 
-1067 CT = get(pf,<span class="string">'UserData'</span>);    <span class="comment">% class type</span>
-1068 <span class="keyword">if</span> iscell(CT), CT = cell2mat(CT); <span class="keyword">end</span>
-1069 UT = get(hObj,<span class="string">'UserData'</span>); <span class="comment">% unit type</span>
+1063 <span class="comment">% alter all selected classes</span>
+1064 ax = get(h.panel_classes,<span class="string">'Children'</span>);
+1065 um = cell2mat(get(ax,<span class="string">'UIContextMenu'</span>));
+1066 f = findall(um,<span class="string">'Tag'</span>,<span class="string">'Select_Class'</span>,<span class="string">'-and'</span>,<span class="string">'Checked'</span>,<span class="string">'on'</span>); <span class="comment">% friends</span>
+1067 <span class="keyword">if</span> isempty(f), f  = hObj; <span class="keyword">end</span>
+1068 pf = get(f,<span class="string">'Parent'</span>);
+1069 <span class="keyword">if</span> iscell(pf), pf = cell2mat(pf); <span class="keyword">end</span>
 1070 
-1071 h.POOLS(ismember(C(2,:),CT)) = UT;
-1072 
-1073 h.POOLS_SAVED = false;
-1074 
-1075 guidata(hObj,h);
-1076 
-1077 <a href="#_sub12" class="code" title="subfunction PlotPools(h)">PlotPools</a>(h);
-1078 <a href="#_sub23" class="code" title="subfunction UpdateClassInfo(h)">UpdateClassInfo</a>(h);
+1071 
+1072 <span class="comment">% NT = get(hObj,'Tag');</span>
+1073 set(findall(pf,<span class="string">'-regexp'</span>,<span class="string">'Tag'</span>,<span class="string">'ut*'</span>),<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+1074 set(hObj,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+1075 
+1076 CT = get(pf,<span class="string">'UserData'</span>);    <span class="comment">% class type</span>
+1077 <span class="keyword">if</span> iscell(CT), CT = cell2mat(CT); <span class="keyword">end</span>
+1078 UT = get(hObj,<span class="string">'UserData'</span>); <span class="comment">% unit type</span>
 1079 
-1080 <a name="_sub23" href="#_subfunctions" class="code">function UpdateClassInfo(h)</a>
-1081 P = h.POOLS;
-1082 C = h.CLASSLIST;
-1083 Pc = lines(length(h.POOLIDS));
-1084 
-1085 uP = unique(P);
-1086 
-1087 classax = get(h.panel_classes,<span class="string">'Children'</span>);
-1088 <span class="keyword">for</span> i = 1:length(classax)
-1089     ax = classax(i);
-1090     delete(findobj(get(ax,<span class="string">'Children'</span>),<span class="string">'Type'</span>,<span class="string">'text'</span>));
-1091     ud = get(ax,<span class="string">'UserData'</span>);
-1092     ind = ud == C(2,:);
-1093     nc = sum(ind);
-1094     
-1095     x = xlim(ax); y = ylim(ax);
-1096     text(x(1),y(2),sprintf(<span class="string">'Class %d [%d]'</span>,ud,nc), <span class="keyword">...</span>
-1097         <span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,8, <span class="keyword">...</span>
-1098         <span class="string">'VerticalAlignment'</span>,<span class="string">'Bottom'</span>, <span class="keyword">...</span>
-1099         <span class="string">'HorizontalAlignment'</span>,<span class="string">'Left'</span>);
-1100     
-1101     tP = P(find(ind,1));
-1102     text(x(2),y(1),h.POOLIDS{tP+1}, <span class="keyword">...</span>
-1103         <span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,9,<span class="string">'Color'</span>,[1 1 1],<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>, <span class="keyword">...</span>
-1104         <span class="string">'BackgroundColor'</span>,Pc(uP==tP,:), <span class="keyword">...</span>
-1105         <span class="string">'VerticalAlignment'</span>,<span class="string">'Bottom'</span>, <span class="keyword">...</span>
-1106         <span class="string">'HorizontalAlignment'</span>,<span class="string">'Right'</span>);
-1107     
-1108     uim = get(get(ax,<span class="string">'UIContextMenu'</span>),<span class="string">'Children'</span>);
-1109     set(uim,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
-1110     uim = findobj(uim,<span class="string">'Label'</span>,h.POOLIDS{tP+1});
-1111     set(uim,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-1112     
-1113 <span class="keyword">end</span>
-1114 
-1115 <a name="_sub24" href="#_subfunctions" class="code">function UpdateChannel(h,chandir)</a>
-1116 <span class="comment">% input is channel direction as 'UP' or 'DOWN' or [] to initialize</span>
-1117 
-1118 <span class="keyword">if</span> ~exist(<span class="string">'chandir'</span>,<span class="string">'var'</span>) || isempty(chandir), chandir = <span class="string">''</span>; <span class="keyword">end</span>
-1119 
-1120 <span class="keyword">if</span> strcmp(<a href="#_sub9" class="code" title="subfunction b = EnsurePoolsSaved(h)">EnsurePoolsSaved</a>(h),<span class="string">'Cancel'</span>), <span class="keyword">return</span>; <span class="keyword">end</span>
-1121 
-1122 <span class="keyword">switch</span> chandir
-1123     <span class="keyword">case</span> <span class="string">'UP'</span>
-1124         <span class="keyword">if</span> h.DATAFILEIDX &lt; length(h.DATAFILES), h.DATAFILEIDX = h.DATAFILEIDX + 1; <span class="keyword">end</span>
-1125     <span class="keyword">case</span> <span class="string">'DOWN'</span>
-1126         <span class="keyword">if</span> h.DATAFILEIDX &gt; 1, h.DATAFILEIDX = h.DATAFILEIDX - 1; <span class="keyword">end</span>
-1127     <span class="keyword">case</span> <span class="string">'SELECT'</span>
-1128         [sel,ok] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select a Channel:'</span>, <span class="keyword">...</span>
-1129             <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>, <span class="string">'Name'</span>,<span class="string">'Channels'</span>, <span class="keyword">...</span>
-1130             <span class="string">'ListString'</span>,cellstr(num2str(h.CHANNELS(:))), <span class="keyword">...</span>
-1131             <span class="string">'InitialValue'</span>,h.DATAFILEIDX);
-1132         <span class="keyword">if</span> ~ok
-1133             <span class="keyword">return</span>
-1134         <span class="keyword">else</span>
-1135             h.DATAFILEIDX = sel;
-1136         <span class="keyword">end</span>
-1137 <span class="keyword">end</span>
-1138 
-1139 set(findobj(h.figure1,<span class="string">'-regexp'</span>,<span class="string">'Tag'</span>,<span class="string">'toolbar_channel*'</span>),<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-1140 <span class="keyword">if</span> h.DATAFILEIDX == length(h.DATAFILES)
-1141     set(findobj(h.figure1,<span class="string">'Tag'</span>,<span class="string">'toolbar_channel_up'</span>),<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-1142 <span class="keyword">end</span>
-1143 <span class="keyword">if</span> h.DATAFILEIDX == 1
-1144     set(findobj(h.figure1,<span class="string">'Tag'</span>,<span class="string">'toolbar_channel_down'</span>),<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-1145 <span class="keyword">end</span>
-1146 
-1147 <span class="keyword">if</span> ~isempty(chandir)
-1148     <a href="#_sub4" class="code" title="subfunction OpenDataset(DATAFILEIDX)">OpenDataset</a>(h.DATAFILEIDX);
-1149 <span class="keyword">end</span>
-1150 
-1151 <a name="_sub25" href="#_subfunctions" class="code">function UpdatePlotStyle(h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
-1152 <span class="keyword">if</span> ~isfield(h,<span class="string">'WAVEFORMS'</span>) || isempty(h.WAVEFORMS), <span class="keyword">return</span>; <span class="keyword">end</span>
-1153 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); drawnow
-1154 <a href="#_sub10" class="code" title="subfunction PlotClasses(h)">PlotClasses</a>(h);
-1155 <a href="#_sub12" class="code" title="subfunction PlotPools(h)">PlotPools</a>(h);
-1156 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);</pre></div>
-<hr><address>Generated on Thu 11-Jul-2013 10:16:49 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+1080 h.POOLS(ismember(C(2,:),CT)) = UT;
+1081 
+1082 h.POOLS_SAVED = false;
+1083 
+1084 guidata(hObj,h);
+1085 
+1086 <a href="#_sub12" class="code" title="subfunction PlotPools(h)">PlotPools</a>(h);
+1087 <a href="#_sub23" class="code" title="subfunction UpdateClassInfo(h)">UpdateClassInfo</a>(h);
+1088 
+1089 <a name="_sub23" href="#_subfunctions" class="code">function UpdateClassInfo(h)</a>
+1090 P = h.POOLS;
+1091 C = h.CLASSLIST;
+1092 Pc = lines(length(h.POOLIDS));
+1093 
+1094 uP = unique(P);
+1095 
+1096 classax = get(h.panel_classes,<span class="string">'Children'</span>);
+1097 <span class="keyword">for</span> i = 1:length(classax)
+1098     ax = classax(i);
+1099     delete(findobj(get(ax,<span class="string">'Children'</span>),<span class="string">'Type'</span>,<span class="string">'text'</span>));
+1100     ud = get(ax,<span class="string">'UserData'</span>);
+1101     ind = ud == C(2,:);
+1102     nc = sum(ind);
+1103     
+1104     x = xlim(ax); y = ylim(ax);
+1105     text(x(1),y(2),sprintf(<span class="string">'Class %d [%d]'</span>,ud,nc), <span class="keyword">...</span>
+1106         <span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,8, <span class="keyword">...</span>
+1107         <span class="string">'VerticalAlignment'</span>,<span class="string">'Bottom'</span>, <span class="keyword">...</span>
+1108         <span class="string">'HorizontalAlignment'</span>,<span class="string">'Left'</span>);
+1109     
+1110     tP = P(find(ind,1));
+1111     text(x(2),y(1),h.POOLIDS{tP+1}, <span class="keyword">...</span>
+1112         <span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,9,<span class="string">'Color'</span>,[1 1 1],<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>, <span class="keyword">...</span>
+1113         <span class="string">'BackgroundColor'</span>,Pc(uP==tP,:), <span class="keyword">...</span>
+1114         <span class="string">'VerticalAlignment'</span>,<span class="string">'Bottom'</span>, <span class="keyword">...</span>
+1115         <span class="string">'HorizontalAlignment'</span>,<span class="string">'Right'</span>);
+1116     
+1117     uim = get(get(ax,<span class="string">'UIContextMenu'</span>),<span class="string">'Children'</span>);
+1118     set(uim,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+1119     uim = findobj(uim,<span class="string">'Label'</span>,h.POOLIDS{tP+1});
+1120     set(uim,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+1121     
+1122 <span class="keyword">end</span>
+1123 
+1124 <a name="_sub24" href="#_subfunctions" class="code">function UpdateChannel(h,chandir)</a>
+1125 <span class="comment">% input is channel direction as 'UP' or 'DOWN' or [] to initialize</span>
+1126 
+1127 <span class="keyword">if</span> ~exist(<span class="string">'chandir'</span>,<span class="string">'var'</span>) || isempty(chandir), chandir = <span class="string">''</span>; <span class="keyword">end</span>
+1128 
+1129 <span class="keyword">if</span> strcmp(<a href="#_sub9" class="code" title="subfunction b = EnsurePoolsSaved(h)">EnsurePoolsSaved</a>(h),<span class="string">'Cancel'</span>), <span class="keyword">return</span>; <span class="keyword">end</span>
+1130 
+1131 <span class="keyword">switch</span> chandir
+1132     <span class="keyword">case</span> <span class="string">'UP'</span>
+1133         <span class="keyword">if</span> h.DATAFILEIDX &lt; length(h.DATAFILES), h.DATAFILEIDX = h.DATAFILEIDX + 1; <span class="keyword">end</span>
+1134     <span class="keyword">case</span> <span class="string">'DOWN'</span>
+1135         <span class="keyword">if</span> h.DATAFILEIDX &gt; 1, h.DATAFILEIDX = h.DATAFILEIDX - 1; <span class="keyword">end</span>
+1136     <span class="keyword">case</span> <span class="string">'SELECT'</span>
+1137         [sel,ok] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select a Channel:'</span>, <span class="keyword">...</span>
+1138             <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>, <span class="string">'Name'</span>,<span class="string">'Channels'</span>, <span class="keyword">...</span>
+1139             <span class="string">'ListString'</span>,cellstr(num2str(h.CHANNELS(:))), <span class="keyword">...</span>
+1140             <span class="string">'InitialValue'</span>,h.DATAFILEIDX);
+1141         <span class="keyword">if</span> ~ok
+1142             <span class="keyword">return</span>
+1143         <span class="keyword">else</span>
+1144             h.DATAFILEIDX = sel;
+1145         <span class="keyword">end</span>
+1146 <span class="keyword">end</span>
+1147 
+1148 set(findobj(h.figure1,<span class="string">'-regexp'</span>,<span class="string">'Tag'</span>,<span class="string">'toolbar_channel*'</span>),<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+1149 <span class="keyword">if</span> h.DATAFILEIDX == length(h.DATAFILES)
+1150     set(findobj(h.figure1,<span class="string">'Tag'</span>,<span class="string">'toolbar_channel_up'</span>),<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+1151 <span class="keyword">end</span>
+1152 <span class="keyword">if</span> h.DATAFILEIDX == 1
+1153     set(findobj(h.figure1,<span class="string">'Tag'</span>,<span class="string">'toolbar_channel_down'</span>),<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+1154 <span class="keyword">end</span>
+1155 
+1156 <span class="keyword">if</span> ~isempty(chandir)
+1157     <a href="#_sub4" class="code" title="subfunction OpenDataset(DATAFILEIDX)">OpenDataset</a>(h.DATAFILEIDX);
+1158 <span class="keyword">end</span>
+1159 
+1160 <a name="_sub25" href="#_subfunctions" class="code">function UpdatePlotStyle(h) </a><span class="comment">%#ok&lt;DEFNU&gt;</span>
+1161 <span class="keyword">if</span> ~isfield(h,<span class="string">'WAVEFORMS'</span>) || isempty(h.WAVEFORMS), <span class="keyword">return</span>; <span class="keyword">end</span>
+1162 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'watch'</span>); drawnow
+1163 <a href="#_sub10" class="code" title="subfunction PlotClasses(h)">PlotClasses</a>(h);
+1164 <a href="#_sub12" class="code" title="subfunction PlotPools(h)">PlotPools</a>(h);
+1165 set(h.figure1,<span class="string">'Pointer'</span>,<span class="string">'arrow'</span>);</pre></div>
+<hr><address>Generated on Wed 24-Jul-2013 19:48:12 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>
