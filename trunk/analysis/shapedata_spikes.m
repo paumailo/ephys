@@ -21,7 +21,7 @@ for i = 1:2:length(varargin)
     end
 end
 
-binvec = win(1):binsize:win(2);
+binvec = win(1):binsize:win(2)-binsize;
 
 % sort spikes by onsets
 ons = params.VALS.onset;
