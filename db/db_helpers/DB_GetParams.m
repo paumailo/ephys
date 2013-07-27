@@ -2,10 +2,14 @@ function p = DB_GetParams(block_id)
 % p = DB_GetParams(block_id)
 % 
 % Simply retrieves parameters from the protocols table into structure p.
+%
+% Note: Uses a persistent variable and checks if the protocol is the same
+% as the last call to this function.  This reduces the number of calls to
+% the server.
 % 
 % DJS (c) 2013
 
-persistent PP % persistent parameters
+persistent PP
 
 if nargin<1 
    error('DB:DB_GetParams:NrInputArguments','Not enough input arguments.');
