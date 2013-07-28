@@ -18,6 +18,7 @@ function data = TDT2mat(tank, block, varargin)
 %   data.info       contains some additional information about the block
 %
 %   "parameter", value pairs...
+%       "server"    data tank server (default = "Local")
 %       "T1" is a scalar, retrieve data starting at T1 (0 for start at
 %           beginning of recording).
 %       "T2" is a scalar, retrieve data ending at T2 (0 for end at ending
@@ -44,6 +45,7 @@ T2       = 0;
 SILENT   = 0;
 TYPE     = 1;
 SORTNAME = 'TankSort';
+SERVER   = 'Local';
 
 % parse varargin
 for i = 1:2:length(varargin)
@@ -55,9 +57,9 @@ if TYPE == 1, TYPE = 1:4; end
 TTXfig = figure('Visible','off','HandleVisibility','off');
 TTX = actxcontrol('TTank.X','Parent',TTXfig);
 
-server = 'Local';
-if TTX.ConnectServer(server, 'Me') ~= 1
-    error(['Problem connecting to Tank server: ' server])
+
+if TTX.ConnectServer(SERVER, 'Me') ~= 1
+    error(['Problem connecting to Tank server: ' SERVER])
 end
 
 if TTX.OpenTank(tank, 'R') ~= 1
@@ -133,7 +135,7 @@ for i = 1:length(lStores)
                 num_channels = size(data.streams.(name).data,2);
             else
                 TTX.SetGlobalV('T1', 0);
-                TTX.SetGlobalV('T2', 5);
+                TTX.SetGlobalV('T2', 30);
                 TTX.ReadEventsV(2^9, name, 0, 0, 0, 5, 'ALL');
                 t = TTX.ReadWavesV(name);
                 TTX.SetGlobalV('T1', T1);
@@ -150,15 +152,18 @@ for i = 1:length(lStores)
             if any(TYPE==3)
                 data.snips.(name) = struct('data',[],'chan',[],'sort',[],'ts',[],'index',[]);
                 TTX.SetUseSortName(SORTNAME);
-                N = TTX.ReadEventsV(1e7, name, 0, 0, 0.0, 0.0, 'ALL');
-                if N == 0, continue; end
-                data.snips.(name).data(end+1:end+N,:) = TTX.ParseEvV(0, N)';
-                data.snips.(name).chan(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 4);
-                data.snips.(name).sort(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 5);
-                data.snips.(name).ts(end+1:end+N)     = TTX.ParseEvInfoV(0, N, 6);
-                N = TTX.ReadEventsV(N,name,0,0,0,0,'IDXPSQ');
-                data.snips.(name).index(end+1:end+N)  = TTX.GetEvTsqIdx;
                 data.snips.(name).sortname = SORTNAME;
+                N = TTX.ReadEventsV(1e7, name, 0, 0, 0.0, 0.0, 'ALL');
+                if N
+                    data.snips.(name).data(end+1:end+N,:) = TTX.ParseEvV(0, N)';
+                    data.snips.(name).chan(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 4);
+                    data.snips.(name).sort(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 5);
+                    data.snips.(name).ts(end+1:end+N)     = TTX.ParseEvInfoV(0, N, 6);
+                end
+                N = TTX.ReadEventsV(N,name,0,0,0,0,'IDXPSQ');
+                if N
+                    data.snips.(name).index(end+1:end+N)  = TTX.GetEvTsqIdx;
+                end
             else
                 TTX.ReadEventsV(2^9, name, 0, 0, 0, 0, 'ALL');
             end
@@ -186,6 +191,8 @@ t2                  = TTX.CurBlockStopTime;
 data.info.endtime   = TTX.FancyTime(t2,   'H:M:S');
 data.info.duration  = TTX.FancyTime(t2-t1,'H:M:S');
 data.info.blockname = block;
+data.info.tankpath  = TTX.GetTankItem(tank,'PT');
+data.info.legacy    = strcmp(TTX.GetTankItem(tank,'VERSION'),'10');
 
 data = orderfields(data);
 
