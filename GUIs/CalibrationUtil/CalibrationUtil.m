@@ -5,7 +5,7 @@ function varargout = CalibrationUtil(varargin)
 
 % Edit the above text to modify the response to help CalibrationUtil
 
-% Last Modified by GUIDE v2.5 18-Sep-2011 15:44:13
+% Last Modified by GUIDE v2.5 29-Jul-2013 10:43:35
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -34,6 +34,8 @@ h.output = hObj;
 
 % Update h structure
 guidata(hObj, h);
+
+
 
 % UIWAIT makes CalibrationUtil wait for user response (see UIRESUME)
 % uiwait(h.CalibrationUtil);
@@ -480,7 +482,7 @@ lp = cfg.lp;
 hdr.timestamp = datestr(now);
 hdr.cfg = cfg;
 
-hdr.V = 10;
+hdr.V = getpref('CalibrationUtil','SIGNALAMP',1);
 
 data = nan(length(hp),4);
 data(:,1) = hp;
@@ -550,7 +552,7 @@ try %#ok<TRYNC>
     hdr.tolerance = tolerance;
     hdr.timestamp = datestr(now);
     hdr.cfg = cfg;
-    hdr.V = 10; % starting voltage
+    hdr.V = getpref('CalibrationUtil','SIGNALAMP',1); % starting voltage
     
     data = nan(length(f),3);
     data(:,1) = f;
@@ -712,3 +714,29 @@ switch fidx
 end
 
 fprintf('File Saved: %s\n',fullfile(pn,fn));
+
+
+function settings_sig_amp_Callback(hObj,~, h) %#ok<INUSD,DEFNU>
+
+prompt = {'Enter amplitude value between 0.1 and 10:'};
+name = 'Signal Amplitude';
+numlines = 1;
+val = getpref('CalibrationUtil','SIGNALAMP',1);
+
+val = inputdlg(prompt,name,numlines,{num2str(val)});
+
+val = str2num(cell2mat(val)); %#ok<ST2NM>
+
+if isscalar(val) && val <= 10 && val >= 0.1
+    setpref('CalibrationUtil','SIGNALAMP',val);
+    fprintf('Signal amplitude is now: %d\n',val)
+elseif isempty(val)
+    return
+else
+    errordlg('Invalid entry','Signal Amplitude','modal');
+end
+
+
+
+
+
