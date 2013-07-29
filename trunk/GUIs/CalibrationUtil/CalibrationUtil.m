@@ -5,7 +5,7 @@ function varargout = CalibrationUtil(varargin)
 
 % Edit the above text to modify the response to help CalibrationUtil
 
-% Last Modified by GUIDE v2.5 29-Jul-2013 10:43:35
+% Last Modified by GUIDE v2.5 29-Jul-2013 13:09:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -442,7 +442,7 @@ cax = h.calibration_curve;
 cfg.Fs = Fs;
 
 % piston phone frequency = 250 Hz
-freq = 250;
+freq = getpref('CalibrationUtil','CALFREQ',250);
 buffer = GetBuffer(AcqRP,Fs,1);
 
 
@@ -735,6 +735,30 @@ elseif isempty(val)
 else
     errordlg('Invalid entry','Signal Amplitude','modal');
 end
+
+
+function reffreq_Callback(hObj,~, h) %#ok<INUSD,DEFNU>
+prompt = {'Enter frequency of calibration source:'};
+name = 'Reference Frequency';
+numlines = 1;
+val = getpref('CalibrationUtil','CALFREQ',250);
+
+val = inputdlg(prompt,name,numlines,{num2str(val)});
+
+val = str2num(cell2mat(val)); %#ok<ST2NM>
+
+if isscalar(val)
+    setpref('CalibrationUtil','CALFREQ',val);
+    fprintf('Calibration Frequency is now: %d\n',val)
+elseif isempty(val)
+    return
+else
+    errordlg('Invalid entry','Reference Frequency','modal');
+end
+
+
+
+
 
 
 
