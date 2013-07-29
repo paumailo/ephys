@@ -725,6 +725,8 @@ val = getpref('CalibrationUtil','SIGNALAMP',1);
 
 val = inputdlg(prompt,name,numlines,{num2str(val)});
 
+if isempty(val), return; end
+
 val = str2num(cell2mat(val)); %#ok<ST2NM>
 
 if isscalar(val) && val <= 10 && val >= 0.1
@@ -744,6 +746,8 @@ numlines = 1;
 val = getpref('CalibrationUtil','CALFREQ',250);
 
 val = inputdlg(prompt,name,numlines,{num2str(val)});
+
+if isempty(val), return; end
 
 val = str2num(cell2mat(val)); %#ok<ST2NM>
 
