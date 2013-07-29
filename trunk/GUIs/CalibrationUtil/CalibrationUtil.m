@@ -5,7 +5,7 @@ function varargout = CalibrationUtil(varargin)
 
 % Edit the above text to modify the response to help CalibrationUtil
 
-% Last Modified by GUIDE v2.5 29-Jul-2013 13:09:47
+% Last Modified by GUIDE v2.5 29-Jul-2013 13:12:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -755,12 +755,3 @@ elseif isempty(val)
 else
     errordlg('Invalid entry','Reference Frequency','modal');
 end
-
-
-
-
-
-
-
-
-
