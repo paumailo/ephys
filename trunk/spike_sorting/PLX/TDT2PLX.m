@@ -16,8 +16,11 @@ function TDT2PLX(tank,blocks,varargin)
 %                                     the default event will be the first
 %                                     snip type event.
 %
+% See also, PLX2TDT
+%
 % DJS 2013
-
+%
+% Daniel.Stolzberg at gmail dot com
 
 
 % defaults are modifiable using varargin parameter, value pairs
@@ -58,7 +61,7 @@ for i = 1:length(blocks)
     
     d = d.snips.(EVENT);
     
-    d.data = d.data * 1e6; % scale for Plexon
+    d.data = d.data * 6e6; % scale for Plexon
     
     channels = unique(d.chan);
     
@@ -78,7 +81,8 @@ for i = 1:length(blocks)
         if ~n, continue; end
         ts{ch}(end+1:end+n)     = d.ts(ind) + k(ch);
         wave{ch}(end+1:end+n,:) = d.data(ind,:);
-        sort{ch}(end+1:end+n)   = d.sort(ind);
+%         sort{ch}(end+1:end+n)   = d.sort(ind);
+        sort{ch}(end+1:end+n)   = zeros(1,sum(ind)); % ignore any previous sorting
     end
         
     fs  = d.fs;
@@ -107,7 +111,7 @@ for ch = validchs
     writeplxchannelhdr(fid,ch,npw)
 end
 for i = 1:length(validchs)
-    fprintf('\tWriting channel% 3d\t# spikes:% 7d\n',validchs(i),length(ts{i}))
+    fprintf('Writing channel% 3d\t# spikes:% 7d\n',validchs(i),length(ts{i}))
     writeplxdata(fid,validchs(i),fs,ts{i},sort{i},npw,wave{i})
 end
 
@@ -123,6 +127,9 @@ pad256(1:256) = uint8(0);
 % create the file and write the file header
 
 plx_id = fopen(filename, 'w');
+if plx_id == -1
+    error('Unable to open file "%s".  Maybe it''s open in another program?',filename)
+end
 fwrite(plx_id, 1480936528, 'integer*4');    % 'PLEX' magic code
 fwrite(plx_id, 101, 'integer*4');           % the version no.
 fwrite(plx_id, pad256(1:128), 'char');      % placeholder for comment
