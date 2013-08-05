@@ -9,6 +9,8 @@ function varargout = TDT_TankSelect(varargin)
 %       'TankList'       ...  optional tank list for using specified tanks
 %                           only.  Default is to display all registered tanks.
 %       
+% See also, TDT_BlockSelect
+%
 % DJS (c) 2010
 
 % set defaults

@@ -1,5 +1,25 @@
 function PLX2TDT(plxfilename)
-
+% PLX2TDT(plxfilename)
+% 
+% Convert plx file generated from sorting data with Plexon Offline Sorter
+% and update appropriate TDT tank.
+%
+% Tank must be registered.
+% 
+%   parameter         default value
+%   SERVER              'Local'                 TDT server
+%   BLOCKROOT           'Block'                 TDT Block root name
+%   SORTNAME            'Pooled'                TDT Sort name
+%   SORTCONDITION       'PlexonOSv2'            TDT Sort condition
+%   EVENT               (depends)               If not specified, then the
+%                                               event will be automatically
+%                                               chosen from tank.
+% 
+% See also, TDT2PLX
+%
+% DJS 2013
+%
+% Daniel.Stolzberg at gmail dot com
 
 % defaults are modifiable using varargin parameter, value pairs
 SERVER        = 'Local';
@@ -93,7 +113,7 @@ for b = blocks
         fprintf('\tChannel %d,\t%d units with% 8d spikes ...', ...
             ch,length(unique(unit{ch}(1:k))),k)
         
-        SCA = uint32([d.index(1:k); unit{ch}(1:k)']);
+        SCA = uint32([d.index(ind); unit{ch}(1:k)']);
         SCA = SCA(:)';
         
         success = TTX.SaveSortCodes(SORTNAME,EVENT,ch,SORTCONDITION,SCA);
