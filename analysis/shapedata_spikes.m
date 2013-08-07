@@ -6,6 +6,7 @@ function varargout = shapedata_spikes(spiketimes,params,dimparams,varargin)
 % PropertyName ... PropertyValue
 % 'win'     ... window (eg, [-0.1 0.5]) in seconds
 % 'binsize' ... in seconds
+% 'func'    ... function to compute response magnitude (default = "mean")
 % 
 % DJS 2013
 %
@@ -13,11 +14,13 @@ function varargout = shapedata_spikes(spiketimes,params,dimparams,varargin)
 
 win = [-0.1 0.5];
 binsize = 0.001;
+func = 'mean';
 
 for i = 1:2:length(varargin)
     switch lower(varargin{i})
-        case 'win',     win = varargin{i+1};
+        case 'win',     win     = varargin{i+1};
         case 'binsize', binsize = varargin{i+1};
+        case 'func',    func    = varargin{i+1};
     end
 end
 
@@ -49,7 +52,7 @@ if length(dimparams) == 1
     data = zeros(length(binvec),length(vals{1}));
     for i = 1:length(vals{1})
         ind = params.VALS.(dimparams{1}) == vals{1}(i);
-        data(:,i) = mean(psth(:,ind),2);
+        data(:,i) = feval(func,psth(:,ind),2);
     end
     
     
@@ -60,7 +63,7 @@ elseif length(dimparams) == 2
         for j = 1:length(vals{2})
             ind = params.VALS.(dimparams{1}) == vals{1}(i) ...
                 & params.VALS.(dimparams{2}) == vals{2}(j);
-            data(:,i,j) = mean(psth(:,ind),2);
+            data(:,i,j) = feval(func,psth(:,ind),2);
         end
     end
     
@@ -74,7 +77,7 @@ elseif length(dimparams) == 3
                 ind = params.VALS.(dimparams{1}) == vals{1}(i) ...
                     & params.VALS.(dimparams{2}) == vals{2}(j) ...
                     & params.VALS.(dimparams{3}) == vals{3}(k);
-                data(:,i,j,k) = mean(psth(:,ind),2);
+                data(:,i,j,k) = feval(func,psth(:,ind),2);
             end
         end
     end
