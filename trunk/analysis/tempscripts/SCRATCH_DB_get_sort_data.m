@@ -38,8 +38,9 @@ for i = 1:length(dbdata.block)
     [dbdata.data{i},vals] = shapedata_spikes(spiketimes,params,sortparams,'win',win, ...
         'binsize',binsize,'func','mean');
     for j = 1:size(dbdata.data{i},2)
-        dbdata.cdata{i}(:,j) = conv(flipud(dbdata.data{i}(:,j)),gw,'same');
-        dbdata.cdata{i}(:,j) = conv(flipud(dbdata.cdata{i}(:,j)),gw,'same');
+        dbdata.cdata{i}(:,j) = conv(dbdata.data{i}(:,j),gw,'same');
+        dbdata.r(i,j) = ComputePSTHfeatures(vals{1},dbdata.cdata{i}(:,j)', ...
+            'rwin',[0 0.05],'bwin',[-0.05 0]);
     end
 end
 dbdata.data = cellfun(@transpose,dbdata.data,'UniformOutput',false);
