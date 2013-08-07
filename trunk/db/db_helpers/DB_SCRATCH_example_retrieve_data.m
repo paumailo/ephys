@@ -50,7 +50,7 @@ ylabel('Sound Level (dB SPL)');
 title(sprintf('Mean FRF: unit %d',ids.units))
 
 subplot(212)
-imagesc(vals{2},vals{3},smooth_FRF');
+imagesc(vals{2},vals{3},interp2(smooth_FRF',3));
 set(gca,'ydir','normal');
 colorbar
 xlabel('Frequency (Hz)');
