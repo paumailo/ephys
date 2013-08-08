@@ -52,23 +52,29 @@ set(h.RIF_analysis,'UserData',0)
 unitid = varargin{1};
 rif = DBGetRIF(unitid);
 
-h.rif = rif;
+if isempty(rif.unit_id)
+    cla(h.axes1)
+else    
+    guidata(hObj, h);
+    
+    h.rif = rif;
 
+    updateplot('rif',h);
+    
+    UpdateRIFFeatures('bestlevel',h);
+    
+    if ~isempty(rif.FEATURES.transitionpoint) && ~isnan(rif.FEATURES.transitionpoint)
+        updateplot('transition',h);
+    end
+    
+    if ~isempty(rif.FEATURES.threshold) && ~isnan(rif.FEATURES.threshold)
+        updateplot('threshold',h);
+    end
+end
 guidata(hObj, h);
 
-updateplot('rif',h);
 
-UpdateRIFFeatures('bestlevel',h);
-
-if ~isempty(rif.FEATURES.transitionpoint)
-    updateplot('transition',h);
-end
-
-if ~isempty(rif.FEATURES.threshold)
-    updateplot('threshold',h);
-end
-
-
+    
 % --- Outputs from this function are returned to the command line.
 function varargout = IO_analysis_OutputFcn(~, ~, h) 
 % Get default command line output from handles structure
@@ -86,7 +92,8 @@ varargout{1} = h.output;
 function rif = DBGetRIF(unitid)
 rif = mym('SELECT * FROM analysis_rif WHERE unit_id = {Si}',unitid);
 if isempty(rif.unit_id)
-    error('No unit id %d found on analysis_rif table',unitid)
+    return
+%     error('No unit id %d found on analysis_rif table',unitid)
 end
 rif.unit_id = rif.unit_id(1);
 
@@ -177,13 +184,14 @@ ax = h.axes1;
 switch tag
     case 'rif'
         cla(ax)
-        plot(ax,rif.level,rif.poststim_meanfr,'-o','markersize',10,'markerfacecolor','b');
+        plot(ax,rif.level,rif.poststim_meanfr,'-o', ...
+            'markersize',10,'markerfacecolor','b');
         grid(ax,'on');
         hold(ax,'on');
         plot(ax,xlim,[0 0],'-k','linewidth',3);
         hold(ax,'off');
         xlabel('Sound Level (dB SPL)');
-        ylabel('Response Count');
+        ylabel('Firing Rate (Hz)');
         title(sprintf('Unit #%d',rif.unit_id));
         
         set(h.bestlevel,'String','Best level:')

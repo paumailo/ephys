@@ -2,7 +2,7 @@ function R = ComputePSTHfeatures(t,psth,varargin)
 % R = ComputePSTHresult(t,psth)
 % R = ComputePSTHresult(t,psth,varargin)
 %
-% Compute onset, offset, peak, area, stats of PSTH response
+% Compute onset, offset, peak, histarea, stats of PSTH response
 %
 % t     ...     time vector
 % psth  ...     binned spiketrain
@@ -10,10 +10,10 @@ function R = ComputePSTHfeatures(t,psth,varargin)
 % Optional inputs:
 %   'rwin'      ...     response window (default t > 0)
 %   'bwin'      ...     baeline window (default t < 0)
-%   'upsample'  ...     upsample psth by some factor (default = 0); uses pchip
+%   'resamp'  ...     resamp psth by some factor (default = 0); uses pchip
 %                          This may increase sensitivity of KS test
-%   'alpha'     ...     alpha criterion for KS test (default = 0.05)
-%   'type'      ...     comparison type for KS test (default = 'unequal')
+%   'ksalpha'   ...     alpha criterion for KS test (default = 0.05)
+%   'kstype'      ...     comparison kstype for KS test (default = 'unequal')
 %   'plotresult'...     plots data in new figure (default = false)
 % 
 % See also, kstest2
@@ -21,38 +21,38 @@ function R = ComputePSTHfeatures(t,psth,varargin)
 % DJS 2013
 
 
-if ~isvector(t), error('t must be a vector'); end
-
+if ~isvector(t),    error('t must be a vector');    end
+if ~isvector(psth), error('psth must be a vector'); end
 
 % defaults
 rwin        = [t(find(t>0,1)),t(end)];
 bwin        = [t(1), t(find(t<0,1,'last'))];
-alpha       = 0.05;
-type        = 'unequal';
-upsample    = 0;
+ksalpha     = 0.05;
+kstype       = 'unequal';
+resamp      = 0;
 plotresult  = false;
 % critvaln = 3;
 
 
 
-ParseVarargin({'rwin','bwin','type','upsample','plotresult'},[],varargin);
+ParseVarargin({'rwin','ksalpha','bwin','kstype','resamp','plotresult'},[],varargin);
 
 
-R = struct('onset',[],'offset',[],'peak',[],'area',[],'stats',[], ...
+R = struct('onset',[],'offset',[],'peak',[],'histarea',[],'stats',[], ...
     'baseline',[]);
 
 fs = 1/mean(diff(t)); % estimate sampling (bin) rate
-if upsample > 1
-    psth = pchip(t,psth,t(1):1/(fs*upsample):t(end));
+if resamp > 1
+    psth = pchip(t,psth,t(1):1/(fs*resamp):t(end));
     t    = linspace(t(1),t(end),length(psth));
-    fs   = 1/mean(diff(t)); % reestimate sampling (bin) rate
+    fs   = 1/mean(diff(t)); %#ok<NASGU> % reestimate sampling (bin) rate
 end
 
 bind = t >= bwin(1) & t <= bwin(2);
 rind = t >= rwin(1) & t <= rwin(2);
 
 % stats
-[ks.h,ks.p,ks.ksstat] = kstest2(psth(bind),psth(rind),alpha,type);
+[ks.h,ks.p,ks.ksstat] = kstest2(psth(bind),psth(rind),ksalpha,kstype);
 R.stats = ks;
 
 
@@ -65,8 +65,8 @@ R.stats = ks;
 R.critval = baseline.muhat;
 R.baseline = baseline;
 
-R.baseline.meanfr = sum(psth(bind))/abs(diff(bwin));
-R.response.meanfr = sum(psth(rind))/abs(diff(rwin));
+% R.baseline.meanfr = sum(psth(bind))/abs(diff(bwin));
+% R.response.meanfr = sum(psth(rind))/abs(diff(rwin));
 
 sigind = findbigrun(psth(rind)>= R.baseline.muhat);
 
@@ -75,6 +75,7 @@ R.onset.sample   = R.onset.rwsample + find(rind,1);
 R.onset.latency  = t(R.onset.sample);
 
 R.offset.rwsample = R.onset.rwsample+find(sigind(R.onset.rwsample:end)==0,1,'first')-2;
+if isempty(R.offset.rwsample), R.offset.rwsample = length(sigind)+R.onset.rwsample; end
 R.offset.sample   = R.offset.rwsample + find(rind,1);
 R.offset.latency  = t(R.offset.sample);
 
@@ -87,27 +88,50 @@ R.peak.latency   = t(R.peak.sample);
 warning('off','MATLAB:polyfit:PolyNotUnique')
 warning('off','MATLAB:polyfit:RepeatedPointsOrRescale')
 
-risingidx = [R.onset.sample R.peak.sample];
-p1 = polyfit(t(risingidx),psth(risingidx),1);
-R.onset.slope   = p1(1);
-R.onset.yoffset = p1(2);
-% p2 = polyfit([psth(R.onset.sample) R.peak.value],[R.onset.latency R.peak.latency],1);
-% R.onset.estlatency = polyval(p2,R.baseline.muhat);
-% R.onset.fit = polyval(p1,[R.onset.estlatency R.onset.latency R.peak.latency]);
 
-fallingidx = [R.peak.sample R.offset.sample];
-p1 = polyfit(t(fallingidx),psth(fallingidx),1);
-R.offset.slope   = p1(1);
-R.offset.yoffset = p1(2);
-% p2 = polyfit([R.peak.value psth(R.offset.sample)],[R.peak.latency R.offset.latency],1);
-% R.offset.estlatency = polyval(p2,R.baseline.muhat);
-% R.offset.fit = polyval(p1,[R.peak.latency R.offset.latency R.offset.estlatency]);
+R.onset.slope   = 0;
+R.onset.yoffset = 0;
+if R.onset.sample < R.peak.sample
+    risingidx = [R.onset.sample R.peak.sample];
+    pt = t(risingidx); pp = psth(risingidx);
+    p1 = polyfit(pt(:),pp(:),1);
+    R.onset.slope   = p1(1);
+    R.onset.yoffset = p1(2);
+    % p2 = polyfit([psth(R.onset.sample) R.peak.value],[R.onset.latency R.peak.latency],1);
+    % R.onset.estlatency = polyval(p2,R.baseline.muhat);
+    % R.onset.fit = polyval(p1,[R.onset.estlatency R.onset.latency R.peak.latency]);
+end
+
+
+R.offset.slope   = 0;
+R.offset.yoffset = 0;
+if R.offset.sample > R.peak.sample
+    fallingidx = [R.peak.sample R.offset.sample];
+    pt = t(fallingidx); pp = psth(fallingidx);
+    p1 = polyfit(pt(:),pp(:),1);
+    R.offset.slope   = p1(1);
+    R.offset.yoffset = p1(2);
+    % p2 = polyfit([R.peak.value psth(R.offset.sample)],[R.peak.latency R.offset.latency],1);
+    % R.offset.estlatency = polyval(p2,R.baseline.muhat);
+    % R.offset.fit = polyval(p1,[R.peak.latency R.offset.latency R.offset.estlatency]);
+end
 
 warning('on','MATLAB:polyfit:PolyNotUnique')
 warning('on','MATLAB:polyfit:RepeatedPointsOrRescale')
 
 idx = R.onset.sample:R.offset.sample;
-R.area = polyarea(linspace(R.onset.latency,R.offset.latency,length(idx)),psth(idx));
+x  = linspace(R.onset.latency,R.offset.latency,length(idx));
+pa = psth(idx);
+R.histarea = polyarea(x(:),pa(:));
+
+
+if isempty(idx) || length(idx) < 2
+    R.baseline.meanfr = -1;
+    R.response.meanfr = -1;
+else
+    R.baseline.meanfr = sum(psth(bind))/abs(diff(bwin));
+    R.response.meanfr = sum(psth(idx))/diff(t(idx([1 end])));
+end
 
 if plotresult, plotdata(t,psth,bind,rind,R); end %#ok<UNRCH>
 
@@ -155,8 +179,13 @@ legend('Baseline','Response','Location','SE');
 
 
 function rind = findbigrun(ind)
+ind(end) = 0;
+
 up = find(ind(1:end-1)<ind(2:end));
 dn = find(ind(1:end-1)>ind(2:end));
+
+if dn(1) < up(1), dn(1) = []; end
+
 if length(dn) > length(up)
     dn = dn(1:length(up));
 elseif length(up) > length(dn)

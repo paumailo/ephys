@@ -5,7 +5,7 @@ function varargout = RIF_analysis(varargin)
 
 % Edit the above text to modify the response to help RIF_analysis
 
-% Last Modified by GUIDE v2.5 08-Aug-2013 10:25:08
+% Last Modified by GUIDE v2.5 08-Aug-2013 16:02:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -32,8 +32,6 @@ function RIF_analysis_OpeningFcn(hObj, ~, h, varargin)
 h.output = hObj;
 guidata(hObj, h);
 
-DB_Browser; % for now, just launch DB_Browser to handle connection to DB
-
 h.unit_id = varargin{1};
 
 InitializeOptions(h);
@@ -53,17 +51,14 @@ varargout{1} = h.output;
 
 
 
-
-
-function UpdateIO(unit_id,h)
+function h = UpdateIO(unit_id,h)
 h.DATA.IOfh = IO_analysis(unit_id);
-guidata(h.figure1,h);
 
 
-function UpdatePSTH(unit_id,h)
-opts = get(h.table_options,'data');
+
+function cfg = GetCFG(h)
+opts     = get(h.table_options,'data');
 varnames = get(h.table_options,'UserData');
-
 for i = 1:length(varnames)
     val = str2num(opts{i,2}); %#ok<ST2NM>
     if isempty(val)
@@ -73,21 +68,30 @@ for i = 1:length(varnames)
 end
 cfg.plotresult = false;
 
+function h = UpdatePSTH(unit_id,h)
+cfg = GetCFG(h);
+
 if isfield(h,'PSTH') && isfield(h.PSTH,'fh')
     cfg.fh = h.PSTH.fh;
 end
 
-[h.PSTH.fh,h.PSTH.sh,h.PSTH.R] = DB_PlotPSTH(unit_id,cfg);
+[h.PSTH.fh,h.PSTH.sh,h.PSTH.R,h.PSTH.data] = DB_PlotPSTH(unit_id,cfg);
 
-guidata(h.figure1,h);
 
 
 function RefreshPlots(h)
-UpdateIO(h.unit_id,h)
-UpdatePSTH(h.unit_id,h)
+h = UpdatePSTH(h.unit_id,h);
+
+r = mym('SELECT unit_id FROM analysis_RIF WHERE unit_id = {Si}',h.unit_id);
+if isempty(r.unit_id)
+    EstimateFeatures(h);
+    h = UpdatePSTH(h.unit_id,h);
+end
+
+h = UpdateIO(h.unit_id,h);
+guidata(h.figure1,h);
 
 function InitializeOptions(h)
-
 defaultopts = {'View Window',   '-0.05 0.1';    ...
                'bin size',      '0.001';          ...
                'Resp Window',   '0 0.05';       ...
@@ -95,12 +99,12 @@ defaultopts = {'View Window',   '-0.05 0.1';    ...
                'Hist func',     'mean';         ...
                'convolve',      'true';           ...
                'kernel size',   '5';              ...
-               'upsample',      '1';              ...
+               'resample',      '1';              ...
                'alpha',         '0.025';          ...
                'type',          'larger'};
 
 varnames = {'win','binsize','rwin','bwin','shapefunc','convolve','kernel', ...
-    'upsample','alpha','type'};
+    'resamp','ksalpha','kstype'};
            
            
 opts = getpref('RIF_analysis','OPTIONS',defaultopts);
@@ -113,30 +117,112 @@ set(h.table_options,'data',opts,'UserData',varnames);
 
 
 
-function AdjustFeature(type,h)
+function AdjustFeature(hObj,h) %#ok<DEFNU>
+type = get(hObj,'string');
+
+figure(h.PSTH.fh);
+[x,~] = ginput(1);
+
+ax = get(h.PSTH.fh,'CurrentAxes');
+
+ind = h.PSTH.sh == ax;
+
+level = h.PSTH.R.level(ind);
 
 switch type
-    case 'onset'
+    case 'Adjust Onset'
+        mym(['UPDATE analysis_rif ', ...
+             'SET onset_latency = {S} ', ...
+             'WHERE unit_id = {Si} ', ...
+             'AND level = {S}'], ...
+             num2str(x,'%f'),h.unit_id,num2str(level,'%f'));
         
+    case 'Adjust Offset'
+        mym(['UPDATE analysis_rif ', ...
+             'SET offset_latency = {S} ', ...
+             'WHERE unit_id = {Si} ', ...
+             'AND level = {S}'], ...
+             num2str(x,'%f'),h.unit_id,num2str(level,'%f'));
         
-    case 'offset'
-        
-        
-    case 'peak'
-        
+    case 'Adjust Peak'
+        data = h.PSTH.data{1}(:,ind);
+        vals = h.PSTH.data{2};
+        peakval = interp1(vals{1},data,x,'nearest');
+        mym(['UPDATE analysis_rif ', ...
+             'SET peak_value = {S}, ', ...
+             'peak_latency = {S} ', ...
+             'WHERE unit_id = {Si} ', ...
+             'AND level = {S}'], ...
+             num2str(peakval,'%f'),num2str(x,'%f'), ...
+             h.unit_id,num2str(level,'%f'));
         
 end
     
+RefreshPlots(h);
+
     
-    
+function EstimateFeatures(h)
+data = h.PSTH.data{1};
+vals = h.PSTH.data{2};
+
+cfg = GetCFG(h);
+gw = gausswin(cfg.kernel);
+for i = 1:size(data,2)
+    if cfg.convolve
+        mv = max(data(:,i));
+        data(:,i) = conv(data(:,i),gw,'same');
+        data(:,i) = data(:,i) / max(data(:,i)) * mv;
+    end
+    t = ComputePSTHfeatures(vals{1},data(:,i),cfg); 
+    R.unit_id(i)         = h.unit_id;
+    R.level(i)           = vals{2}(i);
+    R.onset_latency(i)   = t.onset.latency;
+    R.rising_slope(i)    = t.onset.slope;
+    R.offset_latency(i)  = t.offset.latency;
+    R.falling_slope(i)   = t.offset.slope;
+    R.peak_value(i)      = t.peak.value;
+    R.peak_latency(i)    = t.peak.latency;
+    R.histarea(i)        = t.histarea;
+    R.ks_p_value(i)      = t.stats.p;
+    R.ks_stat(i)         = t.stats.ksstat;
+    R.prestim_meanfr(i)  = t.baseline.meanfr;
+    R.poststim_meanfr(i) = t.response.meanfr;
+end
+h.PSTH.R = R;
+guidata(h.figure1,h);
+UpdateDB(h);
+RefreshPlots(h)
 
 
 
+function UpdateDB(h)
+R = h.PSTH.R;
+
+for i = 1:length(R.unit_id)
+%     if ~isfield(R,'onset'), continue; end
+%     if isempty(R.onset_latency),  R.onset.latency = -1;  end
+%     if isempty(R.offset.latency), R.offset.latency = -1; end
+%     if isempty(R.peak.latency),   R.peak.latency = -1;   end
+%     if isempty(R.peak.value),     R.peak.value = -1;     end
+%     if isnan(R.response.meanfr),  R.response.meanfr = -1; end
+%     if isnan(R.onset.slope),      R.onset.slope = 0;     end
+%     if isnan(R.offset.slope),     R.offset.slope = 0;    end
+%     if isinf(R.onset.slope),      continue;              end
+    rstr = sprintf(['REPLACE analysis_rif ', ...
+        '(unit_id,level,onset_latency,offset_latency,peak_latency,', ...
+        'rising_slope,falling_slope,peak_value,area,', ...
+        'ks_p_value,ks_stat,prestim_meanfr,poststim_meanfr) VALUES ', ...
+        '(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)'], ...
+        R.unit_id(i),R.level(i),R.onset_latency(i),R.offset_latency(i), ...
+        R.peak_latency(i),R.rising_slope(i),R.falling_slope(i),R.peak_value(i), ...
+        R.histarea(i),R.ks_p_value(i),R.ks_stat(i),R.prestim_meanfr(i),R.poststim_meanfr(i));
+    mym(rstr)
+end
 
 
+function figure1_CloseRequestFcn(~, ~, h) %#ok<DEFNU>
+opts = get(h.table_options,'Data');
+setpref('RIF_analysis','OPTIONS',opts);
 
-
-
-
-
+delete(hObject);
 
