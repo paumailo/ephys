@@ -9,8 +9,11 @@ function ParseVarargin(paramkeys,varnames,vin)
 % replaced with an underscore ('_') in this function.
 % 
 % paramkeys and varnames must have the same number of elements.
+%
+% If vin is a structure, then the field names of the structure are assumed
+% to be the variable names.
 % 
-% DJS (c) 2010
+% DJS (c) 2013
 
 paramkeys  = cellstr(paramkeys);
 if isempty(varnames)
@@ -23,6 +26,18 @@ else
     varnames = cellstr(varnames);
 end
 
+
+if isstruct(vin{1})
+    cfg = vin{1};
+    fn = fieldnames(cfg);
+    k = 1;
+    for i = 1:length(fn)
+        vin{k}   = fn{i};
+        vin{k+1} = cfg.(fn{i});
+        k = k + 2;
+    end
+end
+
 for i = 1:2:length(vin)
     ind = strcmpi(vin{i},paramkeys);
     if ~any(ind), continue; end
@@ -31,4 +46,3 @@ for i = 1:2:length(vin)
     
     assignin('caller',varnames{ind},vin{i+1});
 end
-        

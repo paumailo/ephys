@@ -14,8 +14,6 @@ function R = ComputePSTHfeatures(t,psth,varargin)
 %                          This may increase sensitivity of KS test
 %   'alpha'     ...     alpha criterion for KS test (default = 0.05)
 %   'type'      ...     comparison type for KS test (default = 'unequal')
-%   'critvaln'  ...     n*standard deviations value for determining response features
-%                           default = 3
 %   'plotresult'...     plots data in new figure (default = false)
 % 
 % See also, kstest2
@@ -27,15 +25,18 @@ if ~isvector(t), error('t must be a vector'); end
 
 
 % defaults
-rwin = [t(find(t>0,1)),t(end)];
-bwin = [t(1), t(find(t<0,1,'last'))];
-alpha = 0.05;
-type  = 'unequal';
-upsample = 0;
-plotresult = false;
-critvaln = 3;
+rwin        = [t(find(t>0,1)),t(end)];
+bwin        = [t(1), t(find(t<0,1,'last'))];
+alpha       = 0.05;
+type        = 'unequal';
+upsample    = 0;
+plotresult  = false;
+% critvaln = 3;
 
-ParseVarargin({'rwin','bwin','conv','kernel','upsample','plotresult','critvaln'},[],varargin);
+
+
+ParseVarargin({'rwin','bwin','type','upsample','plotresult'},[],varargin);
+
 
 R = struct('onset',[],'offset',[],'peak',[],'area',[],'stats',[], ...
     'baseline',[]);
@@ -57,10 +58,15 @@ R.stats = ks;
 
 
 % response features--------------------------------------------------------
+
+
 [baseline.muhat,baseline.sigmahat,baseline.muci,baseline.sigmaci] = normfit(psth(bind));
 % R.critval = critvaln * baseline.sigmahat;
 R.critval = baseline.muhat;
 R.baseline = baseline;
+
+R.baseline.meanfr = sum(psth(bind))/abs(diff(bwin));
+R.response.meanfr = sum(psth(rind))/abs(diff(rwin));
 
 sigind = findbigrun(psth(rind)>= R.baseline.muhat);
 
