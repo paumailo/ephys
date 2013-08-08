@@ -8,10 +8,12 @@ win       = [-0.05 0.1];
 kernel    = gausswin(5); %#ok<NASGU>
 convolve  = false;
 fh        = [];
+resamp    = 1;
+kstype    = 'unequal';
+ksalpha   = 0.05;
 
-
-ParseVarargin({'fh','rwin','bwin','convolve','kernel','type',...
-    'upsample','plotresult','binsize','shapefunc'}, ...
+ParseVarargin({'fh','rwin','bwin','convolve','kernel','kstype','ksalpha',...
+    'resamp','plotresult','binsize','shapefunc'}, ...
     [],varargin);
 
 block_id = myms(sprintf(['SELECT c.block_id FROM channels c ', ...
@@ -35,15 +37,16 @@ r = mym('SELECT * FROM analysis_rif WHERE unit_id = {Si}',unit_id);
 if isempty(r.unit_id)
     for i = 1:size(data,2)
         t = ComputePSTHfeatures(vals{1},data(:,i),'rwin',rwin,'bwin',bwin, ...
-            'upsample',upsample,'type',type,'alpha',alpha);
+            'resamp',resamp,'kstype',kstype,'ksalpha',ksalpha);
         r.unit_id(i)         = unit_id;
-        r.level(i)           = vals{1};
+        r.level(i)           = vals{2}(i);
         r.onset_latency(i)   = t.onset.latency;
         r.rising_slope(i)    = t.onset.slope;
         r.offset_latency(i)  = t.offset.latency;
         r.falling_slope(i)   = t.offset.slope;
+        r.peak_value(i)      = t.peak.value;
         r.peak_latency(i)    = t.peak.latency;
-        r.area(i)            = t.area;
+        r.histarea(i)        = t.histarea;
         r.ks_p_value(i)      = t.stats.p;
         r.ks_stat(i)         = t.stats.ksstat;
         r.prestim_meanfr(i)  = t.baseline.meanfr;
@@ -65,13 +68,14 @@ numL = length(R.level);
 
 for i = 1:numL
     h(i) = subplot(numL,1,i); %#ok<AGROW>
-    bar(vals{1},data(:,i));
-    ylabel(vals{2}(i))
+    bar(vals{1},data(:,i),'EdgeColor',[0.3 0.3 0.3],'FaceColor',[0.6 0.6 0.6]);
+    ylabel(vals{2}(i),'Color',[0 0 1]*double(R.ks_p_value(i)<0.025));
 end
 xlabel(h(end),'time (s)');
+axis(h,'tight');
 
-y = cell2mat(get(h,'ylim'));
-y = [0 max(y(:))];
+
+y = [0 max(data(:))];
 set(h(1:end-1),'xticklabel',[],'ylim',y)
 
 for i = 1:numL
@@ -82,7 +86,8 @@ for i = 1:numL
     if R.ks_p_value(i) < 0.025 && R.onset_latency(i) > 0
         plot(h(i),[R.onset_latency(i) R.onset_latency(i)],y,  ':g','linewidth',2)
         plot(h(i),[R.offset_latency(i) R.offset_latency(i)],y,':g','linewidth',2)
-        plot(h(i),R.peak_latency(i),R.peak_value(i),'*g','markersize',8,'linewidth',1)
+        plot(h(i),R.peak_latency(i),R.peak_value(i),'+g', ...
+            'markerfacecolor','g','markersize',5,'linewidth',2)
     end
     
     hold(h(i),'off');
