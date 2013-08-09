@@ -51,17 +51,16 @@ set(h.RIF_analysis,'UserData',0)
 
 unitid = varargin{1};
 rif = DBGetRIF(unitid);
+guidata(hObj, h);
 
 if isempty(rif.unit_id)
     cla(h.axes1)
-else    
-    guidata(hObj, h);
-    
+else       
     h.rif = rif;
 
     updateplot('rif',h);
     
-    UpdateRIFFeatures('bestlevel',h);
+    h = UpdateRIFFeatures('bestlevel',h);
     
     if ~isempty(rif.FEATURES.transitionpoint) && ~isnan(rif.FEATURES.transitionpoint)
         updateplot('transition',h);
@@ -69,9 +68,11 @@ else
     
     if ~isempty(rif.FEATURES.threshold) && ~isnan(rif.FEATURES.threshold)
         updateplot('threshold',h);
+    else
+        h = UpdateRIFFeatures('statthreshold',h);
+        updateplot('threshold',h);
     end
 end
-guidata(hObj, h);
 
 
     
@@ -108,13 +109,15 @@ CreateDBrifFeaturesTable;
 rif = h.rif;
 
 if isempty(rif.FEATURES.threshold) || isempty(rif.FEATURES.transitionpoint)
-    rstr = sprintf(['REPLACE analysis_rif_features ', ...
+    rstr = sprintf([ ...
+        'REPLACE analysis_rif_features ', ...
         '(unit_id,bestlevel,maxresponse,threshold,transitionpoint,slope,is_good) ', ...
         'VALUES (%d,NULL,NULL,NULL,NULL,NULL,0)'],rif.unit_id);
     mym(rstr);
     fprintf('Updated unit %d with NULLs\n',rif.unit_id)
 else
-    rstr = sprintf(['REPLACE analysis_rif_features ', ...
+    rstr = sprintf([ ...
+        'REPLACE analysis_rif_features ', ...
         '(unit_id,bestlevel,maxresponse,threshold,transitionpoint,slope) ', ...
         'VALUES (%d,%f,%f,%f,%f,%f)'],rif.unit_id, ...
         rif.FEATURES.bestlevel,rif.FEATURES.maxresponse, ...
@@ -143,9 +146,7 @@ mym(['CREATE TABLE IF NOT EXISTS analysis_rif_features (', ...
 
 
 %%
-
-
-function UpdateRIFFeatures(feature,h)
+function h = UpdateRIFFeatures(feature,h)
 rif = h.rif;
 
 feature = char(feature);
@@ -159,6 +160,14 @@ switch feature
         [a,~] = ginput(1);
         a = interp1(rif.level,rif.level,a,'nearest');
         rif.FEATURES.threshold = a;
+        
+    case 'statthreshold'
+        sind = rif.ks_p < 0.025;
+        sind = flipud(sind);
+        didx = find(sind(2:end) < sind(1:end-1));
+        if ~isempty(didx)
+            rif.FEATURES.threshold = rif.level(didx);
+        end
         
     case 'transition'
         [a,~] = ginput(1);
@@ -185,7 +194,7 @@ switch tag
     case 'rif'
         cla(ax)
         plot(ax,rif.level,rif.poststim_meanfr,'-o', ...
-            'markersize',10,'markerfacecolor','b');
+            'color',[0.2 0.2 0.2],'markersize',10,'markerfacecolor',[0.6 0.6 0.6]);
         grid(ax,'on');
         hold(ax,'on');
         plot(ax,xlim,[0 0],'-k','linewidth',3);
@@ -202,8 +211,8 @@ switch tag
     case 'bestlevel'
         hold(ax,'on');
 
-        plot(ax,rif.FEATURES.bestlevel,rif.FEATURES.maxresponse,'ob', ...
-            'markersize',10,'markerfacecolor',[240 160 160]/255);
+        plot(ax,rif.FEATURES.bestlevel,rif.FEATURES.maxresponse,'o', ...
+            'color',[0.2 0.2 0.2],'markersize',10,'markerfacecolor',[240 160 160]/255);
         hold(ax,'off');
         set(h.bestlevel,'string',sprintf('Best level: %d dB SPL',rif.FEATURES.bestlevel));
 

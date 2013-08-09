@@ -45,7 +45,7 @@ fs = 1/mean(diff(t)); % estimate sampling (bin) rate
 if resamp > 1
     psth = pchip(t,psth,t(1):1/(fs*resamp):t(end));
     t    = linspace(t(1),t(end),length(psth));
-    fs   = 1/mean(diff(t)); %#ok<NASGU> % reestimate sampling (bin) rate
+    fs   = 1/mean(diff(t)); % reestimate sampling (bin) rate
 end
 
 bind = t >= bwin(1) & t <= bwin(2);
@@ -76,15 +76,19 @@ R.onset.latency  = t(R.onset.sample);
 
 R.offset.rwsample = R.onset.rwsample+find(sigind(R.onset.rwsample:end)==0,1,'first')-2;
 if isempty(R.offset.rwsample), R.offset.rwsample = length(sigind)+R.onset.rwsample; end
-R.offset.sample   = R.offset.rwsample + find(rind,1);
+R.offset.sample   = R.offset.rwsample + find(rind,1) - 1;
 R.offset.latency  = t(R.offset.sample);
 
 respidx = R.onset.sample:R.offset.sample;
-[R.peak.value,i] = max(psth(respidx));
+if isempty(respidx)
+    respidx = R.onset.sample;
+end
+[R.peak.fr,i] = max(psth(respidx));
 R.peak.sample    = i + R.onset.sample - 1;
 R.peak.latency   = t(R.peak.sample);
 
-% suppress polyfit warning
+
+% suppress polyfit warnings
 warning('off','MATLAB:polyfit:PolyNotUnique')
 warning('off','MATLAB:polyfit:RepeatedPointsOrRescale')
 
@@ -129,8 +133,10 @@ if isempty(idx) || length(idx) < 2
     R.baseline.meanfr = -1;
     R.response.meanfr = -1;
 else
-    R.baseline.meanfr = sum(psth(bind))/abs(diff(bwin));
-    R.response.meanfr = sum(psth(idx))/diff(t(idx([1 end])));
+    %     R.baseline.meanfr = sum(psth(bind))/abs(diff(bwin));
+    %     R.response.meanfr = sum(psth(idx))/diff(t(idx([1 end])));
+    R.baseline.meanfr = mean(psth(bind));
+    R.response.meanfr = mean(psth(idx));
 end
 
 if plotresult, plotdata(t,psth,bind,rind,R); end %#ok<UNRCH>

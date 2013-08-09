@@ -44,10 +44,10 @@ if isempty(r.unit_id)
         r.rising_slope(i)    = t.onset.slope;
         r.offset_latency(i)  = t.offset.latency;
         r.falling_slope(i)   = t.offset.slope;
-        r.peak_value(i)      = t.peak.value;
+        r.peak_fr(i)         = t.peak.fr;
         r.peak_latency(i)    = t.peak.latency;
         r.histarea(i)        = t.histarea;
-        r.ks_p_value(i)      = t.stats.p;
+        r.ks_p(i)      = t.stats.p;
         r.ks_stat(i)         = t.stats.ksstat;
         r.prestim_meanfr(i)  = t.baseline.meanfr;
         r.poststim_meanfr(i) = t.response.meanfr;
@@ -57,19 +57,21 @@ R = r;
 
 if isempty(fh) || ~ishandle(fh), fh = figure; end
 
-origpos = get(fh,'position');
-
 figure(fh);
 clf(fh);
 set(fh,'Name',sprintf('Unit %d',unit_id),'NumberTitle','off', ...
-    'HandleVisibility','on','Renderer','Painters');
+    'HandleVisibility','on','Renderer','Painters','units','normalized');
+
+origpos = get(fh,'position');
+
+data = data / binsize; % convert to mean firing rate
+
 
 numL = length(R.level);
-
 for i = 1:numL
     h(i) = subplot(numL,1,i); %#ok<AGROW>
     bar(vals{1},data(:,i),'EdgeColor',[0.3 0.3 0.3],'FaceColor',[0.6 0.6 0.6]);
-    ylabel(vals{2}(i),'Color',[0 0 1]*double(R.ks_p_value(i)<0.025));
+    ylabel(vals{2}(i),'Color',[0 0 1]*double(R.ks_p(i)<0.025));
 end
 xlabel(h(end),'time (s)');
 axis(h,'tight');
@@ -77,18 +79,36 @@ axis(h,'tight');
 
 y = [0 max(data(:))];
 set(h(1:end-1),'xticklabel',[],'ylim',y)
+set(h,'TickLength',[0.005 0.01]);
 
 for i = 1:numL
     hold(h(i),'on');
     
     plot(h(i),[0 0],y,'-k');
     
-    if R.ks_p_value(i) < 0.025 && R.onset_latency(i) > 0
+    if R.ks_p(i) < 0.025 && R.onset_latency(i) > 0
         plot(h(i),[R.onset_latency(i) R.onset_latency(i)],y,  ':g','linewidth',2)
         plot(h(i),[R.offset_latency(i) R.offset_latency(i)],y,':g','linewidth',2)
-        plot(h(i),R.peak_latency(i),R.peak_value(i),'+g', ...
+        
+        pkval = interp1(vals{1},data(:,i),R.peak_latency(i),'nearest');
+        plot(h(i),R.peak_latency(i),pkval,'dg', ...
             'markerfacecolor','g','markersize',5,'linewidth',2)
     end
+    
+    astr = sprintf(['Onset:  % 3.0fms | Base FR: %0.0fHz\n', ...
+                    'Peak:   % 3.0fms | Resp FR: %0.0fHz\n', ...
+                    'Offset: % 3.0fms | Peak FR: %0.0fHz\n', ...
+                    'Resp Duration: % 3.0fms'], ...
+        R.onset_latency(i)*1000,    R.prestim_meanfr(i)/1000, ...
+        R.peak_latency(i)*1000,     R.poststim_meanfr(i)/1000, ...
+        R.offset_latency(i)*1000,   R.peak_fr(i)/1000, ...
+        1000*(R.offset_latency(i) - R.onset_latency(i)));
+    
+    p = get(h(i),'position');
+    annotation('textbox',[p(1),p(2)+p(4)-0.25*p(4) 0.4*p(3) 0.25*p(4)], ...
+        'string',astr,'FitHeightToText','off','LineStyle','none','fontsize',6);
+    
+    
     
     hold(h(i),'off');
 end
