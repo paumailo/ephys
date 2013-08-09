@@ -1,22 +1,5 @@
 function varargout = IO_analysis(varargin)
 % IO_ANALYSIS MATLAB code for IO_analysis.fig
-%      IO_ANALYSIS, by itself, creates a new IO_ANALYSIS or raises the existing
-%      singleton*.
-%
-%      H = IO_ANALYSIS returns the handle to a new IO_ANALYSIS or the handle to
-%      the existing singleton*.
-%
-%      IO_ANALYSIS('CALLBACK',hObj,eventData,handles,...) calls the local
-%      function named CALLBACK in IO_ANALYSIS.M with the given input arguments.
-%
-%      IO_ANALYSIS('Property','Value',...) creates a new IO_ANALYSIS or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before IO_analysis_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to IO_analysis_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 

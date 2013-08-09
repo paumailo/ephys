@@ -30,17 +30,21 @@ end
 % --- Executes just before RIF_analysis is made visible.
 function RIF_analysis_OpeningFcn(hObj, ~, h, varargin)
 h.output = hObj;
+
 guidata(hObj, h);
 
-h.unit_id = varargin{1};
+if length(varargin) == 1
+    h.unit_id = varargin{1};
+else
+    ids = getpref('DB_BROWSER_SELECTION');
+    h.unit_id = ids.units;
+end
 
 CreateAnalysisRIFtable;
 
 InitializeOptions(h);
 
 RefreshPlots(h);
-
-
 
 
 
@@ -54,8 +58,14 @@ varargout{1} = h.output;
 
 
 function h = UpdateIO(unit_id,h)
+origpos = [];
+if isfield(h,'DATA') && isfield(h.DATA,'IOfh')
+    origpos = get(h.DATA.IOfh,'position');
+end
 h.DATA.IOfh = IO_analysis(unit_id);
-
+if ~isempty(origpos)
+    set(h.DATA.IOfh,'position',origpos);
+end
 
 
 function cfg = GetCFG(h)
@@ -164,6 +174,7 @@ RefreshPlots(h);
 
     
 function EstimateFeatures(h)
+set(h.figure1,'pointer','watch'); drawnow
 data = h.PSTH.data{1};
 vals = h.PSTH.data{2};
 
@@ -194,7 +205,7 @@ h.PSTH.R = R;
 guidata(h.figure1,h);
 UpdateDB(h);
 RefreshPlots(h)
-
+set(h.figure1,'pointer','arrow'); drawnow
 
 
 function UpdateDB(h)

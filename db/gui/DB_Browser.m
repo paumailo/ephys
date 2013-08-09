@@ -186,6 +186,8 @@ if ~isempty(findobj('name','DB_QuickPlot'))
     DB_QuickPlot(@RefreshParameters);
 end
 
+Check4AnalysisTools(h);
+
 set(h.DB_Browser,'Pointer','arrow');
 
 function UpdatePrefs(ord,h)
@@ -327,12 +329,47 @@ ylim(h.axes_unit,[-y y]);
 
 
 
+%% Analysis tools
+function Check4AnalysisTools(h)
+
+natstr = '< NO ANALYSIS TOOLS >';
+set(h.list_analysis_tools,'Value',1,'String',natstr,'Enable','off');
+set(h.launch_analysis,'Enable','off');
+
+if ~exist('AnalysisTools.mat','file')
+    return
+end
+
+ids = getpref('DB_BROWSER_SELECTION');
 
 
+blocktype = myms(sprintf(['SELECT p.alias FROM db_util.protocol_types p ', ...
+                 'JOIN blocks b ON b.protocol = p.pid ', ...
+                 'WHERE b.id = %d'],ids.blocks));
 
+load('AnalysisTools.mat');
+
+validtools = [];
+for i = 1:size(settings,1) %#ok<USENS>
+    if ismember(blocktype,settings{i,2})
+        validtools{end+1} = settings{i,1}; %#ok<AGROW>
+    end
+end
+
+if ~isempty(validtools)
+    set(h.list_analysis_tools,'Value',1,'String',validtools,'Enable','on');
+    set(h.launch_analysis,'Enable','on');    
+end
+
+
+function LaunchAnalysisTool(h) %#ok<DEFNU>
+set(h.DB_Browser,'Pointer','watch'); drawnow
+tool = get_string(h.list_analysis_tools);
+feval(tool);
+set(h.DB_Browser,'Pointer','arrow'); drawnow
 
 %% External
-function LaunchParams(h)
+function LaunchParams(h) %#ok<DEFNU>
 block_id = get_listid(h.list_blocks);
 DB_ParameterBreakout(block_id);
 
