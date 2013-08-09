@@ -149,7 +149,7 @@ switch feature
         sind = flipud(sind);
         didx = find(sind(2:end) < sind(1:end-1));
         if ~isempty(didx)
-            rif.FEATURES.threshold = rif.level(didx);
+            rif.FEATURES.threshold = min(rif.level(didx));
         end
         
     case 'transition'
