@@ -190,6 +190,8 @@ ind(end) = 0;
 up = find(ind(1:end-1)<ind(2:end));
 dn = find(ind(1:end-1)>ind(2:end));
 
+if isempty(up) || isempty(dn), rind = true(size(ind)); return; end
+
 if dn(1) < up(1), dn(1) = []; end
 
 if length(dn) > length(up)

@@ -138,8 +138,8 @@ figure(h.PSTH.fh);
 ax = get(h.PSTH.fh,'CurrentAxes');
 
 ind = h.PSTH.sh == ax;
-
-level = h.PSTH.R.level(ind);
+R = h.PSTH.R;
+level = R.level(ind);
 
 switch type
     case 'Adjust Onset'
@@ -148,13 +148,15 @@ switch type
              'WHERE unit_id = {Si} ', ...
              'AND level = {S}'], ...
              num2str(x,'%f'),h.unit_id,num2str(level,'%f'));
-        
+        R.onset_latency(ind) = x;
+         
     case 'Adjust Offset'
         mym(['UPDATE analysis_rif ', ...
              'SET offset_latency = {S} ', ...
              'WHERE unit_id = {Si} ', ...
              'AND level = {S}'], ...
              num2str(x,'%f'),h.unit_id,num2str(level,'%f'));
+        R.offset_latency(ind) = x;
         
     case 'Adjust Peak'
         data = h.PSTH.data{1}(:,ind);
@@ -167,9 +169,18 @@ switch type
              'AND level = {S}'], ...
              num2str(peakval,'%f'),num2str(x,'%f'), ...
              h.unit_id,num2str(level,'%f'));
-        
+         R.peak_latency(ind) = x;
+         R.peak_fr(ind) = peakval;
 end
-    
+
+data = h.PSTH.data{1}(:,ind);
+vals = h.PSTH.data{2};
+rind = vals{1}>=R.onset_latency(ind) & vals{1}<=R.offset_latency(ind);
+R.poststim_meanfr(ind) = mean(data(rind));
+
+h.PSTH.R = R;
+UpdateDB(h);
+
 RefreshPlots(h);
 
     
@@ -186,6 +197,7 @@ for i = 1:size(data,2)
         data(:,i) = conv(data(:,i),gw,'same');
         data(:,i) = data(:,i) / max(data(:,i)) * mv;
     end
+    data(isnan(data(:,i)),i) = 0;
     t = ComputePSTHfeatures(vals{1},data(:,i),cfg); 
     R.unit_id(i)         = h.unit_id;
     R.level(i)           = vals{2}(i);

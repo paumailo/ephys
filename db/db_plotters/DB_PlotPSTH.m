@@ -36,6 +36,7 @@ end
 r = mym('SELECT * FROM analysis_rif WHERE unit_id = {Si}',unit_id);
 if isempty(r.unit_id)
     for i = 1:size(data,2)
+        data(isnan(data(:,i)),i) = 0;
         t = ComputePSTHfeatures(vals{1},data(:,i),'rwin',rwin,'bwin',bwin, ...
             'resamp',resamp,'kstype',kstype,'ksalpha',ksalpha);
         r.unit_id(i)         = unit_id;
@@ -47,7 +48,7 @@ if isempty(r.unit_id)
         r.peak_fr(i)         = t.peak.fr;
         r.peak_latency(i)    = t.peak.latency;
         r.histarea(i)        = t.histarea;
-        r.ks_p(i)      = t.stats.p;
+        r.ks_p(i)            = t.stats.p;
         r.ks_stat(i)         = t.stats.ksstat;
         r.prestim_meanfr(i)  = t.baseline.meanfr;
         r.poststim_meanfr(i) = t.response.meanfr;
