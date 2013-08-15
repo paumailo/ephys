@@ -3,21 +3,19 @@ function varargout = shapedata_wave(wave,tvec,params,dimparams,varargin)
 % data = shapedata_wave(...,'PropertyName',PropertyValue)
 % [data,vals] = shapedata_wave(...) 
 %
-% PropertyName ... PropertyValue
-% 'win'     ... window (eg, [-0.1 0.5]) in seconds
-% 
-% DJS 2013
+% Reshapes continuously sampled data based on some parameters (dimparams)
 %
-% See also, shapedata_spikes
+% PropertyName  ... PropertyValue
+% 'win'         ... window (eg, [-0.1 0.5]) in seconds
+% 
+% Daniel.Stolzberg at gmail com 2013
+%
+% See also, shapedata_spikes, DB_GetWave
 
 
 win = [0 0.1];
 
-for i = 1:2:length(varargin)
-    switch lower(varargin{i})
-        case 'win', win = varargin{i+1};
-    end
-end
+ParseVarargin('win',[],varargin);
 
 Fs = params.wave_fs;
 

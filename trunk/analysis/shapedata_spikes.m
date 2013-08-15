@@ -8,21 +8,16 @@ function varargout = shapedata_spikes(spiketimes,params,dimparams,varargin)
 % 'binsize' ... in seconds
 % 'func'    ... function to compute response magnitude (default = "mean")
 % 
-% DJS 2013
+% Daniel.Stolzberg at gmail com 2013
 %
-% See also, shapedata_wave
+% See also, shapedata_wave, DB_GetSpiketimes
 
 win = [-0.1 0.5];
 binsize = 0.001;
 func = 'mean';
 
-for i = 1:2:length(varargin)
-    switch lower(varargin{i})
-        case 'win',     win     = varargin{i+1};
-        case 'binsize', binsize = varargin{i+1};
-        case 'func',    func    = varargin{i+1};
-    end
-end
+ParseVarargin({'win','binsize','func'},[],varargin);
+
 
 binvec = win(1):binsize:win(2)-binsize;
 

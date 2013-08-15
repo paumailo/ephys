@@ -329,9 +329,16 @@ ylim(h.axes_unit,[-y y]);
 
 
 
+
+
+
+
+
+
+
+
 %% Analysis tools
 function Check4AnalysisTools(h)
-
 natstr = '< NO ANALYSIS TOOLS >';
 set(h.list_analysis_tools,'Value',1,'String',natstr,'Enable','off');
 set(h.launch_analysis,'Enable','off');
@@ -341,7 +348,6 @@ if ~exist('AnalysisTools.mat','file')
 end
 
 ids = getpref('DB_BROWSER_SELECTION');
-
 
 blocktype = myms(sprintf(['SELECT p.alias FROM db_util.protocol_types p ', ...
                  'JOIN blocks b ON b.protocol = p.pid ', ...
@@ -367,6 +373,29 @@ set(h.DB_Browser,'Pointer','watch'); drawnow
 tool = get_string(h.list_analysis_tools);
 feval(tool);
 set(h.DB_Browser,'Pointer','arrow'); drawnow
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 %% External
 function LaunchParams(h) %#ok<DEFNU>
