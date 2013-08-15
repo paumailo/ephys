@@ -12,8 +12,22 @@ function ParseVarargin(paramkeys,varnames,vin)
 %
 % If vin is a structure, then the field names of the structure are assumed
 % to be the variable names.
+%
+% Default values for variables should be made explicitly prior to calling
+% this function.
 % 
-% DJS (c) 2013
+% ex:
+%   window  = [0 0.1];
+%   binsize = 0.001;
+%   ParseVarargin({'window','binsize'},[],varargin);
+%
+% ex:
+%   window  = [0 0.1];
+%   binsize = 0.001;
+%   ParseVarargin({'window','binsize'},{'win','bsz'},varargin);
+% 
+% 
+% Daniel.Stolzberg at gmail com 2013
 
 paramkeys  = cellstr(paramkeys);
 if isempty(varnames)
