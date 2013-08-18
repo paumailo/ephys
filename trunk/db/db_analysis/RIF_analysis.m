@@ -227,7 +227,7 @@ set(h.figure1,'pointer','arrow'); drawnow
 function UpdateDB(h)
 
 R = h.PSTH.R;
-
+if isfield(R,'area'), R.histarea = R.area; end % don't know where this is coming from!!
 for i = 1:length(R.unit_id)
 %     if ~isfield(R,'onset'), continue; end
 %     if isempty(R.onset_latency),  R.onset.latency = -1;  end
