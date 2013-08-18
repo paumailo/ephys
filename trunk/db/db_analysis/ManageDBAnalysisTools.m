@@ -33,9 +33,12 @@ guidata(hObj, h);
 
 CreateDBtable;
 
-ResetProtocols(h);
-
 UpdateAnalysisTools(h);
+
+tools_Callback(h.tools, [], h);
+
+CheckProtButtons(h);
+
 
 % --- Outputs from this function are returned to the command line.
 function varargout = ManageDBAnalysisTools_OutputFcn(~, ~, h) 
@@ -58,14 +61,17 @@ tstr = get_string(hObj);
 t = myms(sprintf(['SELECT protocol_id_str FROM db_util.analysis_tools ', ...
     'WHERE tool = "%s"'],tstr));
 
-t = str2num(t); %#ok<ST2NM>
+t = str2num(char(t)); %#ok<ST2NM>
 
 ResetProtocols(h);
 
-UD = get(h.available_protocols,'UserData');
+p = get(h.available_protocols,'UserData');
 
-Aid = UD{2};
+bind = ismember(p.id,t);
 
+set(h.available_protocols,'String',p.listname(~bind),'Value',1);
+set(h.valid_protocols,'String',p.listname(bind),'Value',1);
+CheckProtButtons(h);
 
 
 
@@ -88,6 +94,7 @@ mym(['REPLACE db_util.analysis_tools (tool,protocol_id_str) ', ...
 
 UpdateAnalysisTools(h);
 ResetProtocols(h);
+CheckProtButtons(h);
 
 
 function UpdateAnalysisTools(h)
@@ -103,9 +110,7 @@ end
 
 function ResetProtocols(h)
 p = GetDBProtocols;
-Aid = p.id;
-Bid = [];
-set(h.available_protocols,'String',p.listname,'Value',1,'UserData',{p,Aid,Bid});
+set(h.available_protocols,'String',p.listname,'Value',1,'UserData',p);
 set(h.valid_protocols,'String','','Value',1);
 CheckProtButtons(h);
 
@@ -146,8 +151,11 @@ p = mym(['SELECT *,CONCAT(pid," ",alias," - ",name) AS listname ' ,...
 
 function UpdateDB(h)
 t = get_string(h.tools);
-UD = get(h.available_protocols,'UserData');
-Bid = UD{3};
+p = get(h.available_protocols,'UserData');
+
+bs = get(h.valid_protocols,'String');
+
+Bid = p.id(ismember(p.listname,bs));
 
 if isempty(Bid)
     pstr = '[]';
@@ -155,50 +163,40 @@ else
     pstr = mat2str(Bid);
 end
  
-mym(['UPDATE db_util.analysis_tools SET protocol_id_str = "{S}" ', ...
-    'WHERE tool = "{S}"'],pstr,t);
+mym(['UPDATE db_util.analysis_tools ', ...
+     'SET protocol_id_str = "{S}" ', ...
+     'WHERE tool = "{S}"'],pstr,t);
 
 
 function add_protocol_Callback(~, ~, h) %#ok<DEFNU>
-UD = get(h.available_protocols,'UserData');
+av = get(h.available_protocols,'Value');
+as = get(h.available_protocols,'String');
+ns = as(av);
+as(av) = [];
+bs = get(h.valid_protocols,'String');
+bs = [bs; ns];
 
-p   = UD{1};
-Aid = UD{2};
-Bid = UD{3};
+set(h.available_protocols,'String',as,'Value',1);
+set(h.valid_protocols,'String',bs,'Value',1);
 
-v = get(h.available_protocols,'Value');
-
-Bid(end+1:end+length(v)) = Aid(v);
-Aid(v) = [];
-
-UD{2} = Aid;
-UD{3} = Bid;
-
-set(h.available_protocols,'String',p.listname(~ismember(1:length(Aid),v)),'Value',1,'UserData',UD);
-set(h.valid_protocols,'String',p.listname(ismember(1:length(Aid),v)),'Value',1);
 CheckProtButtons(h);
 UpdateDB(h);
+
+
 
 function remove_protocol_Callback(~, ~, h) %#ok<DEFNU>
-UD = get(h.available_protocols,'UserData');
+bv = get(h.valid_protocols,'Value');
+bs = get(h.valid_protocols,'String');
+ns = bs(bv);
+bs(bv) = [];
+as = get(h.available_protocols,'String');
+as = [as; ns];
 
-p   = UD{1};
-Aid = UD{2};
-Bid = UD{3};
+set(h.available_protocols,'String',as,'Value',1);
+set(h.valid_protocols,'String',bs,'Value',1);
 
-v = get(h.valid_protocols,'Value');
-
-Aid(end+1:end+length(v)) = Bid(v);
-Bid(v) = [];
-
-UD{2} = Aid;
-UD{3} = Bid;
-
-set(h.available_protocols,'String',p.listname(~ismember(1:length(Aid),v)),'Value',1,'UserData',UD);
-set(h.valid_protocols,'String',p.listname(ismember(1:length(Aid),v)),'Value',1);
 CheckProtButtons(h);
 UpdateDB(h);
-
 
 
 
