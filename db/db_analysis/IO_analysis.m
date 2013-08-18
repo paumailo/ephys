@@ -33,6 +33,9 @@ h.output = hObj;
 set(h.RIF_analysis,'UserData',0)
 
 unitid = varargin{1};
+
+CreateDBrifFeaturesTable;
+
 rif = DBGetRIF(unitid);
 guidata(hObj, h);
 
@@ -198,18 +201,22 @@ switch tag
             'color',[0.2 0.2 0.2],'markersize',10,'markerfacecolor',[240 160 160]/255);
         hold(ax,'off');
         set(h.bestlevel,'string',sprintf('Best level: %d dB SPL',rif.FEATURES.bestlevel));
-
+        
     case 'threshold'
         hold(ax,'on');
         do = findobj(ax,'color','c','-and','marker','v');
         if ~isempty(do), delete(do); end
         oc = get(h.threshold,'backgroundcolor');
         set(h.threshold,'backgroundcolor','g');
-        plot(ax,rif.FEATURES.threshold,rif.poststim_meanfr(rif.FEATURES.threshold==rif.level), ...
-            'vc','markersize',10,'linewidth',3);
-        hold(ax,'off');
-        set(h.threshold,'backgroundcolor',oc, ...
-            'string',sprintf('Threshold: %d dB SPL',rif.FEATURES.threshold));
+        if ~isempty(rif.FEATURES.threshold)
+            plot(ax,rif.FEATURES.threshold,rif.poststim_meanfr(rif.FEATURES.threshold==rif.level), ...
+                'vc','markersize',10,'linewidth',3);
+            hold(ax,'off');
+            set(h.threshold,'backgroundcolor',oc, ...
+                'string',sprintf('Threshold: %d dB SPL',rif.FEATURES.threshold));
+        else
+            set(h.threshold,'backgroundcolor',oc,'string','Threshold:');
+        end
         
     case 'transition'
         hold(ax,'on');
