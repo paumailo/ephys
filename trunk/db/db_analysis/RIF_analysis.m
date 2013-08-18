@@ -178,6 +178,8 @@ vals = h.PSTH.data{2};
 rind = vals{1}>=R.onset_latency(ind) & vals{1}<=R.offset_latency(ind);
 R.poststim_meanfr(ind) = mean(data(rind));
 
+if isfield(R,'area'), R.histarea = R.area; end % don't know where this is happening!!
+
 h.PSTH.R = R;
 UpdateDB(h);
 
@@ -217,6 +219,8 @@ h.PSTH.R = R;
 guidata(h.figure1,h);
 UpdateDB(h);
 RefreshPlots(h)
+opts = get(h.table_options,'Data');
+setpref('RIF_analysis','OPTIONS',opts);
 set(h.figure1,'pointer','arrow'); drawnow
 
 
@@ -246,11 +250,8 @@ for i = 1:length(R.unit_id)
 end
 
 
-function figure1_CloseRequestFcn(~, ~, h) %#ok<DEFNU>
-opts = get(h.table_options,'Data');
-setpref('RIF_analysis','OPTIONS',opts);
-
-delete(hObject);
+function figure1_CloseRequestFcn(hObj, ~, h) %#ok<DEFNU>
+delete(hObj);
 
 
 
