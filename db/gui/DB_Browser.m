@@ -55,7 +55,7 @@ dbpref = getpref('DB_Browser','databases',[]);
 Connect2DB(h,dbpref);
 
 
-function closeme(hObj,h) %#ok<DEFNU>
+function closeme(hObj,~) %#ok<DEFNU>
 % UpdatePrefs(h.hierarchy,h);
 delete(hObj);
 
@@ -386,9 +386,96 @@ set(h.DB_Browser,'Pointer','arrow'); drawnow
 
 
 
+function ScrollUnits(direction,h) %#ok<DEFNU>
+uv = get(h.list_units,'Value');
+us = cellstr(get(h.list_units,'String'));
+
+cv = get(h.list_channels,'Value');
+cs = cellstr(get(h.list_channels,'String'));
+
+bv = get(h.list_blocks,'Value');
+bs = cellstr(get(h.list_blocks,'String'));
+
+tv = get(h.list_tanks,'Value');
+ts = cellstr(get(h.list_tanks,'String'));
+
+ntv = tv;
+nbv = bv;
+ncv = cv;
+nuv = uv;
+
+lts = length(ts);
+lbs = length(bs);
+lcs = length(cs);
+lus = length(us);
+
+switch char(direction)
+    case 'next'
+        if uv == lus
+            if cv == lcs
+                if bv == lbs
+                    if tv == lts
+                        ntv = 1;
+                        nbv = 1;
+                        ncv = 1;
+                        nuv = 1;
+                    else
+                        ntv = tv + 1;
+                        nbv = 1;
+                        ncv = 1;
+                        nuv = 1;
+                    end
+                else
+                    nbv = bv + 1;
+                    ncv = 1;
+                    nuv = 1;
+                end
+            else
+                ncv = cv + 1;
+                nuv = 1;
+            end
+        else
+            nuv = uv + 1;
+        end
+        
+    case 'last'
+%         if uv == 1
+%             if cv == 1
+%                 if bv == 1
+%                     if tv == 1
+%                         ntv = ltv;
+%                         nbv = lbv;
+%                         ncv = lcv;
+%                         nuv = luv;
+%                     else
+%                         ntv = ltv - 1;
+%                         nbv = lbv;
+%                         ncv = lcv;
+%                         nuv = luv;
+%                     end
+%                 else
+%                     nbv = lbv - 1;
+%                     ncv = lcv;
+%                     nuv = luv;
+%                 end
+%             else
+%                 ncv = cv + 1;
+%                 nuv = 1;
+%             end
+%         else
+%             nuv = uv + 1;
+%         end
+end
+
+
+set(h.list_tanks,   'Value',ntv);
+set(h.list_blocks,  'Value',nbv);
+set(h.list_channels,'Value',ncv);
+set(h.list_units,   'Value',nuv);
 
 
 
+UpdateLists(h.list_tanks,h)
 
 
 

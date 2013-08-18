@@ -27,14 +27,14 @@ st = DB_GetSpiketimes(unit_id);
 p  = DB_GetParams(block_id);
 
 [data,vals] = shapedata_spikes(st,p,{'Levl'},'win',win,'binsize',binsize,'func',shapefunc);
+data(isnan(data)) = 0;
 
 if convolve
     cdata = zeros(size(data)); %#ok<*UNRCH>
     for i = 1:size(data,2) 
-        data(isnan(data(:,i)),i) = 0;
         mv = max(data(:,i));
         cdata(:,i) = conv(data(:,i),kernel,'same');
-        cdata(:,i) = cdata(:,i) / max(data(:,i)) * mv;
+        cdata(:,i) = cdata(:,i) / max(cdata(:,i)) * mv;
     end
 end
 
@@ -90,7 +90,7 @@ axis(h,'tight');
 
 y = [0 max(data(:))];
 set(h(1:end-1),'xticklabel',[],'ylim',y)
-set(h,'TickLength',[0.005 0.01]);
+set(h,'TickLength',[0.005 0.01],'TickDir','out');
 
 for i = 1:numL
     hold(h(i),'on');
@@ -118,7 +118,8 @@ for i = 1:numL
     
     p = get(h(i),'position');
     annotation('textbox',[p(1),p(2)+p(4)-0.25*p(4) 0.4*p(3) 0.25*p(4)], ...
-        'string',astr,'FitHeightToText','off','LineStyle','none','fontsize',6);
+        'string',astr,'FitHeightToText','off','LineStyle','none','fontsize',6, ...
+        'Margin',2,'FontName','Courier New');
 
     if convolve
         plot(h(i),vals{1},cdata(:,i)/binsize,'c-');
