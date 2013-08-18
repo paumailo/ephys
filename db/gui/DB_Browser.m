@@ -349,18 +349,27 @@ end
 
 ids = getpref('DB_BROWSER_SELECTION');
 
-blocktype = myms(sprintf(['SELECT p.alias FROM db_util.protocol_types p ', ...
+bid = myms(sprintf(['SELECT p.id FROM db_util.protocol_types p ', ...
                  'JOIN blocks b ON b.protocol = p.pid ', ...
                  'WHERE b.id = %d'],ids.blocks));
 
-load('AnalysisTools.mat');
+at = mym('SELECT * FROM db_util.analysis_tools');
+p  = mym('SELECT * FROM db_util.protocol_types');
+
+if isempty(at), return; end
 
 validtools = [];
-for i = 1:size(settings,1) %#ok<USENS>
-    if ismember(blocktype,settings{i,2})
-        validtools{end+1} = settings{i,1}; %#ok<AGROW>
+for i = 1:length(at.protocol_id_str)
+    m = str2num(at.protocol_id_str{i}); %#ok<ST2NM>
+    if isempty(m) || ~any(m == bid), continue; end
+    for j = 1:length(m)
+        ind = m(j) == p.id;
+        if any(ind)
+            validtools{end+1} = at.tool{ind}; %#ok<AGROW>
+        end
     end
 end
+
 
 if ~isempty(validtools)
     set(h.list_analysis_tools,'Value',1,'String',validtools,'Enable','on');
