@@ -133,7 +133,8 @@ function AdjustFeature(hObj,h) %#ok<DEFNU>
 type = get(hObj,'string');
 
 figure(h.PSTH.fh);
-[x,~] = ginput(1);
+[x,~,b] = ginput(1);
+if b ~= 1, return; end
 
 ax = get(h.PSTH.fh,'CurrentAxes');
 
@@ -225,19 +226,9 @@ set(h.figure1,'pointer','arrow'); drawnow
 
 
 function UpdateDB(h)
-
 R = h.PSTH.R;
 if isfield(R,'area'), R.histarea = R.area; end % don't know where this is coming from!!
 for i = 1:length(R.unit_id)
-%     if ~isfield(R,'onset'), continue; end
-%     if isempty(R.onset_latency),  R.onset.latency = -1;  end
-%     if isempty(R.offset.latency), R.offset.latency = -1; end
-%     if isempty(R.peak.latency),   R.peak.latency = -1;   end
-%     if isempty(R.peak.value),     R.peak.value = -1;     end
-%     if isnan(R.response.meanfr),  R.response.meanfr = -1; end
-%     if isnan(R.onset.slope),      R.onset.slope = 0;     end
-%     if isnan(R.offset.slope),     R.offset.slope = 0;    end
-%     if isinf(R.onset.slope),      continue;              end
     rstr = sprintf(['REPLACE analysis_rif ', ...
         '(unit_id,level,onset_latency,offset_latency,peak_latency,', ...
         'rising_slope,falling_slope,peak_fr,area,', ...
@@ -250,7 +241,7 @@ for i = 1:length(R.unit_id)
 end
 
 
-function figure1_CloseRequestFcn(hObj, ~, h) %#ok<DEFNU>
+function figure1_CloseRequestFcn(hObj, ~, ~) %#ok<DEFNU>
 delete(hObj);
 
 
