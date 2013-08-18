@@ -97,7 +97,7 @@ for i = 1:numL
     
     plot(h(i),[0 0],y,'-k');
     
-    if R.ks_p(i) < 0.025 && R.onset_latency(i) > 0
+%     if R.ks_p(i) < 0.025 && R.onset_latency(i) > 0
 %         plot(h(i),[R.onset_latency(i) R.onset_latency(i)],y,  ':g','linewidth',2)
 %         plot(h(i),[R.offset_latency(i) R.offset_latency(i)],y,':g','linewidth',2)
         plot(h(i),[R.onset_latency(i) R.offset_latency(i)],[0 0],'-*g','linewidth',2);
@@ -105,7 +105,7 @@ for i = 1:numL
         pkval = interp1(vals{1},data(:,i),R.peak_latency(i),'nearest');
         plot(h(i),R.peak_latency(i),pkval,'dg', ...
             'markerfacecolor','g','markersize',5,'linewidth',2)
-    end
+%     end
     
     astr = sprintf(['Onset:  % 3.0fms | Base FR: %0.0fHz\n', ...
                     'Peak:   % 3.0fms | Resp FR: %0.0fHz\n', ...

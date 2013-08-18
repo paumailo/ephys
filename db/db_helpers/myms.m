@@ -11,5 +11,9 @@ function varargout = myms(str)
 %
 % See also, sprintf, mym
 
-varargout = struct2cell(mym(str));
+try
+    varargout = struct2cell(mym(str));
+catch %#ok<CTCH>
+    varargout{1} = [];
+end
 
