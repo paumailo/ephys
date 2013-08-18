@@ -5,7 +5,7 @@ function varargout = DB_PlotPSTH(unit_id,varargin)
 binsize   = 0.001;
 shapefunc = 'mean';
 win       = [-0.05 0.1];
-kernel    = gausswin(5); %#ok<NASGU>
+kernel    = 5;
 convolve  = false;
 fh        = [];
 resamp    = 1;
@@ -16,9 +16,12 @@ ParseVarargin({'fh','rwin','bwin','convolve','kernel','kstype','ksalpha',...
     'resamp','plotresult','binsize','shapefunc'}, ...
     [],varargin);
 
-block_id = myms(sprintf(['SELECT c.block_id FROM channels c ', ...
-                 'INNER JOIN units u ON u.channel_id = c.id ', ...
-                 'WHERE u.id = %d'],unit_id));
+kernel = gausswin(kernel); %#ok<NASGU>
+
+block_id = myms(sprintf([ ...
+    'SELECT c.block_id FROM channels c ', ...
+    'INNER JOIN units u ON u.channel_id = c.id ', ...
+    'WHERE u.id = %d'],unit_id));
 
 st = DB_GetSpiketimes(unit_id);
 p  = DB_GetParams(block_id);
@@ -26,18 +29,25 @@ p  = DB_GetParams(block_id);
 [data,vals] = shapedata_spikes(st,p,{'Levl'},'win',win,'binsize',binsize,'func',shapefunc);
 
 if convolve
-    for i = 1:size(data,2) %#ok<UNRCH>
+    cdata = zeros(size(data)); %#ok<*UNRCH>
+    for i = 1:size(data,2) 
+        data(isnan(data(:,i)),i) = 0;
         mv = max(data(:,i));
-        data(:,i) = conv(data(:,i),kernel,'same');
-        data(:,i) = data(:,i) / max(data(:,i)) * mv;
+        cdata(:,i) = conv(data(:,i),kernel,'same');
+        cdata(:,i) = cdata(:,i) / max(data(:,i)) * mv;
     end
 end
 
 r = mym('SELECT * FROM analysis_rif WHERE unit_id = {Si}',unit_id);
 if isempty(r.unit_id)
     for i = 1:size(data,2)
-        data(isnan(data(:,i)),i) = 0;
-        t = ComputePSTHfeatures(vals{1},data(:,i),'rwin',rwin,'bwin',bwin, ...
+        if convolve
+            d = data(:,i);
+        else
+            d = cdata(:,i); %#ok<NODEF>
+        end
+            
+        t = ComputePSTHfeatures(vals{1},d,'rwin',rwin,'bwin',bwin, ...
             'resamp',resamp,'kstype',kstype,'ksalpha',ksalpha);
         r.unit_id(i)         = unit_id;
         r.level(i)           = vals{2}(i);
@@ -109,8 +119,10 @@ for i = 1:numL
     p = get(h(i),'position');
     annotation('textbox',[p(1),p(2)+p(4)-0.25*p(4) 0.4*p(3) 0.25*p(4)], ...
         'string',astr,'FitHeightToText','off','LineStyle','none','fontsize',6);
-    
-    
+
+    if convolve
+        plot(h(i),vals{1},cdata(:,i)/binsize,'c-');
+    end
     
     hold(h(i),'off');
 end
