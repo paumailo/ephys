@@ -375,7 +375,7 @@ for i = 1:length(at.protocol_id_str)
     for j = 1:length(m)
         ind = m(j) == p.id;
         if any(ind)
-            validtools{end+1} = at.tool{ind}; %#ok<AGROW>
+            validtools{end+1} = at.tool{i}; %#ok<AGROW>
         end
     end
 end
