@@ -183,6 +183,7 @@ switch tag
             'color',[0.2 0.2 0.2],'markersize',10,'markerfacecolor',[0.6 0.6 0.6]);
         grid(ax,'on');
         hold(ax,'on');
+        plot(ax,rif.level,rif.prestim_meanfr,':x','color',[0.6 0.6 0.6]);
         plot(ax,xlim,[0 0],'-k','linewidth',3);
         hold(ax,'off');
         xlabel('Sound Level (dB SPL)');
