@@ -129,6 +129,7 @@ pa = psth(idx);
 R.histarea = polyarea(x(:),pa(:));
 
 
+
 % MEAN BETWEEN RESPONSE ONSET AND 50 MS FOLLOWING ONSET
 idx = R.onset.sample:R.onset.sample+floor(fs*0.05);
 
