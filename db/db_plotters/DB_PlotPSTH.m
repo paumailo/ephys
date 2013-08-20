@@ -101,7 +101,7 @@ for i = 1:numL
 %         plot(h(i),[R.onset_latency(i) R.onset_latency(i)],y,  ':g','linewidth',2)
 %         plot(h(i),[R.offset_latency(i) R.offset_latency(i)],y,':g','linewidth',2)
         plot(h(i),[R.onset_latency(i) R.offset_latency(i)],[0 0],'-*g','linewidth',2);
-
+        plot(h(i),[R.onset_latency(i) R.onset_latency(i)+0.05],[y(2) y(2)],'-r','linewidth',3)
         pkval = interp1(vals{1},data(:,i),R.peak_latency(i),'nearest');
         plot(h(i),R.peak_latency(i),pkval,'dg', ...
             'markerfacecolor','g','markersize',5,'linewidth',2)
