@@ -1,6 +1,6 @@
-function DB_UpdateUnitProperties(unit_id,P,groupid,verbose)
-% DB_UpdateUnitProperties(unit_id,P,groupid)
-% DB_UpdateUnitProperties(unit_id,P,groupid,verbose)
+function DB_UpdateUnitProps(unit_id,P,groupid,verbose)
+% DB_UpdateUnitProps(unit_id,P,groupid)
+% DB_UpdateUnitProps(unit_id,P,groupid,verbose)
 %
 % Updates unit_properties table of currently selected database.
 %
