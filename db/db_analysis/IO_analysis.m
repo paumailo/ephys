@@ -32,9 +32,11 @@ function IO_analysis_OpeningFcn(hObj, ~, h, varargin)
 h.output = hObj;
 set(h.RIF_analysis,'UserData',0)
 
-unitid = varargin{1};
+n = {'bestlevel','maxresp','threshold','transpoint','slope','is_good'};
+d = {'Level of best response', 'Maximum response', 'Threshold', 'Transition point', 'Slope', 'Is good quality'};
+DB_CheckAnalysisParams(n,d);
 
-CreateDBrifFeaturesTable;
+unitid = varargin{1};
 
 rif = DBGetRIF(unitid);
 guidata(hObj, h);
@@ -77,21 +79,20 @@ varargout{1} = h.output;
 
 %%
 function rif = DBGetRIF(unitid)
-rif = mym('SELECT * FROM analysis_rif WHERE unit_id = {Si}',unitid);
-if isempty(rif.unit_id)
+rif = DB_GetUnitProps(unitid);
+if isempty(rif)
     return
 %     error('No unit id %d found on analysis_rif table',unitid)
 end
-rif.unit_id = rif.unit_id(1);
+rif.unit_id = unitid;
 
-rif.FEATURES = mym('SELECT * FROM analysis_rif_features WHERE unit_id = {Si}',unitid);
+% rif.FEATURES = mym('SELECT * FROM analysis_rif_features WHERE unit_id = {Si}',unitid);
+
 
 
 
 %%
 function update_Callback(~, ~, h) %#ok<DEFNU>
-CreateDBrifFeaturesTable;
-
 rif = h.rif;
 
 if isempty(rif.FEATURES.threshold) || isempty(rif.FEATURES.transitionpoint)
@@ -115,19 +116,24 @@ end
 set(h.RIF_analysis,'UserData',1)
 
 
-function CreateDBrifFeaturesTable
-mym(['CREATE TABLE IF NOT EXISTS analysis_rif_features (', ...
-  'unit_id INT UNSIGNED NOT NULL ,', ...
-  'bestlevel FLOAT NULL ,', ...
-  'maxresponse FLOAT NULL ,', ...
-  'threshold FLOAT NULL ,', ...
-  'transitionpoint FLOAT NULL ,', ...
-  'slope FLOAT NULL ,', ...
-  'timestamp DATETIME NULL DEFAULT CURRENT_TIMESTAMP ,', ...
-  'is_good TINYINT(1)NULL DEFAULT 1 ,', ...
-  'PRIMARY KEY (unit_id) ,', ...
-  'UNIQUE INDEX unit_id_UNIQUE (unit_id ASC))', ...
-  'COMMENT = "Features of rate-intensity functions based on analysis_rif table"']);
+function CheckAnalysisParams
+% check to see if necessary parameters already exist on db_util and add if
+% not there
+
+DB_CreateUnitPropertiesTable;
+
+n = {'bestlevel','maxresp','threshold','transpoint','slope','is_good'};
+d = {'Level of best response', 'Maximum response', 'Threshold', 'Transition point', 'Slope', 'Is good quality'};
+
+p = myms('SELECT name FROM db_util.analysis_params');
+
+ind = ~ismember(n,p);
+
+for i = find(ind)
+    mym(['INSERT db_util.analysis_params ', ...
+         '(name,description) VALUES ', ...
+         '("{S}","{S}")'],n{i},d{i});
+end
 
 
 
