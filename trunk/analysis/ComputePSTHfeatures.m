@@ -137,11 +137,27 @@ if isempty(idx) || length(idx) < 2
     R.baseline.meanfr = -1;
     R.response.meanfr = -1;
 else
-%         R.baseline.meanfr = sum(psth(bind))/abs(diff(bwin));
-%         R.response.meanfr = sum(psth(idx))/diff(t(idx([1 end])));
+% %         R.baseline.meanfr = sum(psth(bind))/abs(diff(bwin));
+% %         R.response.meanfr = sum(psth(idx))/diff(t(idx([1 end])));
     R.baseline.meanfr = mean(psth(bind));
     R.response.meanfr = mean(psth(idx));
+    
+
 end
+
+% sliding window estimate of peak firing rate
+pkwin = 0.005;
+ridx = find(rind & t <= max(rwin) - pkwin);
+mpfr = zeros(size(ridx));
+swinsze = round(pkwin * fs);
+for i = 1:length(ridx)
+    mpfr(i) = max(mean(psth(ridx(i):ridx(i)+swinsze-1)));
+end
+[R.response.maxpeakfr,i] = max(mpfr);
+R.response.maxpeaklatency = t(ridx(i));
+
+
+
 
 if plotresult, plotdata(t,psth,bind,rind,R); end %#ok<UNRCH>
 
