@@ -134,64 +134,39 @@ set(h.table_options,'data',opts,'UserData',varnames);
 
 
 function AdjustFeature(hObj,h) %#ok<DEFNU>
-disp('In the works!');
-return
-% 
-% type = get(hObj,'string');
-% 
-% figure(h.PSTH.fh);
-% [x,~,b] = ginput(1);
-% if b ~= 1, return; end
-% 
-% ax = get(h.PSTH.fh,'CurrentAxes');
-% 
-% ind = h.PSTH.sh == ax;
-% R = h.PSTH.R;
-% level = R.level(ind);
-% 
-% switch type
-%     case 'Adjust Onset'
-%         mym(['UPDATE analysis_rif ', ...
-%              'SET onset_latency = {S} ', ...
-%              'WHERE unit_id = {Si} ', ...
-%              'AND level = {S}'], ...
-%              num2str(x,'%f'),h.unit_id,num2str(level,'%f'));
-%         R.onset_latency(ind) = x;
-%          
-%     case 'Adjust Offset'
-%         mym(['UPDATE analysis_rif ', ...
-%              'SET offset_latency = {S} ', ...
-%              'WHERE unit_id = {Si} ', ...
-%              'AND level = {S}'], ...
-%              num2str(x,'%f'),h.unit_id,num2str(level,'%f'));
-%         R.offset_latency(ind) = x;
-%         
-%     case 'Adjust Peak'
-%         data = h.PSTH.data{1}(:,ind);
-%         vals = h.PSTH.data{2};
-%         peakval = interp1(vals{1},data,x,'nearest');
-%         mym(['UPDATE analysis_rif ', ...
-%              'SET peak_fr = {S}, ', ...
-%              'peak_latency = {S} ', ...
-%              'WHERE unit_id = {Si} ', ...
-%              'AND level = {S}'], ...
-%              num2str(peakval,'%f'),num2str(x,'%f'), ...
-%              h.unit_id,num2str(level,'%f'));
-%          R.peak_latency(ind) = x;
-%          R.peak_fr(ind) = peakval;
-% end
-% 
-% data = h.PSTH.data{1}(:,ind);
-% vals = h.PSTH.data{2};
-% rind = vals{1}>=R.onset_latency(ind) & vals{1}<=R.offset_latency(ind);
-% R.poststim_meanfr(ind) = mean(data(rind));
-% 
-% if isfield(R,'area'), R.histarea = R.area; end % don't know where this is happening!!
-% 
-% h.PSTH.R = R;
-% UpdateDB(h);
-% 
-% RefreshPlots(h);
+
+type = get(hObj,'string');
+
+figure(h.PSTH.fh);
+[x,~,b] = ginput(1);
+if b ~= 1, return; end
+
+ax = get(h.PSTH.fh,'CurrentAxes');
+
+ind = h.PSTH.sh == ax;
+R = h.PSTH.R;
+R.level = cellfun(@sscanf,R.group_id,repmat({'%f'},size(R.group_id)));
+R.level = R.level(:)';
+level = R.level(ind);
+
+switch type
+    case 'Adjust Onset'
+        T.onsetlat = x;
+         
+    case 'Adjust Offset'
+        T.offsetlat = x;
+        
+    case 'Adjust Peak'
+        data = h.PSTH.data{1}(:,ind);
+        vals = h.PSTH.data{2};
+        peakval = interp1(vals{1},data,x,'nearest');
+        T.peaklat = x;
+        T.peakfr = peakval;
+end
+T.level = num2str(level,'%0.2fdBRIF');
+DB_UpdateUnitProps(h.unit_id,T,'level',true);
+
+RefreshPlots(h);
 
     
 function EstimateFeatures(h)
@@ -200,11 +175,12 @@ data = h.PSTH.data{1};
 vals = h.PSTH.data{2};
 
 cfg = GetCFG(h);
-gw = gausswin(cfg.kernel);
+% gw = gausswin(cfg.kernel);
+kernel = blackman(cfg.kernel);
 for i = 1:size(data,2)
     if cfg.convolve
         mv = max(data(:,i));
-        data(:,i) = conv(data(:,i),gw,'same');
+        data(:,i) = conv(data(:,i),kernel,'same');
         data(:,i) = data(:,i) / max(data(:,i)) * mv;
     end
     data(isnan(data(:,i)),i) = 0;
@@ -241,6 +217,14 @@ g = num2str(R.level(:),'%0.2fdBRIF');
 R.level = cellstr(g);
 
 DB_UpdateUnitProps(unit_id,R,'level',true);
+
+% also delete IO data
+dltstr = ['DELETE FROM up USING unit_properties AS up ', ...
+          'INNER JOIN db_util.analysis_params AS ap ', ...
+          'ON ap.id = up.param_id ', ...
+          'WHERE up.unit_id = %d ', ...
+          'AND up.group_id = "%s" '];
+mym(sprintf(dltstr,unit_id,'RIFIO'));
 
 
 
