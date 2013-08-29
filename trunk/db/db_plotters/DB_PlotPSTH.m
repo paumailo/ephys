@@ -16,7 +16,10 @@ ParseVarargin({'fh','rwin','bwin','convolve','kernel','kstype','ksalpha',...
     'resamp','plotresult','binsize','shapefunc'}, ...
     [],varargin);
 
-kernel = gausswin(kernel); %#ok<NASGU>
+% kernel = gausswin(kernel); %#ok<NASGU>
+% kernel = hann(kernel);
+% kernel = blackmanharris(kernel);
+kernel = blackman(kernel); %#ok<NASGU>
 
 block_id = myms(sprintf([ ...
     'SELECT c.block_id FROM channels c ', ...
@@ -88,8 +91,10 @@ xlabel(h(end),'time (s)');
 axis(h,'tight');
 
 
-y = [0 max(data(:))];
-set(h(1:end-1),'xticklabel',[],'ylim',y)
+y = cell2mat(get(h,'ylim'));
+y = [0 max(y(:))*1.1];
+set(h(1:end-1),'xticklabel',[])
+set(h,'ylim',y);
 set(h,'TickLength',[0.005 0.01],'TickDir','out');
 
 for i = 1:numL

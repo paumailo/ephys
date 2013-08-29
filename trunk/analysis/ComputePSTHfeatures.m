@@ -68,7 +68,7 @@ R.baseline = baseline;
 % R.baseline.meanfr = sum(psth(bind))/abs(diff(bwin));
 % R.response.meanfr = sum(psth(rind))/abs(diff(rwin));
 
-sigind = findbigrun(psth(rind)>= R.baseline.muhat);
+sigind = findbigrun(psth(rind),psth(rind)> R.baseline.muhat);
 
 R.onset.rwsample = find(sigind,1);
 R.onset.sample   = R.onset.rwsample + find(rind,1);
@@ -137,12 +137,8 @@ if isempty(idx) || length(idx) < 2
     R.baseline.meanfr = -1;
     R.response.meanfr = -1;
 else
-% %         R.baseline.meanfr = sum(psth(bind))/abs(diff(bwin));
-% %         R.response.meanfr = sum(psth(idx))/diff(t(idx([1 end])));
     R.baseline.meanfr = mean(psth(bind));
-    R.response.meanfr = mean(psth(idx));
-    
-
+    R.response.meanfr = mean(psth(R.onset.sample:R.offset.sample));
 end
 
 % sliding window estimate of peak firing rate
@@ -204,10 +200,10 @@ legend('Baseline','Response','Location','SE');
 
 
 
-function rind = findbigrun(ind)
+function rind = findbigrun(psth,ind)
 ind(end) = 0;
 
-up = find(ind(1:end-1)<ind(2:end));
+up = find(ind(1:end-1)<ind(2:end))+1;
 dn = find(ind(1:end-1)>ind(2:end));
 
 if isempty(up) || isempty(dn), rind = true(size(ind)); return; end
@@ -220,13 +216,18 @@ elseif length(up) > length(dn)
     up = up(1:length(dn));
 end
 
-runlength = dn-up;
+% runlength = dn-up;
+fr = zeros(size(dn));
+for i = 1:length(dn)
+    fr(i) = sum(psth(up(i):dn(i)));
+end
 
-[~,i] = max(runlength);
+% [~,i] = max(runlength);
+[~,i] = max(fr);
 
 rind = false(size(ind));
 
-rind(up(i)+1:dn(i)) = 1;
+rind(up(i):dn(i)) = true;
 
 
 
