@@ -134,61 +134,64 @@ set(h.table_options,'data',opts,'UserData',varnames);
 
 
 function AdjustFeature(hObj,h) %#ok<DEFNU>
-type = get(hObj,'string');
-
-figure(h.PSTH.fh);
-[x,~,b] = ginput(1);
-if b ~= 1, return; end
-
-ax = get(h.PSTH.fh,'CurrentAxes');
-
-ind = h.PSTH.sh == ax;
-R = h.PSTH.R;
-level = R.level(ind);
-
-switch type
-    case 'Adjust Onset'
-        mym(['UPDATE analysis_rif ', ...
-             'SET onset_latency = {S} ', ...
-             'WHERE unit_id = {Si} ', ...
-             'AND level = {S}'], ...
-             num2str(x,'%f'),h.unit_id,num2str(level,'%f'));
-        R.onset_latency(ind) = x;
-         
-    case 'Adjust Offset'
-        mym(['UPDATE analysis_rif ', ...
-             'SET offset_latency = {S} ', ...
-             'WHERE unit_id = {Si} ', ...
-             'AND level = {S}'], ...
-             num2str(x,'%f'),h.unit_id,num2str(level,'%f'));
-        R.offset_latency(ind) = x;
-        
-    case 'Adjust Peak'
-        data = h.PSTH.data{1}(:,ind);
-        vals = h.PSTH.data{2};
-        peakval = interp1(vals{1},data,x,'nearest');
-        mym(['UPDATE analysis_rif ', ...
-             'SET peak_fr = {S}, ', ...
-             'peak_latency = {S} ', ...
-             'WHERE unit_id = {Si} ', ...
-             'AND level = {S}'], ...
-             num2str(peakval,'%f'),num2str(x,'%f'), ...
-             h.unit_id,num2str(level,'%f'));
-         R.peak_latency(ind) = x;
-         R.peak_fr(ind) = peakval;
-end
-
-data = h.PSTH.data{1}(:,ind);
-vals = h.PSTH.data{2};
-rind = vals{1}>=R.onset_latency(ind) & vals{1}<=R.offset_latency(ind);
-R.poststim_meanfr(ind) = mean(data(rind));
-
-if isfield(R,'area'), R.histarea = R.area; end % don't know where this is happening!!
-
-h.PSTH.R = R;
-UpdateDB(h);
-
-RefreshPlots(h);
+disp('In the works!');
+return
+% 
+% type = get(hObj,'string');
+% 
+% figure(h.PSTH.fh);
+% [x,~,b] = ginput(1);
+% if b ~= 1, return; end
+% 
+% ax = get(h.PSTH.fh,'CurrentAxes');
+% 
+% ind = h.PSTH.sh == ax;
+% R = h.PSTH.R;
+% level = R.level(ind);
+% 
+% switch type
+%     case 'Adjust Onset'
+%         mym(['UPDATE analysis_rif ', ...
+%              'SET onset_latency = {S} ', ...
+%              'WHERE unit_id = {Si} ', ...
+%              'AND level = {S}'], ...
+%              num2str(x,'%f'),h.unit_id,num2str(level,'%f'));
+%         R.onset_latency(ind) = x;
+%          
+%     case 'Adjust Offset'
+%         mym(['UPDATE analysis_rif ', ...
+%              'SET offset_latency = {S} ', ...
+%              'WHERE unit_id = {Si} ', ...
+%              'AND level = {S}'], ...
+%              num2str(x,'%f'),h.unit_id,num2str(level,'%f'));
+%         R.offset_latency(ind) = x;
+%         
+%     case 'Adjust Peak'
+%         data = h.PSTH.data{1}(:,ind);
+%         vals = h.PSTH.data{2};
+%         peakval = interp1(vals{1},data,x,'nearest');
+%         mym(['UPDATE analysis_rif ', ...
+%              'SET peak_fr = {S}, ', ...
+%              'peak_latency = {S} ', ...
+%              'WHERE unit_id = {Si} ', ...
+%              'AND level = {S}'], ...
+%              num2str(peakval,'%f'),num2str(x,'%f'), ...
+%              h.unit_id,num2str(level,'%f'));
+%          R.peak_latency(ind) = x;
+%          R.peak_fr(ind) = peakval;
+% end
+% 
+% data = h.PSTH.data{1}(:,ind);
+% vals = h.PSTH.data{2};
+% rind = vals{1}>=R.onset_latency(ind) & vals{1}<=R.offset_latency(ind);
+% R.poststim_meanfr(ind) = mean(data(rind));
+% 
+% if isfield(R,'area'), R.histarea = R.area; end % don't know where this is happening!!
+% 
+% h.PSTH.R = R;
+% UpdateDB(h);
+% 
+% RefreshPlots(h);
 
     
 function EstimateFeatures(h)
