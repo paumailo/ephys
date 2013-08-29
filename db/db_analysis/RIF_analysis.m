@@ -237,7 +237,7 @@ R = rmfield(R,'unit_id');
 g = num2str(R.level(:),'%0.2fdB');
 R.level = cellstr(g);
 
-DB_UpdateUnitProperties(unit_id,R,'level',true);
+DB_UpdateUnitProps(unit_id,R,'level',true);
 
 
 

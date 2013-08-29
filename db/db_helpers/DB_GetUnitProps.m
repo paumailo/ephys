@@ -9,15 +9,16 @@ narginchk(1,1);
 
 P = [];
 
-dbP = mym('SELECT * FROM v_unit_props WHERE unit_id = {Si}',unit_id);
+dbP = mym(['SELECT param,group_id,paramS,paramF FROM v_unit_props ', ...
+           'WHERE unit_id = {Si} ORDER BY group_id,param'],unit_id);
 
-upid = unique(dbP.param_id);
 upar = unique(dbP.param);
 ugrp = unique(dbP.group_id);
 
-for i = 1:length(upid)
+for i = 1:length(upar)
+    iind = ismember(dbP.param,upar{i});
     for j = 1:length(ugrp)
-        ind = dbP.param_id == upid(i) & ismember(dbP.group_id,ugrp{j});
+        ind = iind & ismember(dbP.group_id,ugrp{j});
         if isnan(dbP.paramF(ind))
             P.(upar{i}){j} = dbP.paramS(ind);
         else
