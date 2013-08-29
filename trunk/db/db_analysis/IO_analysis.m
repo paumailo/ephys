@@ -41,8 +41,17 @@ unitid = varargin{1};
 rif = DBGetRIF(unitid);
 guidata(hObj, h);
 
-if isempty(rif.unit_id)
+if isempty(rif)
     cla(h.axes1)
+    b = questdlg(['Histograms have yet to analyzed for this unit. ', ...
+        'Would you like to launch RIF_analysis?'], ...
+        'RIF_analysis','Yes','No','Yes');
+    if strcmp(b,'Yes')
+        RIF_analysis(unitid);
+    else
+        close(h.figure1);
+        return
+    end
 else       
     h.rif = rif;
 
@@ -50,11 +59,11 @@ else
     
     h = UpdateRIFFeatures('bestlevel',h);
     
-    if ~isempty(rif.FEATURES.transitionpoint) && ~isnan(rif.FEATURES.transitionpoint)
+    if isfield(rif,'transpoint') && ~isempty(rif.transpoint) && ~isnan(rif.transpoint)
         updateplot('transition',h);
     end
     
-    if ~isempty(rif.FEATURES.threshold) && ~isnan(rif.FEATURES.threshold)
+    if isfield(rif,'threshold') && ~isempty(rif.threshold) && ~isnan(rif.threshold)
         updateplot('threshold',h);
     else
         h = UpdateRIFFeatures('statthreshold',h);
@@ -80,13 +89,10 @@ varargout{1} = h.output;
 %%
 function rif = DBGetRIF(unitid)
 rif = DB_GetUnitProps(unitid);
-if isempty(rif)
-    return
-%     error('No unit id %d found on analysis_rif table',unitid)
-end
+if isempty(rif), return; end
 rif.unit_id = unitid;
-
-% rif.FEATURES = mym('SELECT * FROM analysis_rif_features WHERE unit_id = {Si}',unitid);
+% recreate level from group_id
+rif.level = cellfun(@sscanf,rif.group_id,repmat({'%f'},size(rif.group_id)));
 
 
 
@@ -95,45 +101,26 @@ rif.unit_id = unitid;
 function update_Callback(~, ~, h) %#ok<DEFNU>
 rif = h.rif;
 
-if isempty(rif.FEATURES.threshold) || isempty(rif.FEATURES.transitionpoint)
+if isempty(rif.FEATURES.threshold) || isempty(rif.FEATURES.transpoint)
     rstr = sprintf([ ...
         'REPLACE analysis_rif_features ', ...
-        '(unit_id,bestlevel,maxresponse,threshold,transitionpoint,slope,is_good) ', ...
+        '(unit_id,bestlevel,maxresponse,threshold,transpoint,slope,is_good) ', ...
         'VALUES (%d,NULL,NULL,NULL,NULL,NULL,0)'],rif.unit_id);
     mym(rstr);
     fprintf('Updated unit %d with NULLs\n',rif.unit_id)
 else
     rstr = sprintf([ ...
         'REPLACE analysis_rif_features ', ...
-        '(unit_id,bestlevel,maxresponse,threshold,transitionpoint,slope) ', ...
+        '(unit_id,bestlevel,maxresponse,threshold,transpoint,slope) ', ...
         'VALUES (%d,%f,%f,%f,%f,%f)'],rif.unit_id, ...
         rif.FEATURES.bestlevel,rif.FEATURES.maxresponse, ...
-        rif.FEATURES.threshold,rif.FEATURES.transitionpoint, ...
+        rif.FEATURES.threshold,rif.FEATURES.transpoint, ...
         rif.FEATURES.slope);
     mym(rstr);
     fprintf('Updated unit %d\n',rif.unit_id);
 end
 set(h.RIF_analysis,'UserData',1)
 
-
-function CheckAnalysisParams
-% check to see if necessary parameters already exist on db_util and add if
-% not there
-
-DB_CreateUnitPropertiesTable;
-
-n = {'bestlevel','maxresp','threshold','transpoint','slope','is_good'};
-d = {'Level of best response', 'Maximum response', 'Threshold', 'Transition point', 'Slope', 'Is good quality'};
-
-p = myms('SELECT name FROM db_util.analysis_params');
-
-ind = ~ismember(n,p);
-
-for i = find(ind)
-    mym(['INSERT db_util.analysis_params ', ...
-         '(name,description) VALUES ', ...
-         '("{S}","{S}")'],n{i},d{i});
-end
 
 
 
@@ -145,32 +132,32 @@ feature = char(feature);
 
 switch feature
     case 'bestlevel'
-        [rif.FEATURES.maxresponse,b] = max(rif.poststim_meanfr); 
-        rif.FEATURES.bestlevel = rif.level(b);
+        [rif.maxresponse,b] = max(rif.poststimmeanfr); 
+        rif.bestlevel = rif.level(b);
         
     case 'threshold'
         [a,~] = ginput(1);
         a = interp1(rif.level,rif.level,a,'nearest');
-        rif.FEATURES.threshold = a;
+        rif.threshold = a;
         
     case 'statthreshold'
-        sind = rif.ks_p < 0.025;
+        sind = rif.ksp < 0.025;
         sind = flipud(sind);
         didx = find(sind(2:end) < sind(1:end-1));
         if ~isempty(didx)
-            rif.FEATURES.threshold = min(rif.level(didx));
+            rif.threshold = min(rif.level(didx));
         end
         
     case 'transition'
         [a,~] = ginput(1);
         a = interp1(rif.level,rif.level,a,'nearest');
-        rif.FEATURES.transitionpoint = a;
+        rif.transpoint = a;
         if a == max(rif.level)
             p = 0;
         else
-            p = polyfit(rif.level(rif.level>=a),rif.poststim_meanfr(rif.level>=a),1);
+            p = polyfit(rif.level(rif.level>=a),rif.poststimmeanfr(rif.level>=a),1);
         end
-        rif.FEATURES.slope = p(1);
+        rif.slope = p(1);
 end
 h.rif = rif;
 guidata(h.RIF_analysis,h);
@@ -185,11 +172,11 @@ ax = h.axes1;
 switch tag
     case 'rif'
         cla(ax)
-        plot(ax,rif.level,rif.poststim_meanfr,'-o', ...
+        plot(ax,rif.level,rif.poststimmeanfr,'-o', ...
             'color',[0.2 0.2 0.2],'markersize',10,'markerfacecolor',[0.6 0.6 0.6]);
         grid(ax,'on');
         hold(ax,'on');
-        plot(ax,rif.level,rif.prestim_meanfr,':x','color',[0.6 0.6 0.6]);
+        plot(ax,rif.level,rif.prestimmeanfr,':x','color',[0.6 0.6 0.6]);
         plot(ax,xlim,[0 0],'-k','linewidth',3);
         hold(ax,'off');
         xlabel('Sound Level (dB SPL)');
@@ -204,10 +191,10 @@ switch tag
     case 'bestlevel'
         hold(ax,'on');
 
-        plot(ax,rif.FEATURES.bestlevel,rif.FEATURES.maxresponse,'o', ...
+        plot(ax,rif.bestlevel,rif.maxresponse,'o', ...
             'color',[0.2 0.2 0.2],'markersize',10,'markerfacecolor',[240 160 160]/255);
         hold(ax,'off');
-        set(h.bestlevel,'string',sprintf('Best level: %d dB SPL',rif.FEATURES.bestlevel));
+        set(h.bestlevel,'string',sprintf('Best level: %d dB SPL',rif.bestlevel));
         
     case 'threshold'
         hold(ax,'on');
@@ -215,12 +202,12 @@ switch tag
         if ~isempty(do), delete(do); end
         oc = get(h.threshold,'backgroundcolor');
         set(h.threshold,'backgroundcolor','g');
-        if ~isempty(rif.FEATURES.threshold)
-            plot(ax,rif.FEATURES.threshold,rif.poststim_meanfr(rif.FEATURES.threshold==rif.level), ...
+        if isfield(rif,'threshold') && ~isempty(rif.threshold)
+            plot(ax,rif.threshold,rif.poststimmeanfr(rif.threshold==rif.level), ...
                 'vc','markersize',10,'linewidth',3);
             hold(ax,'off');
             set(h.threshold,'backgroundcolor',oc, ...
-                'string',sprintf('Threshold: %d dB SPL',rif.FEATURES.threshold));
+                'string',sprintf('Threshold: %d dB SPL',rif.threshold));
         else
             set(h.threshold,'backgroundcolor',oc,'string','Threshold:');
         end
@@ -232,24 +219,24 @@ switch tag
         oc = get(h.threshold,'backgroundcolor');
         set(h.(tag),'backgroundcolor','g');
 
-        plot(ax,rif.FEATURES.transitionpoint,rif.poststim_meanfr(rif.FEATURES.transitionpoint == rif.level), ...
+        plot(ax,rif.transpoint,rif.poststimmeanfr(rif.transpoint == rif.level), ...
             '^g','markersize',10,'linewidth',3);
         
         do = findobj(ax,'color','r');
         if ~isempty(do), delete(do); end
         
-        a = rif.FEATURES.transitionpoint;
+        a = rif.transpoint;
         if a == max(rif.level)
             p = 0;
-            y = [rif.poststim_meanfr(end) rif.poststim_meanfr(end)];
+            y = [rif.poststimmeanfr(end) rif.poststimmeanfr(end)];
         else
-            p = polyfit(rif.level(rif.level>=a),rif.poststim_meanfr(rif.level>=a),1);
+            p = polyfit(rif.level(rif.level>=a),rif.poststimmeanfr(rif.level>=a),1);
             y = polyval(p,[a max(rif.level)]);
         end
         plot(ax,[a max(rif.level)],y,':r','linewidth',3);
         hold(ax,'off');
         set(h.transition,'backgroundcolor',oc, ...
-             'string',sprintf('Transition Point: %d dB SPL',rif.FEATURES.transitionpoint));
+             'string',sprintf('Transition Point: %d dB SPL',rif.transpoint));
         set(h.slope,'string',sprintf('Slope: % 2.3f',p(1)));
 
 end

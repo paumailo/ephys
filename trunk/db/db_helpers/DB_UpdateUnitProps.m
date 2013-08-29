@@ -43,28 +43,44 @@ if isnumeric(P.(groupid))
     P.(groupid) = cellstr(P.(groupid));
 end
 
+chkstr = 'SELECT id FROM v_unit_props WHERE unit_id = %d AND group_id = "%s" AND param = "%s"';
+dltstr = ['DELETE FROM up USING unit_properties AS up INNER JOIN db_util.analysis_params AS ap ', ...
+          'ON ap.id = up.param_id WHERE up.unit_id = %d AND up.group_id = "%s" ', ...
+          'AND ap.name = "%s"'];
 
 mymstrf = 'REPLACE unit_properties (unit_id,group_id,param_id,paramF) VALUES (%d,"%s",%d,%f)';
 mymstrs = 'REPLACE unit_properties (unit_id,group_id,param_id,paramS) VALUES (%d,"%s",%d,"%s")';
 
-fstrf = 'unit id %d\t%s: %s\t%s\n';
-fstrs = 'unit id %d\t%s: %s\t%f\n';
+fstrf = '%s unit id %d\t%s: %s\t%s: %s\n';
+fstrs = '%s unit id %d\t%s: %s\t%s: %f\n';
 
 for f = fn
-    f = char(f);
+    f = char(f); %#ok<FXSET>
     id = ap.id(ismember(ap.name,f));
     if iscellstr(P.(f))
         for i = 1:numel(P.(groupid))
+            c = myms(sprintf(chkstr,unit_id,P.(groupid){i},f));
+            if ~isempty(c), mym(sprintf(dltstr,unit_id,P.(groupid){i},f)); end            
             mym(sprintf(mymstrs,unit_id,P.(groupid){i},id,P.(f){i}));
             if verbose
-                fprintf(fstrf,unit_id,groupid,P.(groupid){i},P.(f){i})
+                if ~isempty(c)
+                    fprintf(fstrf,'Updated',unit_id,groupid,P.(groupid){i},f,P.(f)(i))
+                else
+                    fprintf(fstrf,'Added',unit_id,groupid,P.(groupid){i},f,P.(f)(i))
+                end
             end
         end
     else
         for i = 1:numel(P.(groupid))
+            c = myms(sprintf(chkstr,unit_id,P.(groupid){i},f));
+            if ~isempty(c), mym(sprintf(dltstr,unit_id,P.(groupid){i},f)); end            
             mym(sprintf(mymstrf,unit_id,P.(groupid){i},id,P.(f)(i)));
             if verbose
-                fprintf(fstrs,unit_id,groupid,P.(groupid){i},P.(f)(i))
+                if ~isempty(c)
+                    fprintf(fstrs,'Updated',unit_id,groupid,P.(groupid){i},f,P.(f)(i))
+                else
+                    fprintf(fstrs,'Added',unit_id,groupid,P.(groupid){i},f,P.(f)(i))
+                end
             end
         end
     end
