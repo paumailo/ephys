@@ -41,6 +41,8 @@ fn(ismember(fn,groupid)) = [];
 if isnumeric(P.(groupid))
     P.(groupid) = num2str(P.(groupid)(:));
     P.(groupid) = cellstr(P.(groupid));
+elseif ~iscellstr(P.(groupid))
+    P.(groupid) = cellstr(P.(groupid));
 end
 
 chkstr = 'SELECT id FROM v_unit_props WHERE unit_id = %d AND group_id = "%s" AND param = "%s"';

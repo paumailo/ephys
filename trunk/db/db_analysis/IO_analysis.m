@@ -32,8 +32,9 @@ function IO_analysis_OpeningFcn(hObj, ~, h, varargin)
 h.output = hObj;
 set(h.RIF_analysis,'UserData',0)
 
-n = {'bestlevel','maxresp','threshold','transpoint','slope','is_good'};
-d = {'Level of best response', 'Maximum response', 'Threshold', 'Transition point', 'Slope', 'Is good quality'};
+n = {'bestlevel','maxresp','threshold','transpoint','monotoneslope','is_good'};
+d = {'Level of best response', 'Maximum response', 'Threshold', 'Transition point', ...
+    'Monotonicity slope from transition point to highest level', 'Is good quality'};
 DB_CheckAnalysisParams(n,d);
 
 unitid = varargin{1};
@@ -101,24 +102,34 @@ rif.level = rif.level(:)';
 function update_Callback(~, ~, h) %#ok<DEFNU>
 rif = h.rif;
 
-if isempty(rif.FEATURES.threshold) || isempty(rif.FEATURES.transpoint)
-    rstr = sprintf([ ...
-        'REPLACE analysis_rif_features ', ...
-        '(unit_id,bestlevel,maxresponse,threshold,transpoint,slope,is_good) ', ...
-        'VALUES (%d,NULL,NULL,NULL,NULL,NULL,0)'],rif.unit_id);
-    mym(rstr);
-    fprintf('Updated unit %d with NULLs\n',rif.unit_id)
-else
-    rstr = sprintf([ ...
-        'REPLACE analysis_rif_features ', ...
-        '(unit_id,bestlevel,maxresponse,threshold,transpoint,slope) ', ...
-        'VALUES (%d,%f,%f,%f,%f,%f)'],rif.unit_id, ...
-        rif.FEATURES.bestlevel,rif.FEATURES.maxresponse, ...
-        rif.FEATURES.threshold,rif.FEATURES.transpoint, ...
-        rif.FEATURES.slope);
-    mym(rstr);
-    fprintf('Updated unit %d\n',rif.unit_id);
-end
+urif.group_id         = 'RIFIO';
+urif.threshold        = rif.threshold;
+urif.transpoint       = rif.transpoint;
+urif.bestlevel        = rif.bestlevel;
+urif.monotoneslope    = rif.monotoneslope;
+% urif.is_good          = rif.is_good;
+
+DB_UpdateUnitProps(rif.unit_id,urif,'group_id',true);
+
+
+% if isempty(rif.threshold) || isempty(rif.transpoint)
+%     rstr = sprintf([ ...
+%         'REPLACE analysis_rif_features ', ...
+%         '(unit_id,bestlevel,maxresponse,threshold,transpoint,monotoneslope,is_good) ', ...
+%         'VALUES (%d,NULL,NULL,NULL,NULL,NULL,0)'],rif.unit_id);
+%     mym(rstr);
+%     fprintf('Updated unit %d with NULLs\n',rif.unit_id)
+% else
+%     rstr = sprintf([ ...
+%         'REPLACE analysis_rif_features ', ...
+%         '(unit_id,bestlevel,maxresponse,threshold,transpoint,monotoneslope) ', ...
+%         'VALUES (%d,%f,%f,%f,%f,%f)'],rif.unit_id, ...
+%         rif.FEATURES.bestlevel,rif.FEATURES.maxresponse, ...
+%         rif.FEATURES.threshold,rif.FEATURES.transpoint, ...
+%         rif.FEATURES.monotoneslope);
+%     mym(rstr);
+%     fprintf('Updated unit %d\n',rif.unit_id);
+% end
 set(h.RIF_analysis,'UserData',1)
 
 
@@ -158,7 +169,7 @@ switch feature
             ind = rif.level>=a;
             p = polyfit(rif.level(ind),rif.poststimmeanfr(ind),1);
         end
-        rif.slope = p(1);
+        rif.monotoneslope = p(1);
 end
 h.rif = rif;
 guidata(h.RIF_analysis,h);
