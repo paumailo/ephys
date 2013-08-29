@@ -30,8 +30,16 @@ end
 % --- Executes just before RIF_analysis is made visible.
 function RIF_analysis_OpeningFcn(hObj, ~, h, varargin)
 h.output = hObj;
-
 guidata(hObj, h);
+
+
+n = {'level','onsetlat','offsetlat','peaklat','risingslope','fallingslope', ...
+    'peakfr','area','ksp','ksstat','prestimmeanfr','poststimmeanfr'};
+d = {'Stimulus level','Onset latency','Offset latency','Peak latency','Rising slope', ...
+'Falling slope','Peak firing rate','Calculated area','Kolmogorov-Smirnov p value', ...
+'Kolmogorov-Smirnov statistic','Prestimulus mean firing rate','Poststimulus mean firing rate'};
+DB_CheckAnalysisParams(n,d);
+
 
 if length(varargin) == 1
     h.unit_id = varargin{1};
@@ -39,8 +47,6 @@ else
     ids = getpref('DB_BROWSER_SELECTION');
     h.unit_id = ids.units;
 end
-
-CreateAnalysisRIFtable;
 
 InitializeOptions(h);
 
@@ -73,9 +79,7 @@ opts     = get(h.table_options,'data');
 varnames = get(h.table_options,'UserData');
 for i = 1:length(varnames)
     val = str2num(opts{i,2}); %#ok<ST2NM>
-    if isempty(val)
-        val = opts{i,2};
-    end
+    if isempty(val), val = opts{i,2}; end
     cfg.(varnames{i}) = val;
 end
 cfg.plotresult = false;
@@ -94,8 +98,8 @@ end
 function RefreshPlots(h)
 h = UpdatePSTH(h.unit_id,h);
 
-r = mym('SELECT unit_id FROM analysis_RIF WHERE unit_id = {Si}',h.unit_id);
-if isempty(r.unit_id)
+r = DB_GetUnitProps(h.unit_id);
+if isempty(r)
     EstimateFeatures(h);
     h = UpdatePSTH(h.unit_id,h);
 end
@@ -202,19 +206,19 @@ for i = 1:size(data,2)
     end
     data(isnan(data(:,i)),i) = 0;
     t = ComputePSTHfeatures(vals{1},data(:,i),cfg); 
-    R.unit_id(i)         = h.unit_id;
-    R.level(i)           = vals{2}(i);
-    R.onset_latency(i)   = t.onset.latency;
-    R.rising_slope(i)    = t.onset.slope;
-    R.offset_latency(i)  = t.offset.latency;
-    R.falling_slope(i)   = t.offset.slope;
-    R.peak_fr(i)         = t.peak.fr;
-    R.peak_latency(i)    = t.peak.latency;
-    R.histarea(i)        = t.histarea;
-    R.ks_p(i)            = t.stats.p;
-    R.ks_stat(i)         = t.stats.ksstat;
-    R.prestim_meanfr(i)  = t.baseline.meanfr;
-    R.poststim_meanfr(i) = t.response.meanfr;
+    R.unit_id(i)        = h.unit_id;
+    R.level(i)          = vals{2}(i);
+    R.onsetlat(i)       = t.onset.latency;
+    R.risingslope(i)    = t.onset.slope;
+    R.offsetlat(i)      = t.offset.latency;
+    R.fallingslope(i)   = t.offset.slope;
+    R.peakfr(i)         = t.peak.fr;
+    R.peaklat(i)        = t.peak.latency;
+    R.area(i)           = t.histarea;
+    R.ksp(i)            = t.stats.p;
+    R.ksstat(i)         = t.stats.ksstat;
+    R.prestimmeanfr(i)  = t.baseline.meanfr;
+    R.poststimmeanfr(i) = t.response.meanfr;
 end
 h.PSTH.R = R;
 guidata(h.figure1,h);
@@ -227,18 +231,15 @@ set(h.figure1,'pointer','arrow'); drawnow
 
 function UpdateDB(h)
 R = h.PSTH.R;
-if isfield(R,'area'), R.histarea = R.area; end % don't know where this is coming from!!
-for i = 1:length(R.unit_id)
-    rstr = sprintf(['REPLACE analysis_rif ', ...
-        '(unit_id,level,onset_latency,offset_latency,peak_latency,', ...
-        'rising_slope,falling_slope,peak_fr,area,', ...
-        'ks_p,ks_stat,prestim_meanfr,poststim_meanfr) VALUES ', ...
-        '(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)'], ...
-        R.unit_id(i),R.level(i),R.onset_latency(i),R.offset_latency(i), ...
-        R.peak_latency(i),R.rising_slope(i),R.falling_slope(i),R.peak_fr(i), ...
-        R.histarea(i),R.ks_p(i),R.ks_stat(i),R.prestim_meanfr(i),R.poststim_meanfr(i));
-    mym(rstr)
-end
+unit_id = R.unit_id(1);
+R = rmfield(R,'unit_id');
+
+g = num2str(R.level(:),'%0.2fdB');
+R.level = cellstr(g);
+
+DB_UpdateUnitProperties(unit_id,R,'level',true);
+
+
 
 
 function figure1_CloseRequestFcn(hObj, ~, ~) %#ok<DEFNU>
@@ -247,22 +248,9 @@ delete(hObj);
 
 
 
-function CreateAnalysisRIFtable
-cstr = ['CREATE TABLE IF NOT EXISTS analysis_rif ( ', ...
-  'unit_id INT UNSIGNED NOT NULL ,', ...
-  'level FLOAT NOT NULL ,', ...
-  'onset_latency FLOAT NULL ,', ...
-  'offset_latency FLOAT NULL ,', ...
-  'peak_latency FLOAT NULL ,', ...
-  'rising_slope FLOAT NULL ,', ...
-  'falling_slope FLOAT NULL ,', ...
-  'peak_fr FLOAT NULL ,', ...
-  'area FLOAT NULL ,', ...
-  'ks_p FLOAT NULL ,', ...
-  'ks_stat FLOAT NULL ,', ...
-  'prestim_meanfr FLOAT NULL ,', ...
-  'poststim_meanfr FLOAT NULL ,', ...
-  'timestamp DATETIME NULL DEFAULT CURRENT_TIMESTAMP ,', ...
-  'PRIMARY KEY (unit_id, level))'];
 
-mym(cstr);
+
+
+
+
+

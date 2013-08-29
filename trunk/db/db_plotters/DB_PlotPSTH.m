@@ -38,8 +38,8 @@ if convolve
     end
 end
 
-r = mym('SELECT * FROM analysis_rif WHERE unit_id = {Si}',unit_id);
-if isempty(r.unit_id)
+r = DB_GetUnitProps(unit_id);
+if isempty(r)
     for i = 1:size(data,2)
         if convolve
             d = data(:,i);
@@ -49,19 +49,19 @@ if isempty(r.unit_id)
             
         t = ComputePSTHfeatures(vals{1},d,'rwin',rwin,'bwin',bwin, ...
             'resamp',resamp,'kstype',kstype,'ksalpha',ksalpha);
-        r.unit_id(i)         = unit_id;
-        r.level(i)           = vals{2}(i);
-        r.onset_latency(i)   = t.onset.latency;
-        r.rising_slope(i)    = t.onset.slope;
-        r.offset_latency(i)  = t.offset.latency;
-        r.falling_slope(i)   = t.offset.slope;
-        r.peak_fr(i)         = t.peak.fr;
-        r.peak_latency(i)    = t.peak.latency;
-        r.histarea(i)        = t.histarea;
-        r.ks_p(i)            = t.stats.p;
-        r.ks_stat(i)         = t.stats.ksstat;
-        r.prestim_meanfr(i)  = t.baseline.meanfr;
-        r.poststim_meanfr(i) = t.response.meanfr;
+        r.unit_id(i)        = unit_id;
+        r.level(i)          = vals{2}(i);
+        r.onsetlat(i)       = t.onset.latency;
+        r.risingslope(i)    = t.onset.slope;
+        r.offsetlat(i)      = t.offset.latency;
+        r.fallingslope(i)   = t.offset.slope;
+        r.peakfr(i)         = t.peak.fr;
+        r.peaklat(i)        = t.peak.latency;
+        r.area(i)           = t.histarea;
+        r.ksp(i)            = t.stats.p;
+        r.ksstat(i)         = t.stats.ksstat;
+        r.prestimmeanfr(i)  = t.baseline.meanfr;
+        r.poststimmeanfr(i) = t.response.meanfr;
     end
 end
 R = r;
@@ -78,11 +78,11 @@ origpos = get(fh,'position');
 data = data / binsize; % convert to mean firing rate
 
 
-numL = length(R.level);
+numL = length(R.onsetlat);
 for i = 1:numL
     h(i) = subplot(numL,1,i); %#ok<AGROW>
     bar(vals{1},data(:,i),'EdgeColor',[0.3 0.3 0.3],'FaceColor',[0.6 0.6 0.6]);
-    ylabel(vals{2}(i),'Color',[0 0 1]*double(R.ks_p(i)<0.025));
+    ylabel(vals{2}(i),'Color',[0 0 1]*double(R.ksp(i)<0.025));
 end
 xlabel(h(end),'time (s)');
 axis(h,'tight');
@@ -100,10 +100,10 @@ for i = 1:numL
 %     if R.ks_p(i) < 0.025 && R.onset_latency(i) > 0
 %         plot(h(i),[R.onset_latency(i) R.onset_latency(i)],y,  ':g','linewidth',2)
 %         plot(h(i),[R.offset_latency(i) R.offset_latency(i)],y,':g','linewidth',2)
-        plot(h(i),[R.onset_latency(i) R.offset_latency(i)],[0 0],'-*g','linewidth',2);
-        plot(h(i),[R.onset_latency(i) R.onset_latency(i)+0.05],[y(2) y(2)],'-r','linewidth',3)
-        pkval = interp1(vals{1},data(:,i),R.peak_latency(i),'nearest');
-        plot(h(i),R.peak_latency(i),pkval,'dg', ...
+        plot(h(i),[R.onsetlat(i) R.offsetlat(i)],[0 0],'-*g','linewidth',2);
+        plot(h(i),[R.onsetlat(i) R.onsetlat(i)+0.05],[y(2) y(2)],'-r','linewidth',3)
+        pkval = interp1(vals{1},data(:,i),R.peaklat(i),'nearest');
+        plot(h(i),R.peaklat(i),pkval,'dg', ...
             'markerfacecolor','g','markersize',5,'linewidth',2)
 %     end
     
@@ -111,10 +111,10 @@ for i = 1:numL
                     'Peak:   % 3.0fms | Resp FR: %0.0fHz\n', ...
                     'Offset: % 3.0fms | Peak FR: %0.0fHz\n', ...
                     'Resp Duration: % 3.0fms'], ...
-        R.onset_latency(i)*1000,    R.prestim_meanfr(i), ...
-        R.peak_latency(i)*1000,     R.poststim_meanfr(i), ...
-        R.offset_latency(i)*1000,   R.peak_fr(i), ...
-        1000*(R.offset_latency(i) - R.onset_latency(i)));
+        R.onsetlat(i)*1000,    R.prestimmeanfr(i), ...
+        R.peaklat(i)*1000,     R.poststimmeanfr(i), ...
+        R.offsetlat(i)*1000,   R.peakfr(i), ...
+        1000*(R.offsetlat(i) - R.onsetlat(i)));
     
     p = get(h(i),'position');
     annotation('textbox',[p(1),p(2)+p(4)-0.25*p(4) 0.4*p(3) 0.25*p(4)], ...
