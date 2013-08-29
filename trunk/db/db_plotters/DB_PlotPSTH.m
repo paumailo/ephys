@@ -103,8 +103,8 @@ for i = 1:numL
         plot(h(i),[R.onsetlat(i) R.offsetlat(i)],[0 0],'-*g','linewidth',2);
         plot(h(i),[R.onsetlat(i) R.onsetlat(i)+0.05],[y(2) y(2)],'-r','linewidth',3)
         pkval = interp1(vals{1},data(:,i),R.peaklat(i),'nearest');
-        plot(h(i),R.peaklat(i),pkval,'dg', ...
-            'markerfacecolor','g','markersize',5,'linewidth',2)
+        plot(h(i),R.peaklat(i),pkval,'^g', ...
+            'markerfacecolor','none','markersize',10,'linewidth',2)
 %     end
     
     astr = sprintf(['Onset:  % 3.0fms | Base FR: %0.0fHz\n', ...

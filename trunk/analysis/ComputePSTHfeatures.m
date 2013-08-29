@@ -83,9 +83,9 @@ respidx = R.onset.sample:R.offset.sample;
 if isempty(respidx)
     respidx = R.onset.sample;
 end
-[R.peak.fr,i] = max(psth(respidx));
-R.peak.sample    = i + R.onset.sample - 1;
-R.peak.latency   = t(R.peak.sample);
+[R.peak.fr,i]  = max(psth(respidx));
+R.peak.sample  = i + R.onset.sample - 1;
+R.peak.latency = t(R.peak.sample);
 
 
 % suppress polyfit warnings
