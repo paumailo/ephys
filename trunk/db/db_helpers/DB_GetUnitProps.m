@@ -5,6 +5,8 @@ function P = DB_GetUnitProps(unit_id)
 %
 % DJS 2013 daniel.stolzberg@gmail.com
 
+narginchk(1,1);
+
 P = [];
 
 dbP = mym('SELECT * FROM v_unit_props WHERE unit_id = {Si}',unit_id);
@@ -23,3 +25,4 @@ for i = 1:length(upid)
         end
     end
 end
+if ~isempty(P), P.group_id = ugrp; end
