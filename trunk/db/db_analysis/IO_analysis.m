@@ -37,9 +37,9 @@ d = {'Level of best response', 'Maximum response', 'Threshold', 'Transition poin
     'Monotonicity slope from transition point to highest level', 'Is good quality'};
 DB_CheckAnalysisParams(n,d);
 
-unitid = varargin{1};
+unit_id = varargin{1};
 
-rif = DBGetRIF(unitid);
+rif = DBGetRIF(unit_id);
 guidata(hObj, h);
 
 if isempty(rif)
@@ -48,7 +48,7 @@ if isempty(rif)
         'Would you like to launch RIF_analysis?'], ...
         'RIF_analysis','Yes','No','Yes');
     if strcmp(b,'Yes')
-        RIF_analysis(unitid);
+        RIF_analysis(unit_id);
     else
         close(h.figure1);
         return
@@ -88,13 +88,21 @@ varargout{1} = h.output;
 
 
 %%
-function rif = DBGetRIF(unitid)
-rif = DB_GetUnitProps(unitid);
+function rif = DBGetRIF(unit_id)
+rif = DB_GetUnitProps(unit_id,'%RIF');
 if isempty(rif), return; end
-rif.unit_id = unitid;
 % recreate level from group_id
 rif.level = cellfun(@sscanf,rif.group_id,repmat({'%f'},size(rif.group_id)));
 rif.level = rif.level(:)';
+
+fet = DB_GetUnitProps(unit_id,'RIFIO');
+if ~isempty(fet)
+    for i = fieldnames(fet)'
+        i = char(i); %#ok<FXSET>
+        rif.(i) = fet.(i);
+    end
+end
+rif.unit_id = unit_id;
 
 
 

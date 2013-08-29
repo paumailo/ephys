@@ -98,7 +98,7 @@ end
 function RefreshPlots(h)
 h = UpdatePSTH(h.unit_id,h);
 
-r = DB_GetUnitProps(h.unit_id);
+r = DB_GetUnitProps(h.unit_id,'%dBRIF');
 if isempty(r)
     EstimateFeatures(h);
     h = UpdatePSTH(h.unit_id,h);
@@ -234,7 +234,7 @@ R = h.PSTH.R;
 unit_id = R.unit_id(1);
 R = rmfield(R,'unit_id');
 
-g = num2str(R.level(:),'%0.2fdB');
+g = num2str(R.level(:),'%0.2fdBRIF');
 R.level = cellstr(g);
 
 DB_UpdateUnitProps(unit_id,R,'level',true);

@@ -1,16 +1,23 @@
-function P = DB_GetUnitProps(unit_id)
+function P = DB_GetUnitProps(unit_id,group_id)
 % P = DB_GetUnitProps(unit_id)
+% P = DB_GetUnitProps(unit_id,group_id)
 % 
 % Retrieve and sort unit properties
 %
 % DJS 2013 daniel.stolzberg@gmail.com
 
-narginchk(1,1);
+narginchk(1,2);
 
 P = [];
 
-dbP = mym(['SELECT param,group_id,paramS,paramF FROM v_unit_props ', ...
-           'WHERE unit_id = {Si} ORDER BY group_id,param'],unit_id);
+if nargin == 1
+    dbP = mym(['SELECT param,group_id,paramS,paramF FROM v_unit_props ', ...
+               'WHERE unit_id = {Si} ORDER BY group_id,param'],unit_id);
+elseif nargin == 2
+    dbP = mym(['SELECT param,group_id,paramS,paramF FROM v_unit_props ', ...
+               'WHERE unit_id = {Si} AND group_id LIKE "{S}" ', ...
+               'ORDER BY group_id,param'],unit_id,group_id);
+end
 
 upar = unique(dbP.param);
 ugrp = unique(dbP.group_id);
@@ -19,6 +26,7 @@ for i = 1:length(upar)
     iind = ismember(dbP.param,upar{i});
     for j = 1:length(ugrp)
         ind = iind & ismember(dbP.group_id,ugrp{j});
+        if ~any(ind), continue; end
         if isnan(dbP.paramF(ind))
             P.(upar{i}){j} = dbP.paramS(ind);
         else
