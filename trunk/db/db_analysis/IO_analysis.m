@@ -94,7 +94,6 @@ if isempty(rif), return; end
 % recreate level from group_id
 rif.level = cellfun(@sscanf,rif.group_id,repmat({'%f'},size(rif.group_id)));
 rif.level = rif.level(:)';
-
 fet = DB_GetUnitProps(unit_id,'RIFIO');
 if ~isempty(fet)
     for i = fieldnames(fet)'
@@ -119,25 +118,6 @@ urif.monotoneslope    = rif.monotoneslope;
 
 DB_UpdateUnitProps(rif.unit_id,urif,'group_id',true);
 
-
-% if isempty(rif.threshold) || isempty(rif.transpoint)
-%     rstr = sprintf([ ...
-%         'REPLACE analysis_rif_features ', ...
-%         '(unit_id,bestlevel,maxresponse,threshold,transpoint,monotoneslope,is_good) ', ...
-%         'VALUES (%d,NULL,NULL,NULL,NULL,NULL,0)'],rif.unit_id);
-%     mym(rstr);
-%     fprintf('Updated unit %d with NULLs\n',rif.unit_id)
-% else
-%     rstr = sprintf([ ...
-%         'REPLACE analysis_rif_features ', ...
-%         '(unit_id,bestlevel,maxresponse,threshold,transpoint,monotoneslope) ', ...
-%         'VALUES (%d,%f,%f,%f,%f,%f)'],rif.unit_id, ...
-%         rif.FEATURES.bestlevel,rif.FEATURES.maxresponse, ...
-%         rif.FEATURES.threshold,rif.FEATURES.transpoint, ...
-%         rif.FEATURES.monotoneslope);
-%     mym(rstr);
-%     fprintf('Updated unit %d\n',rif.unit_id);
-% end
 set(h.RIF_analysis,'UserData',1)
 
 

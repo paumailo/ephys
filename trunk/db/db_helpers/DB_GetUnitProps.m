@@ -2,7 +2,16 @@ function P = DB_GetUnitProps(unit_id,group_id)
 % P = DB_GetUnitProps(unit_id)
 % P = DB_GetUnitProps(unit_id,group_id)
 % 
-% Retrieve and sort unit properties
+% Retrieve and sort unit properties.
+%
+% group_id should be a string and is used in the database query to narrow
+% what is returned from the database.  The actual search query uses 'LIKE'
+% syntax with group_id string as the comparison.
+%   .... WHERE unit_id = 4123 AND group_id LIKE "%dB" ....
+%
+%
+% If group_id is not specified or empty, then all parameters will be
+% returned for the unit.
 %
 % DJS 2013 daniel.stolzberg@gmail.com
 
