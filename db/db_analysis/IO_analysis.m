@@ -93,7 +93,7 @@ if isempty(rif), return; end
 rif.unit_id = unitid;
 % recreate level from group_id
 rif.level = cellfun(@sscanf,rif.group_id,repmat({'%f'},size(rif.group_id)));
-
+rif.level = rif.level(:)';
 
 
 
@@ -155,7 +155,8 @@ switch feature
         if a == max(rif.level)
             p = 0;
         else
-            p = polyfit(rif.level(rif.level>=a),rif.poststimmeanfr(rif.level>=a),1);
+            ind = rif.level>=a;
+            p = polyfit(rif.level(ind),rif.poststimmeanfr(ind),1);
         end
         rif.slope = p(1);
 end
