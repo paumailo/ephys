@@ -30,8 +30,6 @@ end
 % --- Executes just before RIF_analysis is made visible.
 function RIF_analysis_OpeningFcn(hObj, ~, h, varargin)
 h.output = hObj;
-guidata(hObj, h);
-
 
 n = {'level','onsetlat','offsetlat','peaklat','risingslope','fallingslope', ...
     'peakfr','area','ksp','ksstat','prestimmeanfr','poststimmeanfr'};
@@ -50,8 +48,9 @@ end
 
 InitializeOptions(h);
 
-RefreshPlots(h);
+h = RefreshPlots(h);
 
+guidata(hObj, h);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -95,14 +94,17 @@ end
 
 
 
-function RefreshPlots(h)
+function h = RefreshPlots(h)
 h = UpdatePSTH(h.unit_id,h);
 
-r = DB_GetUnitProps(h.unit_id,'%dBRIF');
+r = h.PSTH.R;
 if isempty(r)
     EstimateFeatures(h);
     h = UpdatePSTH(h.unit_id,h);
 end
+
+t = mym('SELECT id FROM v_unit_props WHERE unit_id = {Si} AND group_id REGEXP "dBRIF$"',h.unit_id);
+if isempty(t.id), UpdateDB(h.unit_id,h); end
 
 h = UpdateIO(h.unit_id,h);
 guidata(h.figure1,h);
@@ -142,9 +144,8 @@ figure(h.PSTH.fh);
 if b ~= 1, return; end
 
 ax = get(h.PSTH.fh,'CurrentAxes');
-
 ind = h.PSTH.sh == ax;
-R = h.PSTH.R;
+R = DB_GetUnitProps(h.unit_id,'dBRIF$');
 R.level = cellfun(@sscanf,R.group_id,repmat({'%f'},size(R.group_id)));
 R.level = R.level(:)';
 level = R.level(ind);
@@ -175,8 +176,8 @@ data = h.PSTH.data{1};
 vals = h.PSTH.data{2};
 
 cfg = GetCFG(h);
-% gw = gausswin(cfg.kernel);
-kernel = blackman(cfg.kernel);
+kernel = gausswin(cfg.kernel);
+% kernel = blackman(cfg.kernel);
 for i = 1:size(data,2)
     if cfg.convolve
         mv = max(data(:,i));
@@ -201,21 +202,22 @@ for i = 1:size(data,2)
 end
 h.PSTH.R = R;
 guidata(h.figure1,h);
-UpdateDB(h);
-RefreshPlots(h)
+UpdateDB(h.unit_id,h);
+RefreshPlots(h);
 opts = get(h.table_options,'Data');
 setpref('RIF_analysis','OPTIONS',opts);
 set(h.figure1,'pointer','arrow'); drawnow
 
 
-function UpdateDB(h)
+function UpdateDB(unit_id,h)
 R = h.PSTH.R;
-unit_id = R.unit_id(1);
-R = rmfield(R,'unit_id');
-
-g = num2str(R.level(:),'%0.2fdBRIF');
-R.level = cellstr(g);
-
+if isfield(R,'unit_id'), R = rmfield(R,'unit_id'); end
+if isfield(R,'level')
+    R.level = cellstr(num2str(R.level(:),'%0.2fdBRIF'));
+else
+    R.level = R.group_id;
+    R = rmfield(R,'group_id');
+end
 DB_UpdateUnitProps(unit_id,R,'level',true);
 
 % also delete IO data

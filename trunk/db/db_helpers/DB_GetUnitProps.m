@@ -7,8 +7,8 @@ function P = DB_GetUnitProps(unit_id,group_id)
 % group_id should be a string and is used in the database query to narrow
 % what is returned from the database.  The actual search query uses 'LIKE'
 % syntax with group_id string as the comparison.
-%   .... WHERE unit_id = 4123 AND group_id LIKE "%dB" ....
-%
+%   .... WHERE unit_id = 4123 AND group_id REGEXP "dB$" ....
+% (see MySQL documentation for REGEXP syntax: http://dev.mysql.com/doc/refman/5.0/en/pattern-matching.html)
 %
 % If group_id is not specified or empty, then all parameters will be
 % returned for the unit.
@@ -24,7 +24,7 @@ if nargin == 1
                'WHERE unit_id = {Si} ORDER BY group_id,param'],unit_id);
 elseif nargin == 2
     dbP = mym(['SELECT param,group_id,paramS,paramF FROM v_unit_props ', ...
-               'WHERE unit_id = {Si} AND group_id LIKE "{S}" ', ...
+               'WHERE unit_id = {Si} AND group_id REGEXP "{S}" ', ...
                'ORDER BY group_id,param'],unit_id,group_id);
 end
 

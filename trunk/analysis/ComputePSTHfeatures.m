@@ -175,7 +175,7 @@ stairs(t(bind),psth(bind),'-b','linewidth',1.5);
 stairs(t(rind),psth(rind),'-r','linewidth',1.5);
 plot(R.onset.latency,R.critval,'*g','markersize',8,'linewidth',1)
 plot(R.offset.latency,R.critval,'*g','markersize',8,'linewidth',1)
-plot(R.peak.latency,R.peak.value,'*g','markersize',8,'linewidth',1)
+% plot(R.peak.latency,R.peak.value,'*g','markersize',8,'linewidth',1)
 % plot([R.onset.latency R.offset.latency],[R.critval R.critval],':c','linewidth',2);
 % plot([R.onset.estlatency t([R.onset.sample R.peak.sample])],R.onset.fit,':c','linewidth',2);
 % plot([t([R.peak.sample R.offset.sample]) R.offset.estlatency],R.offset.fit,':c','linewidth',2);

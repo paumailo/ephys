@@ -54,7 +54,7 @@ mymstrf = 'REPLACE unit_properties (unit_id,group_id,param_id,paramF) VALUES (%d
 mymstrs = 'REPLACE unit_properties (unit_id,group_id,param_id,paramS) VALUES (%d,"%s",%d,"%s")';
 
 fstrf = '%s unit id %d\t%s: %s\t%s: %s\n';
-fstrs = '%s unit id %d\t%s: %s\t%s: %f\n';
+fstrs = '%s unit id %d\t%s: %s\t%s: %0.3f\n';
 
 for f = fn
     f = char(f); %#ok<FXSET>
@@ -75,7 +75,7 @@ for f = fn
     else
         for i = 1:numel(P.(groupid))
             c = myms(sprintf(chkstr,unit_id,P.(groupid){i},f));
-            if ~isempty(c), mym(sprintf(dltstr,unit_id,P.(groupid){i},f)); end            
+            if ~isempty(c), mym(sprintf(dltstr,unit_id,P.(groupid){i},f)); end
             mym(sprintf(mymstrf,unit_id,P.(groupid){i},id,P.(f)(i)));
             if verbose
                 if ~isempty(c)

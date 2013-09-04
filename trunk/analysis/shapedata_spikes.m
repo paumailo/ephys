@@ -10,7 +10,7 @@ function varargout = shapedata_spikes(spiketimes,params,dimparams,varargin)
 % 
 % Daniel.Stolzberg at gmail com 2013
 %
-% See also, shapedata_wave, DB_GetSpiketimes
+% See also, shapedata_wave, DB_GetSpiketimes, DB_GetParams
 
 win = [-0.1 0.5];
 binsize = 0.001;
