@@ -16,10 +16,10 @@ ParseVarargin({'fh','rwin','bwin','convolve','kernel','kstype','ksalpha',...
     'resamp','plotresult','binsize','shapefunc'}, ...
     [],varargin);
 
-% kernel = gausswin(kernel); %#ok<NASGU>
+kernel = gausswin(kernel); %#ok<NASGU>
 % kernel = hann(kernel);
 % kernel = blackmanharris(kernel);
-kernel = blackman(kernel); %#ok<NASGU>
+% kernel = blackman(kernel); %#ok<NASGU>
 
 block_id = myms(sprintf([ ...
     'SELECT c.block_id FROM channels c ', ...
@@ -41,7 +41,7 @@ if convolve
     end
 end
 
-r = DB_GetUnitProps(unit_id);
+r = DB_GetUnitProps(unit_id,'dBRIF$');
 if isempty(r)
     for i = 1:size(data,2)
         if convolve
