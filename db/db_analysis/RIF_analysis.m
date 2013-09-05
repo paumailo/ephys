@@ -145,6 +145,10 @@ if b ~= 1, return; end
 
 ax = get(h.PSTH.fh,'CurrentAxes');
 ind = h.PSTH.sh == ax;
+if ~any(ind)
+%     disp('Please click on a Histogram plot')
+    return
+end
 R = DB_GetUnitProps(h.unit_id,'dBRIF$');
 R.level = cellfun(@sscanf,R.group_id,repmat({'%f'},size(R.group_id)));
 R.level = R.level(:)';
