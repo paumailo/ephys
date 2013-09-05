@@ -2,7 +2,15 @@ function varargout = DB_Browser(varargin)
 % DB_Browser
 %
 % Browses MySQL Electrophysiology database.
-%
+% 
+% The database IDs of items selected in the lists of the DB_Browser GUI can
+% be accessed externally by the following:
+%       IDs = getpref('DB_BROWSER_SELECTION')
+%       % IDs will be a structure with fieldnames which correspond to
+%       % tables on the database and which have a scalar value
+%       % corresponding to the data selected in the browser
+%       
+% 
 % See also, DB_UploadUtility
 %
 % DJS 2013
@@ -68,7 +76,6 @@ delete(hObj);
 
 
 %% Database
-
 function Connect2DB(h,dbpref,reg)
 if nargin == 1, dbpref = []; end
 
@@ -86,6 +93,9 @@ if isempty(dbpref)
 end
 
 mym('use',dbpref);
+
+% this will ensure that all tables and views exist
+DB_CreateDatabase(dbpref); 
 
 i = find(ismember(dbs,dbpref));
 set(h.popup_databases,'String',dbs,'Value',i);
