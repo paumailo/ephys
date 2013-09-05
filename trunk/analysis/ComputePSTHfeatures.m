@@ -60,15 +60,17 @@ R.stats = ks;
 % response features--------------------------------------------------------
 
 
-[baseline.muhat,baseline.sigmahat,baseline.muci,baseline.sigmaci] = normfit(psth(bind));
-% R.critval = critvaln * baseline.sigmahat;
-R.critval = baseline.muhat;
-R.baseline = baseline;
+% [baseline.muhat,baseline.sigmahat,baseline.muci,baseline.sigmaci] = normfit(psth(bind));
+% % R.critval = critvaln * baseline.sigmahat;
+% R.critval = baseline.muhat;
+% R.baseline = baseline;
+
+R.critval = mean(psth(bind));
 
 % R.baseline.meanfr = sum(psth(bind))/abs(diff(bwin));
 % R.response.meanfr = sum(psth(rind))/abs(diff(rwin));
 
-sigind = findbigrun(psth(rind),psth(rind)> R.baseline.muhat);
+sigind = findbigrun(psth(rind),psth(rind)> R.critval);
 
 R.onset.rwsample = find(sigind,1);
 R.onset.sample   = R.onset.rwsample + find(rind,1);
