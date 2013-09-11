@@ -42,8 +42,7 @@ DB_CheckAnalysisParams(n,d);
 if length(varargin) == 1
     h.unit_id = varargin{1};
 else
-    ids = getpref('DB_BROWSER_SELECTION');
-    h.unit_id = ids.units;
+    h.unit_id = getpref('DB_BROWSER_SELECTION','units');
 end
 
 InitializeOptions(h);
