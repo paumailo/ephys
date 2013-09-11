@@ -21,10 +21,7 @@ kernel = gausswin(kernel); %#ok<NASGU>
 % kernel = blackmanharris(kernel);
 % kernel = blackman(kernel); %#ok<NASGU>
 
-block_id = myms(sprintf([ ...
-    'SELECT c.block_id FROM channels c ', ...
-    'INNER JOIN units u ON u.channel_id = c.id ', ...
-    'WHERE u.id = %d'],unit_id));
+block_id = myms(sprintf('SELECT block FROM v_ids WHERE unit = %d',unit_id));
 
 st = DB_GetSpiketimes(unit_id);
 p  = DB_GetParams(block_id);
