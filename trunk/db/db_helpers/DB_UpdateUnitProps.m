@@ -53,12 +53,13 @@ dltstr = ['DELETE FROM up USING unit_properties AS up INNER JOIN db_util.analysi
 mymstrf = 'REPLACE unit_properties (unit_id,group_id,param_id,paramF) VALUES (%d,"%s",%d,%f)';
 mymstrs = 'REPLACE unit_properties (unit_id,group_id,param_id,paramS) VALUES (%d,"%s",%d,"%s")';
 
-fstrf = '%s unit id %d\t%s: %s\t%s: %s\n';
+fstrf = '%s unit id %d\t%s: %s\t%s: "%s"\n';
 fstrs = '%s unit id %d\t%s: %s\t%s: %0.3f\n';
 
 for f = fn
     f = char(f); %#ok<FXSET>
     id = ap.id(ismember(ap.name,f));
+    if ischar(P.(f)), P.(f) = cellstr(P.(f)); end
     if iscellstr(P.(f))
         for i = 1:numel(P.(groupid))
             c = myms(sprintf(chkstr,unit_id,P.(groupid){i},f));
@@ -66,9 +67,9 @@ for f = fn
             mym(sprintf(mymstrs,unit_id,P.(groupid){i},id,P.(f){i}));
             if verbose
                 if ~isempty(c)
-                    fprintf(fstrf,'Updated',unit_id,groupid,P.(groupid){i},f,P.(f)(i))
+                    fprintf(fstrf,'Updated',unit_id,groupid,P.(groupid){i},f,P.(f){i})
                 else
-                    fprintf(fstrf,'Added',unit_id,groupid,P.(groupid){i},f,P.(f)(i))
+                    fprintf(fstrf,'Added',unit_id,groupid,P.(groupid){i},f,P.(f){i})
                 end
             end
         end

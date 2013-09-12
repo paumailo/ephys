@@ -353,17 +353,11 @@ natstr = '< NO ANALYSIS TOOLS >';
 set(h.list_analysis_tools,'Value',1,'String',natstr,'Enable','off');
 set(h.launch_analysis,'Enable','off');
 
-if ~exist('AnalysisTools.mat','file')
-    return
-end
-
 ids = getpref('DB_BROWSER_SELECTION');
 
 bid = myms(sprintf(['SELECT p.id FROM db_util.protocol_types p ', ...
     'JOIN blocks b ON b.protocol = p.pid ', ...
     'WHERE b.id = %d'],ids.blocks));
-
-
 
 mym(['CREATE  TABLE IF NOT EXISTS db_util.analysis_tools (', ...
     'id INT UNSIGNED NOT NULL AUTO_INCREMENT ,', ...

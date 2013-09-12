@@ -111,6 +111,12 @@ for i = 1:length(opts)
     end
 end
 
+rftypes = DB_GetRFtypes;
+rftypes.name{end+1} = '< ADD RF TYPE >';
+rftypes.description{end+1} = 'Select a receptive field type from the list or click ''< ADD RF TYPE >''';
+set(h.list_rftype,'String',rftypes.name,'Value',1);
+SelectRFtype(h.list_rftype,h);
+
 IDs = mym('SELECT * FROM v_ids WHERE unit = {Si}',h.unit_id);
 h.UNIT.IDs         = IDs;
 h.UNIT.spiketimes  = DB_GetSpiketimes(h.unit_id);
@@ -460,6 +466,7 @@ end
 
 
 function UpdateDB(h) %#ok<DEFNU>
+set(h.figure1,'Pointer','watch'); drawnow
 
 axM = h.RFax_main;
 
@@ -471,16 +478,18 @@ i = 1;
 for bw = 5:5:100;
     BWn{i} = sprintf('BW%02ddB',bw); %#ok<AGROW>
     BWd{i} = sprintf('Frequency bandwidth (in Hz) at %d dB above minimum threshold',bw); %#ok<AGROW>
+    BWu{i} = 'dB'; %#ok<AGROW>
     i = i + 1;
 end
-
 n = {'bestfreq','charfreq','minthresh','rftype','spontrate','maxrate','bestlevel'};
+u = {'Hz','Hz','dB',[],'Hz','Hz','dB'};
 d = {'Best Frequency','Characteristic Frequency','Minimum Threshold', ...
 'Receptive Field Type','Spontaneous Firing Rate','Maximum Firing Rate in RF', ...
 'Best response level'};
 n = [n BWn];
 d = [d BWd];
-DB_CheckAnalysisParams(n,d);
+u = [u BWu];
+DB_CheckAnalysisParams(n,d,u);
 
 
 Cdata = UD.Cdata;
@@ -494,7 +503,6 @@ for i = 1:length(Cdata)
     R.spontrate(i)  = UD.spontmean;
     R.maxrate(i)    = cf.maxrate;
     R.bestlevel(i)  = cf.bestlevel;
-    %     R.rftype(i)     = c.rftype;
     for j = 1:length(cf.EXTRAS.BWy)
         bwfn = sprintf('BW%02ddB',j*5);
         R.(bwfn)(i) = cf.(bwfn);
@@ -503,6 +511,11 @@ end
 
 DB_UpdateUnitProps(h.unit_id,R,'identity',true);
 
+T.identity = 'rftype';
+T.rftype   = get_string(h.list_rftype);
+DB_UpdateUnitProps(h.unit_id,T,'identity',true);
+
+set(h.figure1,'Pointer','arrow'); drawnow
 
 
 
@@ -512,3 +525,82 @@ DB_UpdateUnitProps(h.unit_id,R,'identity',true);
 
 
 
+
+function rftypes = DB_GetRFtypes(addrftype)
+if nargin == 0, addrftype = false; end
+
+mym(['CREATE TABLE IF NOT EXISTS class_lists.rf_types (', ...
+    'id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,', ...
+    'name VARCHAR(45) NOT NULL,', ...
+    'description VARCHAR(500) NULL,', ...
+    'PRIMARY KEY (id, name),', ...
+    'UNIQUE INDEX id_UNIQUE (id ASC),', ...
+    'UNIQUE INDEX name_UNIQUE (name ASC))']);
+
+rftypes = mym('SELECT * FROM class_lists.rf_types');
+
+if isempty(rftypes.name)
+    mym(['INSERT class_lists.rf_types (name,description) VALUES ', ...
+        '("Bad RF","No clear receptive field")']);
+    rftypes = mym('SELECT * FROM class_lists.rf_types');
+end
+
+if addrftype
+    opts.WindowStyle = 'modal';
+    opts.Interpreter = 'none';
+    opts.Resize      = 'on';
+    
+    p = {'Enter Receptive Field Name (<= 45 chars):', ...
+        'Enter description of receptive field type (optional; <= 500 chars):'};
+    
+    a = inputdlg(p,'Add RF Type',[1; 5],{'',''},opts);
+    
+    if isempty(a) || isempty(a{1}), return; end
+    
+    if any(strcmpi(a{1},rftypes.name))
+        uiwait(helpdlg(sprintf('Receptive Field Type ''%s'' already exists',a{1}),'RF Type'));
+        return
+    end
+    
+    mym(['INSERT class_lists.rf_types ', ...
+        '(name,description) VALUES ("{S}","{S}")'],a{1},a{2});
+    
+    fprintf('Added Receptive Field Type: "%s"\n',a{1})
+    
+    rftypes = mym('SELECT * FROM class_lists.rf_types');
+end
+
+
+
+
+
+
+function SelectRFtype(hObj,h)
+if strcmp(get_string(hObj),'< ADD RF TYPE >')
+    rftypes = DB_GetRFtypes(true);
+    rftypes.name{end+1} = '< ADD RF TYPE >';
+    rftypes.description{end+1} = 'Select a receptive field type from the list or click ''< ADD RF TYPE >''';
+    set(hObj,'String',rftypes.name,'Value',length(rftypes.name)-1);
+else
+    rftypes = DB_GetRFtypes;
+end
+i = get(hObj,'Value');
+set(h.txt_rftypedesc,'String',sprintf('[ID% 3d]\n%s\n',rftypes.id(i),rftypes.description{i}));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function LocatePlotFig %#ok<DEFNU>
+f = findobj('tag','RFfig','-and','type','figure');
+if ~isempty(f), figure(f); end
