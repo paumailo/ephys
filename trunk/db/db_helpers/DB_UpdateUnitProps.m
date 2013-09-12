@@ -62,6 +62,7 @@ for f = fn
     if ischar(P.(f)), P.(f) = cellstr(P.(f)); end
     if iscellstr(P.(f))
         for i = 1:numel(P.(groupid))
+            if i > numel(P.(f)), continue; end
             c = myms(sprintf(chkstr,unit_id,P.(groupid){i},f));
             if ~isempty(c), mym(sprintf(dltstr,unit_id,P.(groupid){i},f)); end            
             mym(sprintf(mymstrs,unit_id,P.(groupid){i},id,P.(f){i}));
@@ -75,6 +76,7 @@ for f = fn
         end
     else
         for i = 1:numel(P.(groupid))
+            if i > numel(P.(f)), continue; end
             c = myms(sprintf(chkstr,unit_id,P.(groupid){i},f));
             if ~isempty(c), mym(sprintf(dltstr,unit_id,P.(groupid){i},f)); end
             mym(sprintf(mymstrf,unit_id,P.(groupid){i},id,P.(f)(i)));

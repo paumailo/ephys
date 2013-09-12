@@ -37,10 +37,23 @@ for i = 1:length(upar)
         ind = iind & ismember(dbP.group_id,ugrp{j});
         if ~any(ind), continue; end
         if isnan(dbP.paramF(ind))
-            P.(upar{i}){j} = dbP.paramS(ind);
+            P.(upar{i})(j) = dbP.paramS(ind);
         else
             P.(upar{i})(j) = dbP.paramF(ind);
         end
     end
 end
 if ~isempty(P), P.group_id = ugrp; end
+
+
+
+
+
+
+
+
+
+
+
+
+
