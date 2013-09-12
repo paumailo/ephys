@@ -288,7 +288,7 @@ set([axM axX axY],'box','on');
 set([axM axY],'xgrid','on','ygrid','on','zgrid','on');
 
 view(axM,opts.opt_viewsurf);
-shading(axM,'interp')
+shading(axM,'flat')
 
 set([axM axX],'xlim',[xvals(1) xvals(end)]);
 set([axM axY],'ylim',[yvals(1) yvals(end)]);
