@@ -123,8 +123,9 @@ h.UNIT.spiketimes  = DB_GetSpiketimes(h.unit_id);
 h.UNIT.blockparams = DB_GetParams(IDs.block);
 h.UNIT.unitprops   = DB_GetUnitProps(h.unit_id,'RF$');
 
+UpdateWithDBParams(h.unit_id,h);
 
-
+set(h.updatedb,'Enable','on');
 
 
 
@@ -291,6 +292,7 @@ shading(axM,'interp')
 
 set([axM axX],'xlim',[xvals(1) xvals(end)]);
 set([axM axY],'ylim',[yvals(1) yvals(end)]);
+set(axX,'ylim',[0 max([crsX(:); scrsX(:)])]);
 set(axM,'zlim',[0 max(data(:))]);
 if opts.opt_xscalelog
     set([axM axX],'xscale','log');
@@ -318,7 +320,9 @@ UD.yvals = yvals;   UD.ydim  = ydim;
 Cdata = UpdateContours(axM,UD,str2num(opts.opt_numfields),str2num(opts.opt_threshold)); %#ok<ST2NM>
 
 if ~isempty(Cdata(1).id)
+    ccodes = lines(10);
     for i = 1:length(Cdata)
+        set(Cdata(i).h,'EdgeColor',ccodes(Cdata(i).id,:));
         Cdata(i).mask     = ContourMask(Cdata(i).contour,xvals,yvals);
         Cdata(i).Features = ComputeResponseFeatures(data,Cdata(i),xvals,yvals);
         PlotFeatures(axM,axY,data,Cdata(i),xvals,yvals);
@@ -344,11 +348,18 @@ hold(axM,'on');
 xi = interp1(xvals,xvals,F.charfreq,'nearest');
 yi = interp1(yvals,yvals,F.minthresh,'nearest');
 dz = data(yi==yvals,xi==xvals);
-plot3(axM,F.charfreq,F.minthresh,dz,'*m','linewidth',2,'markersize',10);
+plot3(axM,F.charfreq,F.minthresh,dz,'sm','linewidth',2,'markersize',10);
 
 dz = data(yvals==F.bestlevel,xvals==F.bestfreq);
-plot3(axM,F.bestfreq,F.bestlevel,dz,'*','linewidth',2,'markersize',10, ...
+plot3(axM,F.bestfreq,F.bestlevel,dz,'d','linewidth',2,'markersize',10, ...
     'color',[0.8 0.8 0.8]);
+
+if ~isempty(E.bwHf)
+    dzpk = max(data(:))*ones(2,length(E.BWy));
+    dzmn = min(data(:))*ones(2,length(E.BWy));
+    plot3(axM,[E.bwLf; E.bwHf],[E.BWy; E.BWy],dzpk,'--k','linewidth',1);
+    plot3(axM,[E.bwLf; E.bwHf],[E.BWy; E.BWy],dzmn,'--k','linewidth',1);
+end
 
 hold(axM,'off');
 
@@ -356,24 +367,25 @@ ccodes = lines(10);
 ccode = ccodes(Cdata.id,:);
 
 hold(axY,'on');
+
+ch = [];
 if ~isempty(E.Qs)
-    plot(axY,E.Qs,E.BWy,'-o','color',[0 0 0],'markersize',8, ...
-        'markerfacecolor',ccode,'LineWidth',2,'Clipping','off')
+    ch(1) = plot(axY,E.Qs./max(E.Qs),E.BWy,'-o','markersize',5,'linewidth',1);
 end
 
-legend(axY,{'Q vals'},'location','SouthWest')
+ch(end+1) = plot(axY,E.bfio./max(E.bfio),yvals,'-d','markersize',3,'linewidth',0.1);
+ch(end+1) = plot(axY,E.cfio./max(E.cfio),yvals,'-s','markersize',3,'linewidth',0.1);
+
+set(ch,'markerfacecolor',ccode,'Clipping','off','color','k');
+
+lh = legend(axY,{ ...
+    sprintf('Q vals (%0.1f)',max(E.Qs)), ...
+    sprintf('IO@BF (%0.1f)',max(E.bfio)), ...
+    sprintf('IO@CF (%0.1f)',max(E.cfio)) ...
+    },'location','SouthWest');
+set(lh,'FontSize',7);
+
 hold(axY,'off');
-
-% Lfxi = interp1(xvals,xvals,E.bwLf,'nearest');
-% Hfxi = interp1(xvals,xvals,E.bwHf,'nearest');
-% x = [Lfxi; Hfxi];
-% 
-% bwyi = interp1(yvals,yvals,E.bwyvals,'pchip');
-% dz   = data(ismember(yvals,bwyi),ismember(xvals,x));
-% bwyi = [bwyi; bwyi];
-% 
-% plot3(ax,x,dz,'-m','linewidth',2);
-
 
 
 
@@ -385,10 +397,10 @@ function F = ComputeResponseFeatures(data,Cdata,xvals,yvals)
 mdata = nan(size(data));
 mdata(Cdata.mask) = data(Cdata.mask);
 
-
 [F.minthresh,cfi] = min(Cdata.contour(2,:));  % minimum threshold
 F.charfreq = Cdata.contour(1,cfi);            % characteristic frequency
-F.EXTRAS.cfio = data(:,cfi); %*CharFreq IO function
+xi = interp1(xvals,xvals,F.charfreq,'nearest');
+F.EXTRAS.cfio = data(:,xvals==xi); %*CharFreq IO function
 
 [F.maxrate,bfi] = max(mdata(:));         % max rate
 [bfi,bfj] = ind2sub(size(mdata),bfi);
@@ -466,7 +478,9 @@ end
 
 
 function UpdateDB(h) %#ok<DEFNU>
-set(h.figure1,'Pointer','watch'); drawnow
+set(h.figure1,'Pointer','watch');
+set(h.updatedb,'Enable','off');
+drawnow
 
 axM = h.RFax_main;
 
@@ -478,14 +492,15 @@ i = 1;
 for bw = 5:5:100;
     BWn{i} = sprintf('BW%02ddB',bw); %#ok<AGROW>
     BWd{i} = sprintf('Frequency bandwidth (in Hz) at %d dB above minimum threshold',bw); %#ok<AGROW>
-    BWu{i} = 'dB'; %#ok<AGROW>
+    BWu{i} = 'Hz'; %#ok<AGROW>
     i = i + 1;
 end
-n = {'bestfreq','charfreq','minthresh','rftype','spontrate','maxrate','bestlevel'};
-u = {'Hz','Hz','dB',[],'Hz','Hz','dB'};
+n = {'bestfreq','charfreq','minthresh','rftype','spontrate','maxrate','bestlevel','numfields', ...
+    'guisettings'};
+u = {'Hz','Hz','dB',[],'Hz','Hz','dB',[],[]};
 d = {'Best Frequency','Characteristic Frequency','Minimum Threshold', ...
 'Receptive Field Type','Spontaneous Firing Rate','Maximum Firing Rate in RF', ...
-'Best response level'};
+'Best response level','Number of receptive fields','String of GUI settings for analysis'};
 n = [n BWn];
 d = [d BWd];
 u = [u BWu];
@@ -493,7 +508,6 @@ DB_CheckAnalysisParams(n,d,u);
 
 
 Cdata = UD.Cdata;
-
 for i = 1:length(Cdata)
     cf = Cdata(i).Features;
     R.identity{i}   = sprintf('RFid%02d',Cdata(i).id);
@@ -511,17 +525,53 @@ end
 
 DB_UpdateUnitProps(h.unit_id,R,'identity',true);
 
-T.identity = 'rftype';
-T.rftype   = get_string(h.list_rftype);
+m = myms(sprintf(['SELECT COUNT(DISTINCT(group_id)) FROM v_unit_props ', ...
+        'WHERE group_id REGEXP "RFid*" AND unit_id = %d'],h.unit_id));
+for i = length(Cdata)+1:m
+    mym('DELETE FROM unit_properties WHERE unit_id = {Si} AND group_id = "{S}"', ...
+        h.unit_id,sprintf('RFid%02d',i));
+end
+
+T.identity    = 'rftype';
+T.rftype      = get_string(h.list_rftype);
+T.numfields   = length(Cdata);
+T.guisettings = sprintf('%s,%s,%d,%d,%d,%s,%s,%s', ...
+    get_string(h.opt_dimx),get_string(h.opt_dimy),...
+    get(h.opt_xscalelog,'Value'),get(h.opt_smooth2d,'Value'),get(h.opt_interp,'Value'), ...
+    get(h.opt_cwinon,'String'),get(h.opt_cwinoff,'String'),get(h.opt_threshold,'String'));
 DB_UpdateUnitProps(h.unit_id,T,'identity',true);
 
+set(h.updatedb,'Enable','on');
 set(h.figure1,'Pointer','arrow'); drawnow
 
 
 
+function UpdateWithDBParams(unit_id,h)
+% R = DB_GetUnitProps(unit_id,'RFid*');
 
+T = DB_GetUnitProps(unit_id,'rftype');
+if isempty(T) || ~isfield(T,'guisettings'), return; end
 
+s = get(h.list_rftype,'String');
+i = ismember(s,T.rftype);
+set(h.list_rftype,'Value',find(i));
 
+vals = tokenize(T.guisettings{1},',');
+
+s = get(h.opt_dimx,'String');
+i = ismember(s,vals{1});
+set(h.opt_dimx,'Value',find(i));
+
+s = get(h.opt_dimy,'String');
+i = ismember(s,vals{2});
+set(h.opt_dimy,'Value',find(i));
+
+set(h.opt_xscalelog,'Value',str2num(vals{3})); %#ok<ST2NM>
+set(h.opt_smooth2d, 'Value',str2num(vals{4})); %#ok<ST2NM>
+set(h.opt_interp,   'Value',str2num(vals{5})); %#ok<ST2NM>
+set(h.opt_cwinon,   'String',vals{6});
+set(h.opt_cwinoff,  'String',vals{7});
+set(h.opt_threshold,'String',vals{8});
 
 
 
@@ -571,7 +621,7 @@ if addrftype
 end
 
 
-
+ 
 
 
 

@@ -36,16 +36,21 @@ if ~isequal(numel(n),numel(u)), error('Size of u must equal size of n'); end
 
 DB_CreateUnitPropertiesTable;
 
-for i = 1:length(n)
-    mym(['INSERT db_util.analysis_params ', ...
-        '(name,description) VALUES ', ...
-        '("{S}","{S}") ', ...
-        'ON DUPLICATE KEY UPDATE name = name'],n{i},d{i});
+p = mym('SELECT * FROM db_util.analysis_params');
 
+
+for i = 1:length(n)
+    ind = ismember(p.name,n{i});
+    if ~any(ind) || ~strcmp(d{i},p.description{ind})
+        mym(['INSERT db_util.analysis_params ', ...
+            '(name,description) VALUES ', ...
+            '("{S}","{S}") ', ...
+            'ON DUPLICATE KEY UPDATE name = name'],n{i},d{i});
+    end
 % make sure analysis_params are up to date because units column was added
 % later on
 
-    if ~isempty(u{i})
+    if ~isempty(u{i}) && ~strcmp(u{i},p.units{ind})
         mym(['UPDATE db_util.analysis_params ', ...
             'SET units = "{S}" ', ...
             'WHERE name = "{S}"'],u{i},n{i});
