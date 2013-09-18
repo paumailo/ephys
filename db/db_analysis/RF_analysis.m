@@ -307,6 +307,13 @@ xlabel(axM,dimx);  ylabel(axM,dimy); zlabel(axM,'Firing Rate (Hz)');
 ylabel(axY,dimy);
 ylabel(axX,'mean');
 
+colorbar('peer',axM,'EastOutside');
+c = get(axM,'clim');
+set(axM,'clim',[0 c(2)]);
+
+p = get(axM,'Position');
+set(axX,'Position',[p(1) 0.75 p(3) 0.1]);
+
 UD.IDs   = IDs;
 UD.data  = data;
 UD.spnt  = spnt;
@@ -508,6 +515,13 @@ DB_CheckAnalysisParams(n,d,u);
 
 
 Cdata = UD.Cdata;
+if isempty(Cdata(1).id)
+    fprintf('No features have been identified for unit %d.\n',h.unit_id)
+    set(h.updatedb,'Enable','on');
+    set(h.figure1,'Pointer','arrow'); drawnow
+    return
+end
+
 for i = 1:length(Cdata)
     cf = Cdata(i).Features;
     R.identity{i}   = sprintf('RFid%02d',Cdata(i).id);
@@ -519,6 +533,7 @@ for i = 1:length(Cdata)
     R.bestlevel(i)  = cf.bestlevel;
     for j = 1:length(cf.EXTRAS.BWy)
         bwfn = sprintf('BW%02ddB',j*5);
+        if ~isfield(cf,bwfn), break; end
         R.(bwfn)(i) = cf.(bwfn);
     end
 end
@@ -555,6 +570,7 @@ if isempty(T) || ~isfield(T,'guisettings'), return; end
 s = get(h.list_rftype,'String');
 i = ismember(s,T.rftype);
 set(h.list_rftype,'Value',find(i));
+SelectRFtype(h.list_rftype,h);
 
 vals = tokenize(T.guisettings{1},',');
 
