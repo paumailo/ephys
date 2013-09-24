@@ -642,7 +642,7 @@ G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
 if G_COMPILED.FINISHED
     % give some time before actually halting the recording
     for i = 3:-1:1
-        set(h.progress_status,sprintf('Finishing recording %d',i));
+        set(h.progress_status,'String',sprintf('Finishing recording %d',i));
         pause(1)
     end
     DAHalt(h,G_DA);
