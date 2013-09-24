@@ -34,6 +34,18 @@ for j = 1:length(trial)
         e = DA.WriteTargetV(param,0,single(par.buffer(:)'));
     
     elseif isscalar(par) % set value
+        
+        if isequal('PA5',param(1:3))
+            % use small steps from previous attenuation value to new
+            % attenuation value on PA5 rather than a big jump to avoid
+            % switching transients (0/24/13)
+            pa = DA.GetTargetVal(param);
+            if pa < par, a = pa:5:par; else a = pa:-5:par; end
+            for i = a
+                DA.SetTargetVal(param,i);
+            end
+        end
+        
         e = DA.SetTargetVal(param,par);
     end
     
