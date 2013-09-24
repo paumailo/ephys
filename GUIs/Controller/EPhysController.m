@@ -620,26 +620,31 @@ while hat < ud{3}; end
 ud{2} = DAZBUSBtrig(G_DA,G_FLAGS);
 % fprintf('Trig Time Discrepancy = %0.5f\n',ud{2}-ud{3})
 
+% retrieve up-to-date GUI object handles
+h = guidata(ud{1});
+
+set(h.trigger_indicator,'ForegroundColor',[0 1 0]); drawnow expose
+
 % Figure out time of next trigger
 ud{3} = ud{2}+ITI(G_COMPILED.OPTIONS);
 
 set(hObj,'UserData',ud);
 
-% retrieve up-to-date GUI object handles
-h = guidata(ud{1});
-
 % make sure trigger is finished before updating parameters for next trial
 if ~isempty(G_FLAGS.trigstate)
     while G_DA.GetTargetVal(G_FLAGS.trigstate), pause(0.005); end
 end
+set(h.trigger_indicator,'ForegroundColor',[0 0 0]); drawnow expose
 
 % Check if session has been completed (or user has manually halted session)
 G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
                       || G_DA.GetSysMode < 2;
 if G_COMPILED.FINISHED
-    fprintf('Finishing recording ')
     % give some time before actually halting the recording
-    for i = 1:5, fprintf('.'); pause(1); end
+    for i = 3:-1:1
+        set(h.progress_status,sprintf('Finishing recording %d',i));
+        pause(1)
+    end
     DAHalt(h,G_DA);
     fprintf(' done\n')
     fprintf('Presented %d trials.\nTime is now %s.\n\n',G_COMPILED.tidx-1, ...
@@ -731,23 +736,3 @@ if ~isfield(h,'progbar') || ~ishandle(h.progbar)
 end
 
 set(h.progbar,'xdata',[0 v]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

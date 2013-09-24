@@ -6,7 +6,7 @@ function data = eventrel(obj,win)
 
 swin = round(win*obj.Fs);
 svec = 0:diff(swin);
-onst = ceil(obj.params(1).vals(:,2)*obj.Fs+swin(1));
+onst = ceil(obj.params(end).vals(:,2)*obj.Fs+swin(1));
 
 if any(onst <= 0)
     error('eventrel:%d window onsets occur before the first sample of the recording', ...
