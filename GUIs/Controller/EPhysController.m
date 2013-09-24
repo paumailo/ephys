@@ -623,7 +623,7 @@ ud{2} = DAZBUSBtrig(G_DA,G_FLAGS);
 % retrieve up-to-date GUI object handles
 h = guidata(ud{1});
 
-set(h.trigger_indicator,'ForegroundColor',[0 1 0]); drawnow expose
+set(h.trigger_indicator,'BackgroundColor',[0 1 0]); drawnow expose
 
 % Figure out time of next trigger
 ud{3} = ud{2}+ITI(G_COMPILED.OPTIONS);
@@ -632,9 +632,9 @@ set(hObj,'UserData',ud);
 
 % make sure trigger is finished before updating parameters for next trial
 if ~isempty(G_FLAGS.trigstate)
-    while G_DA.GetTargetVal(G_FLAGS.trigstate), pause(0.005); end
+    while G_DA.GetTargetVal(G_FLAGS.trigstate), pause(0.001); end
 end
-set(h.trigger_indicator,'ForegroundColor',[0 0 0]); drawnow expose
+set(h.trigger_indicator,'BackgroundColor',[0.941 0.941 0.941]); drawnow expose
 
 % Check if session has been completed (or user has manually halted session)
 G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
