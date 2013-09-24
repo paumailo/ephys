@@ -128,7 +128,7 @@ if strcmpi(cfg.blocks,'all')
     
     cfg.blocks = 1:length(blocklist);
 else
-    if iscell(cfg.blocks)
+    if iscellstr(cfg.blocks)
         blocklist = cfg.blocks;
     elseif ischar(cfg.blocks)
         blocklist = {cfg.blocks};
@@ -451,6 +451,9 @@ for bidx = 1:length(blocklist)
             fprintf(' ... no data')
         end
         
+        if cidx > 1
+            w = w(1:size(DO.waves,1));
+        end
         DO.waves(:,cidx) = w;
     end % cidx
     clear w

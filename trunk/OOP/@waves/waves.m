@@ -27,7 +27,7 @@ classdef waves < tank
     % DJS 2013
 
     properties (SetAccess = 'public',GetAccess = 'public')
-        eventname = 'Wave'; % Eventname (eg, 'Wave')
+        eventname           % Eventname (eg, 'Wave')
         downFs    = 1000;   % Downsample sampling rate 
     end
     
@@ -58,10 +58,10 @@ classdef waves < tank
         end
         
         % @methods
-        obj = update(obj);
+        obj  = update(obj);
         data = eventrel(obj,win);
-        obj = deline(obj);
-        ft = fieldtrip(obj);
+        obj  = deline(obj);
+        ft   = fieldtrip(obj);
         
     end   
     
