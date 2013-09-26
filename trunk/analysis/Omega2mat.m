@@ -14,7 +14,16 @@ function T = Omega2mat(omegacsv)
 % T.Temps       ...     NxM matrix of temperature values where columns
 %                       correspond to T.Sensors and rows correspond to the
 %                       T.LogDate and T.LogTime.
+% T.N           ...     Number of data points (rows) in T.Temps, T.LogDate, 
+%                       and T.LogTime
 % 
+% Convert F to C
+%   T.Temps = (T.Temps - 32) * 5/9;
+%   T.Units = 'C';
+% 
+% Convert C to F
+%   T.Temps = T.Temps * 9/5 + 32;
+%   T.Units = 'F';
 % 
 % Daniel.Stolzberg@gmail.com 2013
 
@@ -51,7 +60,8 @@ fclose(fid);
 
 T.LogDate = C{2};
 T.LogTime = C{3};
-T.Temps   = cell2mat(C(4:end));
+T.Temps   = single(cell2mat(C(4:end)));
+T.N       = length(T.LogDate);
 
 
 
