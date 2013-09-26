@@ -131,6 +131,7 @@ function GUISTATE(fh,onoff)
 pdchildren = findobj(fh,'-property','Enable');
 set(pdchildren,'Enable',onoff);
 if strcmpi(onoff,'on')
+    OpTcontrol(findobj(fh,'tag','opt_optcontrol'),guidata(fh));
     set(fh,'pointer','arrow'); 
 else
     set(fh,'pointer','watch'); 
@@ -221,8 +222,13 @@ set(h.param_table,'UserData',TD);
 Op = protocol.OPTIONS;
 set(h.opt_randomize,         'Value', Op.randomize);
 set(h.opt_compile_at_runtime,'Value', Op.compile_at_runtime);
-set(h.opt_isi,               'String',num2str(Op.ISI));
+set(h.opt_iti,               'String',num2str(Op.ISI));
 set(h.opt_num_reps,          'String',num2str(Op.num_reps));
+
+if isfield(Op,'optcontrol')
+    set(h.opt_optcontrol,'Value',Op.optcontrol);
+end
+OpTcontrol(h.opt_optcontrol,h);
 
 if isfield(Op,'trialfunc')
     set(h.trial_selectfunc,'String',Op.trialfunc);
@@ -251,7 +257,7 @@ function p = AffixOptions(h,p)
 % affix protocol options
 p.OPTIONS.randomize          = get(h.opt_randomize,         'Value');
 p.OPTIONS.compile_at_runtime = get(h.opt_compile_at_runtime,'Value');
-p.OPTIONS.ISI                = str2num(get(h.opt_isi,       'String')); %#ok<ST2NM>
+p.OPTIONS.ISI                = str2num(get(h.opt_iti,       'String')); %#ok<ST2NM>
 p.OPTIONS.num_reps           = str2num(get(h.opt_num_reps,  'String')); %#ok<ST2NM>
 p.OPTIONS.trialfunc          = get(h.trial_selectfunc,      'String');
 p.INFO                       = get(h.protocol_info,         'String');
@@ -259,7 +265,12 @@ p.INFO                       = get(h.protocol_info,         'String');
 
 
 
-
+function OpTcontrol(hObj,h)
+if get(hObj,'Value')
+    set([h.opt_num_reps, h.opt_iti],'Enable','off'); 
+else
+    set([h.opt_num_reps, h.opt_iti],'Enable','on');
+end
 
 
 
@@ -488,7 +499,7 @@ if length(d) ~= 1
 end
 UpdateProtocolDur(h)
 
-function opt_isi_Callback(hObj, h) %#ok<DEFNU>
+function opt_iti_Callback(hObj, h) %#ok<DEFNU>
 % Check inter-stimulus interval (ISI)
 d = get(hObj,'String');
 d = str2num(d); %#ok<ST2NM>
@@ -505,7 +516,7 @@ if ~isfield(h,'protocol')
     return
 end
 
-isi = str2num(get(h.opt_isi,'String')); %#ok<ST2NM>
+iti = str2num(get(h.opt_iti,'String')); %#ok<ST2NM>
 
 h.protocol = AffixOptions(h,h.protocol);
 [p,fail] = CompiledProtocolTrials(h.protocol,'showgui',false);
@@ -513,7 +524,7 @@ if fail
     set(h.protocol_dur,'String','Invalid Value Combinations', ...
         'backgroundcolor','r');
 else
-    pdur = mean(size(p.trials,1)*isi/1000/60);
+    pdur = mean(size(p.trials,1)*iti/1000/60);
     set(h.protocol_dur,'String',sprintf('Protocol Duration: %0.1f min',pdur), ...
         'backgroundcolor','g');
 end
@@ -627,7 +638,7 @@ GUISTATE(h.ProtocolDesign,'off');
 
 % Grab parameter tags from an existing RPvds file
 fh = findobj('Type','figure','-and','Name','RPfig');
-if isempty(fh), fh = figure('Visible','off','Name','RPfig'); end
+if isempty(fh), fh = figure('Vitible','off','Name','RPfig'); end
 
 [fn,pn] = uigetfile({'*.rcx', 'RPvds File (*.rcx)'},'Select RPvds File');
 if ~fn, GUISTATE(h.ProtocolDesign,'on'); return; end

@@ -336,29 +336,33 @@ SetThresholds(G_DA);
 
 % If custom trial selection function is not specified, set to empty and use
 % default trial selection function
-if ~isfield(G_COMPILED,'trialfunc'), G_COMPILED.OPTIONS.trialfunc = []; end
+if ~isfield(G_COMPILED.OPTIONS,'trialfunc'),  G_COMPILED.OPTIONS.trialfunc = []; end
+
+% Operational control of stimulus presentation
+if ~isfield(G_COMPILED.OPTIONS,'optcontrol'), G_COMPILED.OPTIONS.optcontrol = false; end
+
 
 % Find modules with requisite parameters
 mods = fieldnames(protocol.MODULES);
-G_FLAGS = struct('updated',[],'trigstate',[],'update',[],'ZBUSB_ON',[],'ZBUSB_OFF',[],'ZBUSB',[]);
+G_FLAGS = struct('trigstate',[],'update',{[]}, ...
+    'ZBUSB_ON',[],'ZBUSB_OFF',[],'ZBUSB',[],'RCode',[]);
 for i = 1:length(mods)
     if strcmp(mods{i}(1:3),'PA5'), continue; end
-    if G_DA.GetTargetType(sprintf('%s.~Updated',mods{i}))
-        G_FLAGS.updated     = sprintf('%s.~Updated',mods{i});
-    end
     if G_DA.GetTargetType(sprintf('%s.~TrigState',mods{i}))
-        G_FLAGS.trigstate   = sprintf('%s.~TrigState',mods{i});
+        G_FLAGS.trigstate = sprintf('%s.~TrigState',mods{i});
     end
     if G_DA.GetTargetType(sprintf('%s.~Update',mods{i}))
-        G_FLAGS.update      = sprintf('%s.~Update',mods{i});
+        G_FLAGS.update    = sprintf('%s.~Update',mods{i});
     end
     if G_DA.GetTargetType(sprintf('%s.ZBUSB_ON',mods{i}))
-        G_FLAGS.ZBUSB_ON    = sprintf('%s.ZBUSB_ON',mods{i});
+        G_FLAGS.ZBUSB_ON  = sprintf('%s.ZBUSB_ON',mods{i});
     end
     if G_DA.GetTargetType(sprintf('%s.ZBUSB_OFF',mods{i}))
-        G_FLAGS.ZBUSB_OFF   = sprintf('%s.ZBUSB_OFF',mods{i});
+        G_FLAGS.ZBUSB_OFF = sprintf('%s.ZBUSB_OFF',mods{i});
     end
-   
+    if G_DA.GetTargetType(sprintf('%s.RCode',mods{i}))
+        G_FLAGS.RCode     = sprintf('%s.RCode',mods{i});
+    end
 end
 
 w = [];
@@ -369,6 +373,21 @@ for i = 1:length(w)
     fprintf('WARNING: ''%s'' was not discovered on any module\n',w{i})
 end
 
+if G_COMPILED.OPTIONS.optcontrol
+    if isempty(G_FLAGS.RCode)
+        errordlg('''RCode'' tag was not found on any module.  The ''RCode'' tag is required when using operational trigger control.', ...
+            '''RCode'' not found','modal');
+        DAHalt(h,G_DA);
+        return
+    end
+    if isempty(G_FLAGS.update)
+        errordlg('''~Update'' tag must be on a module when using operational trigger control.', ...
+            '''~Update'' not found','modal');
+        DAHalt(h,G_DA);
+        return
+    end
+end
+    
 % Set first trial parameters
 G_COMPILED.tidx = 1;
 DAUpdateParams(G_DA,G_COMPILED);
@@ -390,7 +409,7 @@ T = timer(                                   ...
     'TasksToExecute',inf,                    ...
     'Period',        0.01,                   ...
     'Name',         'EPhysTimer',            ...
-    'TimerFcn',     {@RuntimeTimer},  ...
+    'TimerFcn',     {@RunTime},  ...
     'StartDelay',   1,                       ...
     'UserData',     {h.EPhysController t per});
 % 'ErrorFcn',{@StartTrialError,G_DA}, ...
@@ -525,15 +544,19 @@ if ~isempty(T)
     try delete(T); end %#ok<TRYNC>
 end
 
-function t = DATrigger(DA,trig_str)
+function DATrigger(DA,trig_str)
 % Trigger a trial during OpenEx session by setting a parameter tag called
 % SoftTrg high for a brief period and then off.  The trig_str parameter
 % should be linked to a constant logic (ConsL) component which should run
 % through an rising edge detect (EdgeDetect) component.  There is no way to
 % trigger using DevAcc.X control like with RPco.X SoftTrg component.
-DA.SetTargetVal(trig_str,1);
-t = hat; % start timer for next trial
-DA.SetTargetVal(trig_str,0);
+
+trig_str = cellstr(trig_str);
+for i = 1:length(trigstr)
+    DA.SetTargetVal(trig_str{i},1);
+    DA.SetTargetVal(trig_str{i},0);
+end
+
 
 function t = DAZBUSBtrig(DA,flags)
 % This will trigger zBusB synchronously across modules
@@ -604,38 +627,60 @@ protocol.MODULES = mods;
 
 
 %% Timer
-function RuntimeTimer(hObj,evnt)  %#ok<INUSD>
+function RunTime(hObj,evnt)  %#ok<INUSD>
 global G_COMPILED G_DA G_FLAGS G_PAUSE
 
 if G_PAUSE, return; end
 
 ud = get(hObj,'UserData');
-% ud{1} = figure handle; ud{2} = last trigger ; ud{3} = next trigger
-if hat < ud{3} - 0.025, return; end
 
-% hold computer hostage for a few milliseconds until the next trigger time
-while hat < ud{3}; end
+%--------------------------------------------------------------------------
+if G_COMPILED.OPTIONS.optcontrol
+    % using operational control of trigger
+    
+    % RCode must ~= zero in order to trigger next trial
+    RCode = G_DA.GetTargetVal(G_FLAGS.RCode);
+    if RCode == 0, return; end
+    
+    trem = inf;
+    
+else
+    % ud{1} = figure handle; ud{2} = last trigger ; ud{3} = next trigger
+    if hat < ud{3} - 0.025, return; end
+    
+    % hold computer hostage for a short period until the next trigger time
+    while hat < ud{3}; end
+    
+    % ZBus Trigger on modules
+    ud{2} = DAZBUSBtrig(G_DA,G_FLAGS);
+    % fprintf('Trig Time Discrepancy = %0.5f\n',ud{2}-ud{3})
+    
+    % retrieve up-to-date GUI object handles
+    h = guidata(ud{1});
+    
+    set(h.trigger_indicator,'BackgroundColor',[0 1 0]); drawnow expose
+    
+    
+    % make sure trigger is finished before updating parameters for next trial
+    if ~isempty(G_FLAGS.trigstate)
+        while G_DA.GetTargetVal(G_FLAGS.trigstate), pause(0.001); end
+    end
+    set(h.trigger_indicator,'BackgroundColor',[0.941 0.941 0.941]); drawnow expose
+    
+    
+    if ~G_COMPILED.OPTIONS.optcontrol
+        % Figure out time of next trigger
+        ud{3} = ud{2} + ITI(G_COMPILED.OPTIONS);
+    end
+    
+    
+    % Time remaining for progress bar
+    trem = mean(G_COMPILED.OPTIONS.ISI)/1000 * (size(G_COMPILED.trials,1)-G_COMPILED.tidx);
 
-% ZBus Trigger on modules
-ud{2} = DAZBUSBtrig(G_DA,G_FLAGS);
-% fprintf('Trig Time Discrepancy = %0.5f\n',ud{2}-ud{3})
-
-% retrieve up-to-date GUI object handles
-h = guidata(ud{1});
-
-set(h.trigger_indicator,'BackgroundColor',[0 1 0]); drawnow expose
-
-% Figure out time of next trigger
-ud{3} = ud{2}+ITI(G_COMPILED.OPTIONS);
-
-set(hObj,'UserData',ud);
-
-% make sure trigger is finished before updating parameters for next trial
-if ~isempty(G_FLAGS.trigstate)
-    while G_DA.GetTargetVal(G_FLAGS.trigstate), pause(0.001); end
+    set(hObj,'UserData',ud);
 end
-set(h.trigger_indicator,'BackgroundColor',[0.941 0.941 0.941]); drawnow expose
 
+%--------------------------------------------------------------------------
 % Check if session has been completed (or user has manually halted session)
 G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
                       || G_DA.GetSysMode < 2;
@@ -664,20 +709,28 @@ if G_COMPILED.FINISHED
     return
 end
 
+
+%--------------------------------------------------------------------------
 % Call user-defined trial select function
-if isfield(G_COMPILED,'trialfunc')
-    G_COMPILED = feval(G_COMPILED.trialfunc,G_DA,G_COMPILED);
+if isfield(G_COMPILED,'trialfunc') && ~isempty(G_COMPILED.trialfunc)
+    % The global variable G_DA can be accessed from the trialfunc
+    G_COMPILED = feval(G_COMPILED.trialfunc,G_COMPILED);
 end
 
 % Update parameters
 DAUpdateParams(G_DA,G_COMPILED);
 
 % Optional: Trigger '~Update' tag on module following DAUpdateParams
-%     > confirms to Stim module that parameters have been updated
-if G_FLAGS.update, DATrigger(G_DA,G_FLAGS.update); end
+%     > confirms to module that parameters have been updated
+if G_FLAGS.update
+    DATrigger(G_DA,G_FLAGS.update);
+    set(h.trigger_indicator,'BackgroundColor',[0 1 0]); drawnow expose
+    pause(0.2)
+    set(h.trigger_indicator,'BackgroundColor',[0 0 0]); drawnow expose
+end
+    
 
-% Update progress bar
-trem = mean(G_COMPILED.OPTIONS.ISI)/1000 * (size(G_COMPILED.trials,1)-G_COMPILED.tidx);
+% Update Progress Bar
 UpdateProgress(h,G_COMPILED.tidx/size(G_COMPILED.trials,1),trem);
 
 % Increment trial index

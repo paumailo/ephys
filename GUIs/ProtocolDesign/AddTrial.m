@@ -49,13 +49,13 @@ if iscell(varargin{1})
     % check for randomized option    
     ind = false(size(varargin));
     for i = 1:length(varargin)
-        ind(i) = any(strcmpi(varargin{i},'randomized'));
+        ind(i) = any(strcmp(varargin{i},'randomized'));
     end
     if any(ind)
         % move randomization to end
         t = varargin(ind);
         varargin(ind) = [];
-        varargin(end+1:end+sum(ind)) = t;
+        varargin = [varargin t];
     end
     
     for i = 1:length(varargin)
@@ -69,6 +69,8 @@ end
     
 
 function [schedule,fail] = BAT(schedule,varargin)
+fail = false;
+
 if isempty(schedule) || ~isfield(schedule,'trials'),    schedule.trials = {}; end
 if ~isfield(schedule,'buds') || ~iscell(schedule.buds), schedule.buds = []; end
 
