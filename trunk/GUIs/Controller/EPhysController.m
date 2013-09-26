@@ -45,6 +45,9 @@ if ~isa(G_TT,'COM.TTank_X'),   G_TT = TDT_SetupTT; end
 % Update h structure
 guidata(hObj, h);
 
+% elevate Matlab.exe process to a high priority in Windows
+[~,~] = dos('wmic process where name="MATLAB.exe" CALL setpriority "high priority"');
+
 % --- Outputs from this function are returned to the command line.
 function varargout = EPhysController_OutputFcn(hObj, ~, h)  %#ok<INUSL>
 varargout{1} = h.output;
