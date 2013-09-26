@@ -208,10 +208,10 @@ if ind == 1, return; end
 
 v = 1:length(pinfo.name);
 v(ind-1) = ind;
-v(ind) = ind - 1;
+v(ind)   = ind - 1;
 
 pinfo.name = pinfo.name(v);
-set(h.protocol_list,'String',pinfo.name,'UserData',pinfo);
+set(h.protocol_list,'String',pinfo.name,'Value',ind-1,'UserData',pinfo);
 protocol_list_Callback(h.protocol_list, [], h);
 
 function protocol_move_down_Callback(hObj, ~, h) %#ok<DEFNU,INUSL>
@@ -226,7 +226,7 @@ v(ind+1) = ind;
 v(ind) = ind + 1;
 
 pinfo.name = pinfo.name(v);
-set(h.protocol_list,'String',pinfo.name,'UserData',pinfo);
+set(h.protocol_list,'String',pinfo.name,'Value',ind+1,'UserData',pinfo);
 protocol_list_Callback(h.protocol_list, [], h);
 
 
