@@ -670,7 +670,7 @@ else
     
     pause(0.01);
     
-    set(h.trigger_indicator,'BackgroundColor',[0.75 0.75 0.75]); drawnow expose
+    set(h.trigger_indicator,'BackgroundColor',[0.95 0.95 0.95]); drawnow expose
     
     
     if ~G_COMPILED.OPTIONS.optcontrol
