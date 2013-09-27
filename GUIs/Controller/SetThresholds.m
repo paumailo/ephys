@@ -50,5 +50,5 @@ if exist(fn,'file')
     
     disp(['Hoops set from file created ' datestr(s.date,'mmm.dd,yyyy HH:MM:SS PM')]);
 else
-    warning('Threshold file not found')
+%     warning('Threshold file not found')
 end

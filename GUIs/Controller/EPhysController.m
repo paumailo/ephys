@@ -691,10 +691,12 @@ G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
                       || G_DA.GetSysMode < 2;
 if G_COMPILED.FINISHED
     % give some time before actually halting the recording
+    set(h.progress_status,'ForegroundColor',[1 0 0]);
     for i = 3:-1:1
-        set(h.progress_status,'String',sprintf('Finishing recording %d',i));
+        set(h.progress_status,'String',sprintf('Finishing recording in %d',i));
         pause(1)
     end
+    set(h.progress_status,'ForegroundColor',[0 0 0],'String','');
     DAHalt(h,G_DA);
     fprintf(' done\n')
     fprintf('Presented %d trials.\nTime is now %s.\n\n',G_COMPILED.tidx-1, ...
