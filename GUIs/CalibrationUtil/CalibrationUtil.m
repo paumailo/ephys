@@ -763,7 +763,7 @@ switch fidx
         save(fullfile(pn,fn),'-mat','hdr','data');
         
     case 2 % OLD FORMAT - Text file
-        if isequal(hdr.calfunc,@CalibrateTones)
+        if isequal(hdr.calfunc,@CalibrateTones) || isequal(hdr.calfunc,@CalibrateClicks)
             tmat(1,1) = -1; tmat(1,2) = hdr.V;
             tmat(2:size(data,1)+1,:) = data(:,[1 2]);
             dlmwrite(fullfile(pn,fn),tmat,'delimiter',',','newline','pc');
@@ -772,9 +772,6 @@ switch fidx
             tmat(1,1:2) = -1; tmat(1,3) = hdr.V;
             tmat(2:size(data,1)+1,:) = data(:,[1 2 3]);
             dlmwrite(fullfile(pn,fn),tmat,'delimiter',',','newline','pc');
-            
-        elseif isequal(hdr.calfunc,@CalibrateClicks)
-            %....
             
         end
         
