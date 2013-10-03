@@ -424,9 +424,10 @@ xlabel(fax,'Frequency (Hz)'); ylabel(fax,'dB (approx)'); title(fax,'Power Spectr
 function buffer = GetBuffer(AcqRP,Fs,bdur)
 % pause(0.02);
 
-if ~exist('bdur','var') || isempty(bdur)
+if ~exist('bdur','var') || isempty(bdur) || bdur < 0.1
     bdur = 0.1;
 end
+
 
 buffersize = floor(bdur*Fs);
 AcqRP.SetTagVal('bufferSize',buffersize);
@@ -440,13 +441,6 @@ pause(bdur+0.1);
 % retrieve buffer
 buffer = AcqRP.ReadTagV('buffer',0,buffersize);
 
-buffer = FilterBuffer(buffer,Fs);
-
-% get rid of transient which may occur within first 5 ms of signal
-if bdur > 0.05
-    t = round(Fs*0.01);
-    buffer = buffer(t+1:end);
-end
 
 if isempty(buffer) || ~any(buffer)
     CloseConnection(StimRP,AcqRP);
@@ -479,9 +473,10 @@ cfg.Fs = Fs;
 freq = getpref('CalibrationUtil','CALFREQ',250);
 buffer = GetBuffer(AcqRP,Fs,1);
 
-
-% chop off filter distortion
-buffer(1:floor(length(buffer)/2)) = [];
+buffer = FilterBuffer(buffer,Fs);
+% get rid of transient which may occur within first 5 ms of signal
+t = round(Fs*0.01);
+buffer = buffer(t+1:end);
 
 % ANALYZE, PLOT, UPDATE CORRESPONDING FIELD
 res = SignalAnalysis(buffer,cfg.ref,1);
@@ -495,6 +490,7 @@ cla(cax);
 cla(fax);
 
 PlotSignal(buffer,cfg.ref,Fs,h,freq);
+set(h.freq_domain,'xlim',[0 500]);
 
 CloseConnection([],AcqRP);
 set(hObj,'Enable','on');
@@ -534,6 +530,12 @@ for i = 1:length(hp)
         
         pause(0.2);
         buffer = GetBuffer(AcqRP,Fs,1);
+
+        buffer = FilterBuffer(buffer,Fs);
+        
+        % get rid of transient which may occur within first 5 ms of signal
+        t = round(Fs*0.01);
+        buffer = buffer(t+1:end);
         
         % ANALYZE, PLOT, UPDATE TABLE
         res = SignalAnalysis(buffer,cfg.ref,res.adjV);
@@ -578,12 +580,6 @@ try %#ok<TRYNC>
     f = cfg.freqs;
     xr = [min(f)*2^-0.5 max(f)*2^0.5];
     
-    % upper/lower bounds +/- 0.5% of desired norm
-    tolerance = 0.005;
-%     LB = ref.norm * (1-tolerance);
-%     UB = ref.norm * (1+tolerance);
-    
-    hdr.tolerance = tolerance;
     hdr.timestamp = datestr(now);
     hdr.cfg = cfg;
     hdr.V = getpref('CalibrationUtil','SIGNALAMP',nan); % starting voltage
@@ -593,17 +589,19 @@ try %#ok<TRYNC>
     
     for i = 1:length(f)
         % update tone frequency
-        StimRP.SetTagVal('Freq',f(i));
-        res.adjV = hdr.V; % starting voltage
-        %     n = 0; converge = false;
-        
-        %     while ~converge
-        StimRP.SetTagVal('Amp',res.adjV);
+        StimRP.SetTagVal('Freq',f(i));        
+        StimRP.SetTagVal('Amp',hdr.V);
         
         buffer = GetBuffer(AcqRP,Fs);
+
+        buffer = FilterBuffer(buffer,Fs);
+        
+        % get rid of transient which may occur within first 5 ms of signal
+        t = round(Fs*0.01);
+        buffer = buffer(t+1:end);
         
         % ANALYZE, PLOT, UPDATE TABLE
-        res = SignalAnalysis(buffer,cfg.ref,res.adjV);
+        res = SignalAnalysis(buffer,cfg.ref,hdr.V);
         
         PlotSignal(buffer,cfg.ref,Fs,h,f(i));
         
@@ -615,32 +613,12 @@ try %#ok<TRYNC>
         hold(cax,'off');
         ylabel(cax,'dB SPL')
         
-        % test if adjusted voltage produces intended sound level
-        %         converge = res.level >= LB & res.level <= UB;
-        %         n = n + 1;
-        %         if n == 25
-        %             CloseConnection(StimRP,AcqRP);
-        %             error('CalibrationUtil:STIMULUS WARNING:Unable to converge\n')
-        %         end
-        %
-        % test adjusted voltage is within range
-        %         if res.adjV > 9.99
-        %             CloseConnection(StimRP,AcqRP);
-        %             error('CalibrationUtil:STIMULUS ERROR:Adjusted voltage too high\n')
-        %         end
-        
-        %         % Update with adjusted value
-        %         StimRP.SetTagVal('Amp',res.adjV);
-        %
-        %         if converge, continue; end
         
         data(i,2) = res.level; % sound level
         data(i,3) = res.adjV; % adjusted voltage
         
         % Update table
-        set(h.data_table,'Data',num2cell(data)); drawnow
-        %     end
-        
+        set(h.data_table,'Data',num2cell(data)); drawnow        
     end
 end
 CloseConnection(StimRP,AcqRP);
@@ -662,44 +640,47 @@ hdr.V = getpref('CalibrationUtil','SIGNALAMP',nan); % starting voltage
 
 d = cfg.duration / 1e+3; % microsec -> millisec
 
+
 data = nan(length(d),3);
 data(:,1) = d;
-for i = 1:length(d)
-    
-    StimRP.SetTagVal('duration',d(i));
-    
-    StimRP.SetTagVal('Amp',hdr.V);
-    
-    buffer = GetBuffer(AcqRP,Fs,d(i)*2);
-    
-    % ANALYZE, PLOT, UPDATE TABLE
-%     res = SignalAnalysis(buffer,ref,hdr.V);
-% res.rms   = sqrt(mean(buffer.^2)); % signal RMS
-% res.level = 20 * log10(res.rms/ref.rms) + ref.level; % calibrated level
-% res.adjV  = V * 10 ^ ((ref.norm - res.level) / 20); % adjusted voltage
-
-    pk = max(abs(buffer));
-    res.level = 20 * log10(pk/(ref.rms*sqrt(2))) + ref.level; % calibrated level
-    res.adjV  = hdr.V * 10 ^ ((ref.norm-res.level) / 20); % adjusted voltage
-    
-    PlotSignal(buffer,ref,Fs,h,[]);
-    
-    data(i,2) = res.level; % sound level
-    data(i,3) = res.adjV; % adjusted voltage
-    
-    cla(cax)
-    plot(cax,[0.9*min(d) 1.1*max(d)],[ref.norm ref.norm],'-k','linewidth',2);
-    hold(cax,'on');
-    plot(cax,data(:,1),data(:,2),'ob')
-    hold(cax,'off');
-    grid(cax,'on');
-    set(cax,'ylim',[0 120]);
-    
-    % Update table
-    set(h.data_table,'Data',num2cell(data)); drawnow
+t = round(Fs*0.05);
+try %#ok<TRYNC>
+    for i = 1:length(d)
+        
+        StimRP.SetTagVal('duration',d(i));
+        StimRP.SetTagVal('Amp',hdr.V);
+        
+        buffer = GetBuffer(AcqRP,Fs,0.2+d(i));
+        
+        dc = buffer(1:t);
+        buffer(1:t) = [];
+        buffer = buffer - mean(dc);
+        
+        % ANALYZE, PLOT, UPDATE TABLE
+        pk = max(abs(buffer));
+        res.level = 20 * log10(pk/(ref.rms*sqrt(2))) + ref.level; % calibrated level
+        res.adjV  = hdr.V * 10 ^ ((ref.norm-res.level) / 20); % adjusted voltage
+        
+        PlotSignal(buffer,ref,Fs,h,[]);
+        tax = h.time_domain;
+        axis(tax,'tight');
+        set(tax,'xlim',[0 5]);
+               
+        data(i,2) = res.level; % sound level
+        data(i,3) = res.adjV; % adjusted voltage
+        
+        cla(cax)
+        plot(cax,[0.9*min(d) 1.1*max(d)],[ref.norm ref.norm],'-k','linewidth',2);
+        hold(cax,'on');
+        plot(cax,data(:,1),data(:,2),'ob')
+        hold(cax,'off');
+        grid(cax,'on');
+        set(cax,'ylim',[0 120]);
+        
+        % Update table
+        set(h.data_table,'Data',num2cell(data)); drawnow
+    end
 end
-
-
 
 CloseConnection(StimRP,AcqRP);
 
