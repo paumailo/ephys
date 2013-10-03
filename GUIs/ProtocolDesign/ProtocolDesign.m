@@ -638,7 +638,7 @@ GUISTATE(h.ProtocolDesign,'off');
 
 % Grab parameter tags from an existing RPvds file
 fh = findobj('Type','figure','-and','Name','RPfig');
-if isempty(fh), fh = figure('Vitible','off','Name','RPfig'); end
+if isempty(fh), fh = figure('Visible','off','Name','RPfig'); end
 
 [fn,pn] = uigetfile({'*.rcx', 'RPvds File (*.rcx)'},'Select RPvds File');
 if ~fn, GUISTATE(h.ProtocolDesign,'on'); return; end

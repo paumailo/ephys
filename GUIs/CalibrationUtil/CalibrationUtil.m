@@ -299,11 +299,11 @@ switch get(hObj,'String')
             CloseConnection(StimRP,AcqRP);
             SaveCalibration(hdr,data);
             set(hObj,'String','Run');
-        catch
+        catch me
             CloseConnection(StimRP,AcqRP);
-            error('There was an error running calibration')
-            rethrow(lasterror);
             set(hObj,'String','Run')
+            rethrow(me);
+            
         end
         
         
@@ -320,7 +320,7 @@ if isempty(pHd) || pFs ~= Fs
     % Filter out DC component
     Fstop = 100;         % Stopband Frequency
     Fpass = 200;         % Passband Frequency
-    Astop = 60;          % Stopband Attenuation (dB)
+    Astop = 30;          % Stopband Attenuation (dB)
     Apass = 1;           % Passband Ripple (dB)
     match = 'passband';  % Band to match exactly
     
@@ -329,7 +329,9 @@ if isempty(pHd) || pFs ~= Fs
     pHd = design(hd, 'butter', 'MatchExactly', match);
     pFs = Fs;
 end
-fbuffer = filter(pHd,buffer);
+buffer = buffer - mean(buffer);
+fbuffer = filter(pHd,flipud(buffer));
+fbuffer = filter(pHd,flipud(fbuffer));
 
 function res = SignalAnalysis(buffer,ref,V)
 res.rms   = sqrt(mean(buffer.^2)); % signal RMS
@@ -345,7 +347,7 @@ tvec = linspace(0,L/Fs,L)*1000;
 plot(tax,tvec,buffer,'-');
 mav = max(abs(buffer))*1.1;
 set(tax,'ylim',[-mav mav],'xlim',[0 20/max(freq)]*1000); grid(tax,'on');
-xlabel(tax,'time (ms'); ylabel(tax,'V'); title(tax,'Signal');
+xlabel(tax,'time (ms)'); ylabel(tax,'V'); title(tax,'Signal');
 
 % Plot Frequency Domain
 fax = h.freq_domain;
