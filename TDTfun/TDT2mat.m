@@ -28,7 +28,7 @@ function data = TDT2mat(tank, block, varargin)
 %       "SILENT" a summary of tank data will be
 %           returned if false (default).
 %       "TYPE" specifies to return all or subset of datatypes
-%                   ex: data = TDT2mat("MyTank","Block-1","TYPE",[1 2]);
+%                   ex: data = TDT2mat("MyTank","Block-1","TYPE",[2 3]);
 %                           > returns epocs and snips data
 %           1   ...   all (default)
 %           2   ...   epocs

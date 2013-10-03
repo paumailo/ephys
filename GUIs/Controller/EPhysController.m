@@ -132,7 +132,8 @@ else
            td.info.begintime,td.info.duration,nchans);
     end
 end
-blkstr = sprintf('TANK: %s\n-------\n%s',evnt.ActTank,blkstr);
+[d,t] = fileparts(evnt.ActTank);
+blkstr = sprintf('TANK: %s\n%s\n%s\n%s',t,d,repmat('-',1,length(d)),blkstr);
 set(h.block_info,'String',blkstr,'HorizontalAlignment','left', ...
     'Enable','inactive');
 set(h.EPhysController,'Pointer','arrow');
