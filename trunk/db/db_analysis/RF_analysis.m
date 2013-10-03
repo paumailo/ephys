@@ -243,7 +243,6 @@ xvals = vals{3};
 
 
 if opts.opt_smooth2d
-    % 2D Wiener denoising may work better than S-G filtering
     data = sgsmooth2d(data);
     spnt = sgsmooth2d(spnt);
 end
