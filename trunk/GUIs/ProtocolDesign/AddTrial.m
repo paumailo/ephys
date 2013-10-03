@@ -128,7 +128,7 @@ if expand
     trials = repmat(trials,length(newtrials),1);
     if i > 0, newtrials = repmat(newtrials,i,1);    end
 else
-    if rem(i,length(newtrials)) % results in non-integer value
+    if isempty(newtrials) || rem(i,length(newtrials)) % results in non-integer value
         fail = true;
     else
         newtrials = repmat(newtrials,i/length(newtrials),1);
