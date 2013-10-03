@@ -296,7 +296,7 @@ set(ph,'Enable','off');
 set(h.EPhysController,'Pointer','watch'); drawnow
 
 % load selected protocol file
-fprintf('Loading Protocol file: %s\n',pinfo.name{ind})
+fprintf('%s\nLoading Protocol file: %s\n',repmat('~',1,50),pinfo.name{ind})
 load(fullfile(pinfo.dir,[pinfo.name{ind} '.prot']),'-mat')
 
 % Check if protocol needs to be compiled before running
@@ -422,7 +422,8 @@ T = timer(                                   ...
 if strcmp(get(hObj,'String'),'Record')
     % Begin recording
     G_DA.SetSysMode(3); % Record
-    fprintf('Recording session begun at %s\n',datestr(now,'HH:MM:SS PM'))
+    fprintf('Recording session started at %s\n',datestr(now,'HH:MM:SS PM'))
+    pause(1);
     ht = G_DA.GetTankName;
     [TT,~,TDTfig] = TDT_SetupTT;
     TT.OpenTank(ht,'R');
@@ -431,7 +432,7 @@ if strcmp(get(hObj,'String'),'Record')
     TT.ReleaseServer;
     delete(TT);
     close(TDTfig);
-    fprintf('\tTank: ''%s''\n\tBlock: ''%s''\n',ht,hb)
+    fprintf('\tTank:\t%s\n\tBlock:\t%s\n',ht,hb)
 else
     G_DA.SetSysMode(2); % Preview
     fprintf('* Previewing data ... data is not being recorded to tank *\n')
