@@ -120,16 +120,19 @@ switch v
         % prompt properties
         prompt = {'Frequencies (Hz):'};
         name   = 'Tone Calibration';
-        dflt   = {'1000:100:42000'};
+        dflt   = getpref('CalibrationUtil','TONEVALS',{'1000:100:42000'});
         
     case 'Noise'
         prompt = {'Highpass (Hz)','Lowpass (Hz)'};
         name   = 'Noise';
         dflt   = {'7127.2,10090,14254,20158,28509'; ...
                   '8979.7,12700,17959,25398,35919'};
+        dflt   = getpref('CalibrationUtil','NOISEVALS',dflt);
         
     case 'Click'
-        
+        prompt = {'Click Duration (microseconds):'};
+        name   = 'Click Calibration';
+        dflt   = getpref('CalibrationUtil','CLICKVALS',{'1'});
 end
 
 opts.Resize = 'on';
@@ -147,26 +150,39 @@ end
 
 switch v
     case 'Tone'
+        setpref('CalibrationUtil','TONEVALS',res);
+        
         cfg.stimtype = 'Tone';
         cfg.freqs    = str2num(char(res)); %#ok<ST2NM>
         
         % data table properties
-        colname  = {'Freq','Level (1V)','AdjV'};
+        colname  = {'Freq',sprintf('Level (%dV)',getpref('CalibrationUtil','SIGNALAMP')),'AdjV'};
         colform  = {'numeric','numeric','numeric'};
         dfltdata = num2cell([cfg.freqs(:) nan(length(cfg.freqs),2)]);
         
 
     case 'Noise'
+        setpref('CalibrationUtil','NOISEVALS',res);
+        
         cfg.stimtype = 'Noise';
         cfg.hp = str2num(res{1}); %#ok<ST2NM>
         cfg.lp = str2num(res{2}); %#ok<ST2NM>
         
         % data table properties
-        colname = {'HP','LP','Level (1V)','AdjV'};
+        colname = {'HP','LP',sprintf('Level (%dV)',getpref('CalibrationUtil','SIGNALAMP')),'AdjV'};
         colform = {'numeric','numeric','numeric','numeric'};
         dfltdata = num2cell([cfg.hp(:) cfg.lp(:) nan(length(cfg.hp),2)]);
         
     case 'Click'
+        setpref('CalibrationUtil','CLICKVALS',res);
+        
+        cfg.stimtype = 'Click';
+        cfg.duration = str2num(char(res)); %#ok<ST2NM>
+        
+        % data table properties
+        colname  = {'Duration',sprintf('Level (%dV)',getpref('CalibrationUtil','SIGNALAMP')),'AdjV'};
+        colform  = {'numeric','numeric','numeric'};
+        dfltdata = num2cell([cfg.duration(:) nan(length(cfg.duration),2)]);
         
 end
 
@@ -261,8 +277,14 @@ switch get(hObj,'String')
                 calfunc = @CalibrateNoise;
                 
             case 'Click'
-                disp('Click calibration not yet implemented')
-                return
+               if cfg.single_mod
+                   cfg.stim.rpfile = 'STACQ_Clicks_Calibration';
+                   cfg.acq.rpfile  = 'STACQ_Clicks_Calibration';
+               else
+                   cfg.stim.rpfile = 'STIM_Clicks_Calibration';
+                   cfg.acq.rpfile  = 'ACQ_Calibration';
+               end
+               calfunc = @CalibrateClicks;
         end
         
         if cfg.single_mod && isequal(cfg.stim.mod,'RX6')
@@ -338,7 +360,7 @@ res.rms   = sqrt(mean(buffer.^2)); % signal RMS
 res.level = 20 * log10(res.rms/ref.rms) + ref.level; % calibrated level
 res.adjV  = V * 10 ^ ((ref.norm - res.level) / 20); % adjusted voltage
 
-function PlotSignal(buffer,Fs,h,freq)
+function PlotSignal(buffer,ref,Fs,h,freq)
 L = length(buffer);
 
 % Plot Time Domain
@@ -346,7 +368,10 @@ tax = h.time_domain;
 tvec = linspace(0,L/Fs,L)*1000;
 plot(tax,tvec,buffer,'-');
 mav = max(abs(buffer))*1.1;
-set(tax,'ylim',[-mav mav],'xlim',[0 20/max(freq)]*1000); grid(tax,'on');
+set(tax,'ylim',[-mav mav]);
+if ~isempty(freq)
+    set(tax,'xlim',[0 20/max(freq)]*1000); grid(tax,'on');
+end
 xlabel(tax,'time (ms)'); ylabel(tax,'V'); title(tax,'Signal');
 
 % Plot Frequency Domain
@@ -355,14 +380,21 @@ y = hann(L) .* buffer(:); % apply window function (blackmanharris may be better)
 NFFT = 2^nextpow2(L); % Next power of 2 from length of y
 Y = fft(y,NFFT)/L;
 f = Fs/2*linspace(0,1,NFFT/2+1);
-for i = 1:length(freq)
-    plot(fax,[freq(i) freq(i)],[10^-5 0.01],'-c',freq(i),10^-5,'vc');
-    hold(fax,'on');
+a = 2*abs(Y(1:NFFT/2+1)).^2;
+a = 20 * log10(a/ref.rms) + ref.level;
+cla(fax)
+hold(fax,'on');
+if ~isempty(freq)
+    for i = 1:length(freq)
+        plot(fax,freq(i),[1 1]*max(a),'vc');
+    end
 end
-plot(fax,f,2*abs(Y(1:NFFT/2+1)).^2);
+plot(fax,f,a);
 hold(fax,'off');
-set(fax,'ylim',[0 0.01],'xlim',[0 max(f)],'yscale','linear'); grid(fax,'on');
-xlabel(fax,'Frequency (Hz)'); ylabel(fax,''); title(fax,'Power Spectrum')
+set(fax,'ylim',[-150 ref.level],'xlim',[0 max(f)],'yscale','linear'); 
+% axis(fax,'tight');
+grid(fax,'on');
+xlabel(fax,'Frequency (Hz)'); ylabel(fax,'dB (approx)'); title(fax,'Power Spectrum')
 
 % % Plot Spectrogram
 % axes(fax);
@@ -462,7 +494,7 @@ set(h.ref_rms,'String',num2str(res.rms*1000,'%0.1f'));
 cla(cax);
 cla(fax);
 
-PlotSignal(buffer,Fs,h,freq);
+PlotSignal(buffer,cfg.ref,Fs,h,freq);
 
 CloseConnection([],AcqRP);
 set(hObj,'Enable','on');
@@ -506,7 +538,7 @@ for i = 1:length(hp)
         % ANALYZE, PLOT, UPDATE TABLE
         res = SignalAnalysis(buffer,cfg.ref,res.adjV);
         
-        PlotSignal(buffer,Fs,h,data(i,[1 2]));
+        PlotSignal(buffer,cfg.ref,Fs,h,data(i,[1 2]));
         tax = h.time_domain;
         plot(tax,linspace(0,0.1,length(buffer))*1000,buffer);
 
@@ -554,7 +586,7 @@ try %#ok<TRYNC>
     hdr.tolerance = tolerance;
     hdr.timestamp = datestr(now);
     hdr.cfg = cfg;
-    hdr.V = getpref('CalibrationUtil','SIGNALAMP',1); % starting voltage
+    hdr.V = getpref('CalibrationUtil','SIGNALAMP',nan); % starting voltage
     
     data = nan(length(f),3);
     data(:,1) = f;
@@ -573,14 +605,15 @@ try %#ok<TRYNC>
         % ANALYZE, PLOT, UPDATE TABLE
         res = SignalAnalysis(buffer,cfg.ref,res.adjV);
         
-        PlotSignal(buffer,Fs,h,f(i));
+        PlotSignal(buffer,cfg.ref,Fs,h,f(i));
         
         % Plot Calibration Function
-        plot(cax,xlim,[ref.norm ref.norm],'-k','linewidth',2);
+        plot(cax,xr,[ref.norm ref.norm],'-k','linewidth',2);
         hold(cax,'on');
-        plot(cax,data(:,1),data(:,2),'-ob','markerfacecolor','b');
+        plot(cax,data(:,1),data(:,2),'-ob','markersize',2);
         set(cax,'xlim',xr,'ylim',[0 130]); grid(cax,'on');
         hold(cax,'off');
+        ylabel(cax,'dB SPL')
         
         % test if adjusted voltage produces intended sound level
         %         converge = res.level >= LB & res.level <= UB;
@@ -613,13 +646,62 @@ end
 CloseConnection(StimRP,AcqRP);
 
 
+function [hdr,data] = CalibrateClicks(cfg,h)
+global StimRP AcqRP
+
+% Run calibration for tone type stimuli.
+ref = cfg.ref;
+[StimRP,AcqRP,Fs] = OpenConnection(cfg);
+
+cfg.Fs = Fs;
+cax = h.calibration_curve;
+
+hdr.timestamp = datestr(now);
+hdr.cfg = cfg;
+hdr.V = getpref('CalibrationUtil','SIGNALAMP',nan); % starting voltage
+
+d = cfg.duration / 1e+3; % microsec -> millisec
+
+data = nan(length(d),3);
+data(:,1) = d;
+for i = 1:length(d)
+    
+    StimRP.SetTagVal('duration',d(i));
+    
+    StimRP.SetTagVal('Amp',hdr.V);
+    
+    buffer = GetBuffer(AcqRP,Fs,d(i)*2);
+    
+    % ANALYZE, PLOT, UPDATE TABLE
+%     res = SignalAnalysis(buffer,ref,hdr.V);
+% res.rms   = sqrt(mean(buffer.^2)); % signal RMS
+% res.level = 20 * log10(res.rms/ref.rms) + ref.level; % calibrated level
+% res.adjV  = V * 10 ^ ((ref.norm - res.level) / 20); % adjusted voltage
+
+    pk = max(abs(buffer));
+    res.level = 20 * log10(pk/(ref.rms*sqrt(2))) + ref.level; % calibrated level
+    res.adjV  = hdr.V * 10 ^ ((ref.norm-res.level) / 20); % adjusted voltage
+    
+    PlotSignal(buffer,ref,Fs,h,[]);
+    
+    data(i,2) = res.level; % sound level
+    data(i,3) = res.adjV; % adjusted voltage
+    
+    cla(cax)
+    plot(cax,[0.9*min(d) 1.1*max(d)],[ref.norm ref.norm],'-k','linewidth',2);
+    hold(cax,'on');
+    plot(cax,data(:,1),data(:,2),'ob')
+    hold(cax,'off');
+    grid(cax,'on');
+    set(cax,'ylim',[0 120]);
+    
+    % Update table
+    set(h.data_table,'Data',num2cell(data)); drawnow
+end
 
 
 
-
-
-
-
+CloseConnection(StimRP,AcqRP);
 
 
 
@@ -709,6 +791,10 @@ switch fidx
             tmat(1,1:2) = -1; tmat(1,3) = hdr.V;
             tmat(2:size(data,1)+1,:) = data(:,[1 2 3]);
             dlmwrite(fullfile(pn,fn),tmat,'delimiter',',','newline','pc');
+            
+        elseif isequal(hdr.calfunc,@CalibrateClicks)
+            %....
+            
         end
         
     case 3 % CSV file
