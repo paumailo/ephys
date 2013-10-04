@@ -35,15 +35,17 @@ for j = 1:length(trial)
     
     elseif isscalar(par) % set value
         
-        if isequal('PA5',param(1:3))
-            % use small steps from previous attenuation value to new
+        if isequal('PA5',param(1:3)) || strcmpi('Atten',param(end-4:end))
+            % > use small steps from previous attenuation value to new
             % attenuation value on PA5 rather than a big jump to avoid
-            % switching transients (0/24/13)
+            % switching transients (DS 9/24/13)
+            % > RZ6 module has an integrated programmable attenuator which
+            % suffers from the same large transient problem.  Identify tags
+            % ending in 'Atten' (could be 'AAtten' or 'BAtten', etc)
+            % (DS 10/4/13)
             pa = DA.GetTargetVal(param);
             if pa < par, a = pa:5:par; else a = pa:-5:par; end
-            for i = a
-                DA.SetTargetVal(param,i);
-            end
+            for i = a, DA.SetTargetVal(param,i); end
         end
         
         e = DA.SetTargetVal(param,par);
