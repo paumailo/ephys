@@ -5,6 +5,23 @@ function e = DAUpdateParams(DA,C)
 %
 % DA is handle to OpenDeveloper ActiveX control
 % C is the protocol.COMPILED structure
+%
+% '*' as the first character of a parameter tag serves as ignore flag.
+% This is useful if you want something to be updated by a custom
+% trial-select function after being modified
+%
+% Note on Programmable Attenuators (PA5 and RZ6):
+% > TDT programmable attenuators produce a transient voltage (strong enough
+% to drive a speaker) therefore this function will automatically use small
+% steps from previous attenuation value to new attenuation value on PA5
+% rather than a big jump to avoid switching transients (DS 9/24/13)
+% > RZ6 module has an integrated programmable attenuator which suffers from
+% the same large transient during switching. If a parameter tag pointing to
+% the programmable attenuator in the RPvds macro has 'Atten' as the last 5
+% characters (could be 'ChA_Atten' or 'ChB_Atten', etc) then this function
+% will automatically use small steps from the previous attenuation value to
+% the new attenuation value rather than a big jump to avoid switching
+% transients (DS 10/4/13)
 % 
 % See also, ProtocolDesign, EPhysController
 %
@@ -15,8 +32,6 @@ trial = C.trials(C.tidx,:);
 for j = 1:length(trial)
     param = C.writeparams{j};
 
-    % '*' serves as ignore flag.  This is useful if you want something to
-    % be updated by a custom trial-select function after being modified
     if param(1) == '*', continue; end 
     
     par = trial{j};
@@ -36,13 +51,6 @@ for j = 1:length(trial)
     elseif isscalar(par) % set value
         
         if isequal('PA5',param(1:3)) || strcmpi('Atten',param(end-4:end))
-            % > use small steps from previous attenuation value to new
-            % attenuation value on PA5 rather than a big jump to avoid
-            % switching transients (DS 9/24/13)
-            % > RZ6 module has an integrated programmable attenuator which
-            % suffers from the same large transient problem.  Identify tags
-            % ending in 'Atten' (could be 'AAtten' or 'BAtten', etc)
-            % (DS 10/4/13)
             pa = DA.GetTargetVal(param);
             if pa < par, a = pa:5:par; else a = pa:-5:par; end
             for i = a, DA.SetTargetVal(param,i); end
