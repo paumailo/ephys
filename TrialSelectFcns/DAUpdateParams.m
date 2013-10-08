@@ -53,7 +53,7 @@ for j = 1:length(trial)
         if isequal('PA5',param(1:3)) || strcmpi('Atten',param(end-4:end))
             pa = DA.GetTargetVal(param);
             if pa < par, a = pa:5:par; else a = pa:-5:par; end
-            for i = a, DA.SetTargetVal(param,i); end
+            for i = a, DA.SetTargetVal(param,i); pause(0.01); end
         end
         
         e = DA.SetTargetVal(param,par);
