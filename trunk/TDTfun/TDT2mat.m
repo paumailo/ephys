@@ -88,7 +88,8 @@ end
 if TTX.SelectBlock(['~' block]) ~= 1
     CloseUp(TTX,TTXfig);
     if ismember(block, blocks)
-        error(['Block found, but problem selecting it: ' block]);
+        error(['Block found, but problem selecting it: %s\n', ...
+            'Try again and if problem persists, the block may be corrupted'],block);
     end
     error(['Block not found: ' block]);
 end
