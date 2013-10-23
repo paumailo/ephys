@@ -46,9 +46,9 @@ for i = 1:length(blocks)
     fprintf('Retrieving "%s" (%d of %d) ...',blocks{i},i,length(blocks))
     
     d = TDT2mat(tank,blocks{i},'server',SERVER,'silent',true,'type',3);
-    if isempty(EVENT)
+    if isempty(EVENT) || isempty(d.snips)
         if isempty(d.snips)
-            warning('No spiking events found in "%s"',blocks{i})
+            fprintf(' No spiking events found in "%s"\n',blocks{i})
             continue
         end
         EVENT = fieldnames(d.snips);
