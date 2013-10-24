@@ -1,10 +1,10 @@
 %%
 
-tank = 'ZAZU_5';
-block = 4;
+tank = 'ZAZU_8';
+block = 5;
 
 %
-emap = [17 31 19 23 21 27 23 25 18 32 20 30 22 28 24 26 1 15 3 13 5 11 7 9 2 16 4 14 6 12 8 10];
+emap = [17 31 19 29 21 27 23 25 18 32 20 30 22 28 24 26 1 15 3 13 5 11 7 9 2 16 4 14 6 12 8 10];
 %
 win = [-0.025 0.6];
 
@@ -79,8 +79,8 @@ for j = 1:length(emap)
     subplot(nrows,ncols,j)
     hold on
     for i = 1:size(rdata,2)
-        if isempty(rdata{j,i}), continue; end
         plot(win,[i i]+1,'-','color',[0.4 0.4 0.4]);
+        if isempty(rdata{j,i}), continue; end
         h(end+1) = line(rdata{j,i},ydata{j,i}); %#ok<SAGROW>
     end
     xlim(win);
