@@ -1,12 +1,13 @@
 %%
 
-tank = 'ZAZU_5';
-block = 2;
+tank = 'ZAZU_8';
+block = 8;
 
 %
-emap = [17 31 19 23 21 27 23 25 18 32 20 30 22 28 24 26 1 15 3 13 5 11 7 9 2 16 4 14 6 12 8 10];
+emap = [17 31 19 29 21 27 23 25 18 32 20 30 22 28 24 26 1 15 3 13 5 11 7 9 2 16 4 14 6 12 8 10];
 %
 win = [0.0 0.05];
+% win = [0.06 0.1];
 
 denoise  = true;  % smooth FRFs
 scaleall = false; % put all FRFs on the same scale
