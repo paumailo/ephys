@@ -1,23 +1,35 @@
-function p = DB_GetParams(block_id)
-% p = DB_GetParams(block_id)
+function p = DB_GetParams(id,type)
+% P = DB_GetParams(id)% 
+% Simply retrieves parameters from the protocols table into structure P.
+% If only the id is specified, then this function will assume it is a block
+% id.
 % 
-% Simply retrieves parameters from the protocols table into structure p.
+% P = DB_GetParams(id,type)
+% Retrieves parameters structure P using any of the following specified
+% table ids: 'block' (default),'channel','unit'
+% ex: 
+%       P = DB_GetParams(4922,'unit') % where unit id is 4922
 %
 % Note: Uses a persistent variable and checks if the protocol is the same
-% as the last call to this function.  This reduces the number of calls to
-% the server.
+% as the last call to this function.  This reduces the number of redundant
+% calls to the server.
+%
+% Daniel.Stolzberg@gmail.com 2013
 % 
-% DJS (c) 2013
+% See also, DB_Browser
 
 persistent PP
 
-if nargin<1 
-   error('DB:DB_GetParams:NrInputArguments','Not enough input arguments.');
-end
+assert(nargin==1|nargin==2,'Not enough input arguments.');
 
 database = dbcurr;
-if isempty(database)
-    error('No Database has been selected.')
+assert(~isempty(dbcurr),'No Database has been selected.');
+
+if nargin == 2
+    block_id = myms(sprintf('SELECT block FROM v_ids WHERE %s = %d',type,id));
+    assert(~isempty(block_id),sprintf('ID %d of type ''%s'' was not found on the database',id,type));
+else
+    block_id = id;
 end
 
 
