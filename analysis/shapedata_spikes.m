@@ -3,14 +3,65 @@ function varargout = shapedata_spikes(spiketimes,P,dimparams,varargin)
 % data = shapedata_spikes(...,'PropertyName',PropertyValue)
 % [data,vals] = shapedata_spikes(...) 
 %
-% PropertyName ... PropertyValue
-% 'win'     ... window (eg, [-0.1 0.5]) in seconds
-% 'binsize' ... in seconds
-% 'func'    ... function to compute response magnitude (default = "mean")
+% Returns an N+1-dimensional matrix which can be used for analysis and
+% plotting.  The number of dimensions N of the return matrix, data, is
+% dependent on the number of dimensions specified in dimparams. An
+% additional dimension (hence N+1) is the bins of the data histogram.
+%
+% dimparams is an Nx1 cell matrix of strings specifying what dimensions the
+% data should be shaped.  The values in dimparams are dependent on how the
+% parameters are coded and can be found on the database and in the
+% structure returned from a call to DB_GetParams.
+% ex: P = DB_GetParams(block_id);
+%       % or
+%     P = DB_GetParams(unit_id,'unit');
+%     P.param_type   % <-- will list parameters for this protocol
+% 
+% [data,vals] = shapedata_spikes(...) 
+% The second output, vals, is a cell array with the parameter values
+% corresponding to the dimensions of data.
+%
+% For example, if we have noise-burst intensity function, we can sort raw
+% spiketime into average responses within a 50 millisecond window following
+% stimulus onset (returns a 2D matrix):
+%   % note: The id of a unit can be found using the DB_Browser utility
+%   Spiketimes = DB_GetSpiketimes(unit_id);
+%   P = DB_GetParams(unit_id,'unit');
+%   [data,vals] = shapedata_spikes(Spiketimes,P,{'Levl'},'win',[0 0.05]);
+%   figure;
+%   subplot(211)
+%   plot(vals{2},mean(data),'-o');
+%   xlabel('Sound Level (dB)'); ylabel('Mean Response Magnitude');
+%   subplot(212)
+%   imagesc(vals{1},vals{2},data'); % note that data must be transposed to
+%   be properly displayed
+%   set(gca,'ydir','normal');
+%   xlabel('Time (s)'); ylabel('Sound Level(dB)');
+% 
+% Example where two parameters are in use (returns a 3D matrix):
+%   Spiketimes = DB_GetSpiketimes(unit_id);
+%   P = DB_GetParams(unit_id,'unit');
+%   [data,vals] = shapedata_spikes(Spiketimes,P,{'Freq','Levl'},'win',[0 0.05]);
+%   figure;
+%   surf(vals{2},vals{3},squeeze(mean(data))');
+%   shading flat
+%   xlabel('Frequency (Hz)'); ylabel('Sound Level (dB)');
+% 
+% 
+% Example where individual trials are returned as an extra dimension:
+%   Spiketimes = DB_GetSpiketimes(unit_id);
+%   P = DB_GetParams(unit_id,'unit');
+%   [data,vals] = shapedata_spikes(Spiketimes,P,{'Levl'},'win',[0 0.05],'returntrials',true);  
+%   whos data vals
+%
+% PropertyName   ... PropertyValue
+% 'win'          ... window (eg, [-0.1 0.5]) in seconds
+% 'binsize'      ... in seconds (default = 0.001 s)
+% 'func'         ... function to compute response magnitude (default = "mean")
 % 'returntrials' ... if true, returns an extra dimension with each trial
 %                           (default = false)
 % 
-% Daniel.Stolzberg at gmail com 2013
+% Daniel.Stolzberg@gmail.com 2013
 %
 % See also, shapedata_wave, DB_GetSpiketimes, DB_GetParams
 
