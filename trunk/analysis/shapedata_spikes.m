@@ -55,7 +55,7 @@ function varargout = shapedata_spikes(spiketimes,P,dimparams,varargin)
 %   whos data vals
 %
 % PropertyName   ... PropertyValue
-% 'win'          ... window (eg, [-0.1 0.5]) in seconds
+% 'win'          ... window in seconds (default = [0 0.05])
 % 'binsize'      ... in seconds (default = 0.001 s)
 % 'func'         ... function to compute response magnitude (default = "mean")
 % 'returntrials' ... if true, returns an extra dimension with each trial
@@ -65,7 +65,7 @@ function varargout = shapedata_spikes(spiketimes,P,dimparams,varargin)
 %
 % See also, shapedata_wave, DB_GetSpiketimes, DB_GetParams
 
-win          = [-0.1 0.5];
+win          = [0 0.05];
 binsize      = 0.001;
 func         = 'mean';
 returntrials = false;
