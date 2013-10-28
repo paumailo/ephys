@@ -1,5 +1,6 @@
-function PLX2TDT(plxfilename)
+function PLX2TDT(plxfilename,varargin)
 % PLX2TDT(plxfilename)
+% PLX2TDT(plxfilename,'Parameter','Value',...)
 % 
 % Convert plx file generated from sorting data with Plexon Offline Sorter
 % and update appropriate TDT tank.
@@ -27,6 +28,9 @@ BLOCKROOT     = 'Block';
 SORTNAME      = 'Pooled';
 SORTCONDITION = 'PlexonOSv2';
 EVENT         = [];
+CHANNELS      = [];
+
+ParseVarargin({'SERVER','BLOCKROOT','SORTNAME','SORTCONDITION','EVENT','CHANNELS'},[],varargin);
 
 % load and reconfigure plexon data
 [tscounts, ~, ~, ~] = plx_info(plxfilename,1);
@@ -35,14 +39,20 @@ tscounts(:,1) = []; % remove empty channel
 
 [npossunits,nchans] = size(tscounts);
 
-n    = zeros(size(tscounts));
+if isempty(CHANNELS)
+    CHANNELS = 1:nchans;
+else
+    nchans = length(CHANNELS);
+end
+
+n    = zeros(size(tscounts,1),nchans);
 ts   = cell(1,nchans);
 unit = cell(1,nchans);
 for i = 1:nchans
-    fprintf('\n\tChannel %d\n',i)
+    fprintf('\n\tChannel %d\n',CHANNELS(i))
     for j = 1:npossunits
-        if ~tscounts(j,i), continue; end
-        [n(j,i),~,t,~] = plx_waves(plxfilename,i,j-1);
+        if ~tscounts(j,CHANNELS(i)), continue; end
+        [n(j,i),~,t,~] = plx_waves(plxfilename,CHANNELS(i),j-1);
         fprintf('\t\tunit %d\t# spikes:% 8d\n',j-1,n(j,i))
         
         ts{i}   = [ts{i}; t];
@@ -101,22 +111,22 @@ for b = blocks
     end
 
     d = d.snips.(EVENT);
-
-    channels = unique(d.chan);
     
     fprintf('Updating sort "%s" on %s of %s\n',SORTNAME,blockname,tank)
     
-    for ch = channels
-        ind = d.chan == ch;
+    for c = 1:length(CHANNELS)
+        ind = d.chan == CHANNELS(c);
         k = sum(ind);
         
         fprintf('\tChannel %d,\t%d units with% 8d spikes ...', ...
-            ch,length(unique(unit{ch}(1:k))),k)
+            CHANNELS(c),length(unique(unit{c}(1:k))),k)
         
-        SCA = uint32([d.index(ind); unit{ch}(1:k)']);
+        if k == 0, fprintf(' NO SPIKES\n'); continue; end
+        
+        SCA = uint32([d.index(ind); unit{c}(1:k)']);
         SCA = SCA(:)';
         
-        success = TTX.SaveSortCodes(SORTNAME,EVENT,ch,SORTCONDITION,SCA);
+        success = TTX.SaveSortCodes(SORTNAME,EVENT,CHANNELS(c),SORTCONDITION,SCA);
         
         if success
             fprintf(' SUCCESS\n')
@@ -124,9 +134,9 @@ for b = blocks
             fprintf(' FAILED\n')
         end
         
-        d.index(ind)  = [];
-        d.chan(ind)   = [];
-        unit{ch}(1:k) = [];
+        d.index(ind) = [];
+        d.chan(ind)  = [];
+        unit{c}(1:k) = [];
         
     end
 end

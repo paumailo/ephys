@@ -341,7 +341,7 @@ end
 % get researchers
 rout = myms(['SELECT CONCAT(initials, '' - '', name) AS name ', ...
      'FROM db_util.researchers']);
-set(h.expt_researchers,'String',rout);
+set(h.expt_researchers,'String',rout,'Value',1);
 rid = str2num(char(researcher)); %#ok<ST2NM>
 if ~isempty(rid)
     set(h.expt_researchers, 'Value', rid);
