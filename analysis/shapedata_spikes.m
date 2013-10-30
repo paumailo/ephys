@@ -105,10 +105,10 @@ if returntrials
     if ndp == 1 %#ok<UNRCH>
         % data:    bins/trials/param1
         ind = P.VALS.(dimparams{1}) == vals{1}(1);
-        data = zeros(length(binvec),sum(ind),length(vals{1}));
+        data = nan(length(binvec),sum(ind),length(vals{1}));
         for i = 1:length(vals{1})
             ind = P.VALS.(dimparams{1}) == vals{1}(i);
-            data(:,:,i) = psth(:,ind);
+            data(:,1:sum(ind),i) = psth(:,ind);
         end
         
         

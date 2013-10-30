@@ -60,6 +60,10 @@ guidata(h.DB_Browser,h);
 
 dbpref = getpref('DB_Browser','databases',[]);
 
+chkpref = getpref('DB_Browser',{'map_channels', 'hide_unclassed_units'},{0 0});
+set(h.map_channels,'Value',chkpref{1});
+set(h.hide_unclassed_units,'Value',chkpref{2});
+
 Connect2DB(h,dbpref);
 
 
@@ -212,6 +216,9 @@ end
 
 Check4AnalysisTools(h);
 
+setpref('DB_Browser',{'map_channels', 'hide_unclassed_units'}, ...
+    {get(h.map_channels,'Value'),get(h.hide_unclassed_units,'Value')});
+
 set(h.DB_Browser,'Pointer','arrow');
 
 function UpdatePrefs(ord,h)
@@ -253,6 +260,7 @@ for i = 1:length(ord)
             vals{i} = char(e.class);
     end
 end
+
 setpref('DB_Browser',ord,vals);
 
 
@@ -266,7 +274,7 @@ if isempty(pref), return; end
 switch ord
     case {'databases', 'experiments'}
         return
-
+        
     otherwise
         for j = 1:length(str);
             instr = strfind(str{j},char(pref));
