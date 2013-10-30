@@ -13,7 +13,7 @@ function varargout = DB_Browser(varargin)
 % 
 % See also, DB_UploadUtility
 %
-% DJS 2013
+% Daniel.Stolzberg@gmail.com 2013
 
 % Last Modified by GUIDE v2.5 04-Jan-2013 12:28:43
 
@@ -105,6 +105,8 @@ UpdateLists(h.popup_databases,h);
 function UpdateLists(hObj,h)
 ord = h.hierarchy;
 
+if hObj == -1, hObj = h.list_blocks; end
+if hObj == -2, hObj = h.list_channels;  end
 
 [~,str] = strtok(get(hObj,'tag'),'_');
 str(1) = [];
@@ -168,12 +170,24 @@ for i = starth:length(ord)
         case 'blocks'
             e = mym(['SELECT CONCAT(id,". ",target,channel) AS str ', ...
                 'FROM channels WHERE block_id = {Si} {S} ORDER BY channel'],id,iustr);
+            if get(h.map_channels,'Value')
+                elec = DB_GetElectrode(get_listid(h.list_tanks));
+                e.str = e.str(elec.map(:));
+            end
+            
             
         case 'channels'
-            e = mym(['SELECT CONCAT(u.id,". ",p.class," (",u.unit_count,")") ', ...
+            if get(h.hide_unclassed_units,'Value')
+                e = mym(['SELECT CONCAT(u.id,". ",p.class," (",u.unit_count,")") ', ...
+                'AS str FROM units u JOIN class_lists.pool_class p ', ...
+                'ON u.pool = p.id WHERE u.channel_id = {Si} {S} ', ...
+                'AND p.id > 0 ORDER BY p.id'],id,iustr);
+            else
+                e = mym(['SELECT CONCAT(u.id,". ",p.class," (",u.unit_count,")") ', ...
                 'AS str FROM units u JOIN class_lists.pool_class p ', ...
                 'ON u.pool = p.id WHERE u.channel_id = {Si} {S} ', ...
                 'ORDER BY p.id'],id,iustr);
+            end
             
         case 'units'
             setappdata(h.DB_Browser,ord{i},get_listid(h.(['list_' ord{i}])));
