@@ -197,7 +197,15 @@ mym(['CREATE TABLE IF NOT EXISTS analysis_settings (' ...
      'avalue    TINYBLOB NOT NULL, ' ...
      'PRIMARY KEY (id)) ENGINE = MyISAM']);
  
-%% create view for table ids
+%% pool_class
+try %#ok<TRYNC>
+    mym(['CREATE TABLE IF NOT EXISTS class_lists.pool_class (' ...
+        'id        INT(10) UNSIGNED NOT NULL, ' ...
+        'class     VARCHAR(10), ' ...
+        'PRIMARY KEY (id)) ENGINE = INNODB']);
+end
+ 
+ %% create view for table ids
 try %#ok<TRYNC>
     mym(['CREATE VIEW v_ids AS ', ...
         'select ', ...
@@ -213,5 +221,8 @@ try %#ok<TRYNC>
         'join units u ON c.id = u.channel_id']);
 end
 
+
+
+%%
 DB_CreateUnitPropertiesTable;
 
