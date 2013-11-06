@@ -29,6 +29,8 @@ function ParseVarargin(paramkeys,varnames,vin)
 % 
 % Daniel.Stolzberg at gmail com 2013
 
+if isempty(vin), return; end
+
 paramkeys  = cellstr(paramkeys);
 if isempty(varnames)
     varnames = paramkeys;

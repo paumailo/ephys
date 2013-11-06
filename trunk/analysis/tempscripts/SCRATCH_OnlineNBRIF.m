@@ -1,6 +1,6 @@
 %% NBRIF
-tank = 'ZAZU_9';
-block = 8;
+tank = 'ZAZU_2';
+block = 11;
 
 win = [0 0.1];
 
