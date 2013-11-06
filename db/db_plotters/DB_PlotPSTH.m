@@ -66,7 +66,7 @@ if isempty(r)
 end
 R = r;
 
-if isempty(fh) || ~ishandle(fh), fh = figure; end
+if isempty(fh) || ~ishandle(fh), fh = figure('color','w'); end
 
 figure(fh);
 clf(fh);
@@ -124,7 +124,7 @@ for i = 1:numL
         'Margin',2,'FontName','Courier New');
 
     if convolve
-        plot(h(i),vals{1},cdata(:,i)/binsize,'c-');
+        plot(h(i),vals{1},cdata(:,i)/binsize,'m:');
     end
     
     hold(h(i),'off');

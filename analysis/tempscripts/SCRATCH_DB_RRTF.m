@@ -6,14 +6,14 @@ st = DB_GetSpiketimes(IDs.units);
 P  = DB_GetParams(IDs.blocks);
 
 %%
-
-win = [0 0.6];
+win = [0 0.55];
+awin = [0.025 0.525]; % analysis window
 
 fpidx = find(diff(P.VALS.Rate))+1;
 
 uRate = P.lists.Rate;
 
-if any(uRate==1), fpidx = [1; fpidx]; end
+% if any(uRate==1), fpidx = [1; fpidx]; end
 
 VALS = structfun(@(x) (x(fpidx)),P.VALS,'UniformOutput',false);
 
@@ -28,12 +28,18 @@ for i = 1:length(uRate)
     tname = sprintf('RR%dHz',uRate(i));
     trials.(tname) = cell(sum(ind),1);
     trials.(tname) = raster(ind);
-    % trials.(tname) = cellfun(@diff,raster(ind),'UniformOutput',false);
 end
+assignin('base','trials',trials);
+assignin('base','uRate',uRate);
 
+%% Plot Rasters
+f = findobj('name','DBRRTF_RASTER');
+if isempty(f)
+f = figure('Color',[0.98 0.98 0.98],'name','DBRRTF_RASTER');
+end
+figure(f)
 
-%%
-figure('windowstyle','docked','Color','w');
+lc = flipud(jet(length(uRate)));
 
 fn = fieldnames(trials)';
 nrows = length(fn);
@@ -45,17 +51,18 @@ for f = fn
     y = cellfun(@(a,b) (ones(size(a))*b),trials.(f),i,'UniformOutput',false);
     y = cell2mat(y);
     
-    
     subplot(nrows,1,k);
-        
-    plot(x,y,'sk','markersize',1,'markerfacecolor','k');
+    plot(awin,max(y)*[1 1],'-c');
+
+    hold on
+    plot(x,y,'sk','markersize',2,'markerfacecolor','k');
+    hold off
     
     set(gca,'xtick',[],'ytick',[],'xlim',win);
-    ylabel(uRate(k));
+    ylabel(uRate(k),'color',lc(k,:));
     k = k + 1;
 end
-
-set(gca,'xtickmode','auto');
+set(gca,'xtickmode','auto','ticklength',[0 0]);
 
 
 
@@ -68,54 +75,120 @@ R         = nan(size(uRate));
 clear stats
 
 for i = 1:length(uRate)
-    alpha{i} = (2*pi*cell2mat(trials.(fn{i})))/(1/uRate(i));
-    stats(i) = circ_stats(alpha{i});  %#ok<AGROW,NASGU>
+    s = cell2mat(trials.(fn{i}));
+    ind = s >= awin(1) & s <= awin(2); % limit to analysis window
+    s(~ind) = [];
+    alpha{i} = (2*pi*s)./(1/uRate(i));
+    stats(i) = circ_stats(alpha{i});  %#ok<AGROW>
     R(i)     = circ_r(alpha{i}); % resultant vector length    
 end
+assignin('base','alpha',alpha);
+assignin('base','stats',stats);
+assignin('base','R',R);
 
-
-%%
-figure('windowstyle','docked','Color','w')
-
-% get scaling value for radius
-t   = cell(size(alpha));
-rho = cell(size(alpha));
-for i = 1:length(alpha)
-    subplot(5,4,i)
-    [t{i},rho{i}] = rose(alpha{i},50);
+%% Polar Plot of resultant vectors
+f = findobj('name','DBRRTF_Analysis');
+if isempty(f)
+f = figure('Color',[0.98 0.98 0.98],'name','DBRRTF_Analysis');
 end
-mr = max(cell2mat(rho'));
+figure(f)
+clf
 
-for i = 1:length(alpha)
-    rho{i} = rho{i} ./ mr;
-    rho{i}(isnan(rho{i})) = 0;
-    subplot(5,4,i)
-    h = polar([0 pi],[0 1]);
-    delete(h);
-    hold on
-    polar(t{i},rho{i});   
-    hold off
-    title(sprintf('%d Hz',uRate(i)));
+subplot(221);
+
+zm = R'.*exp(1i*[stats.mean]);
+
+h = polar(0,1);
+delete(h);
+hold on
+for i = 1:length(zm)
+    h = plot([0 real(zm(i))], [0, imag(zm(i))]);
+    set(h,'color',lc(i,:),'linewidth',2);
 end
+hold off
+title(gca,'Resultant Vector');
 
-subplot(5,4,17:20)
-plot(uRate,R,'-o');
-ylim([0 1]);
+f = findobj('name','DBRRTF_Analysis');
+if isempty(f)
+f = figure('Color',[0.98 0.98 0.98],'name','DBRRTF_Analysis');
+end
+figure(f)
+
+subplot(222)
+[h,hl1,hl2] = plotyy(uRate,R,uRate,angle(zm));
+set(h(1),'ylim',[0 1]);
+set(h(2),'ylim',[-pi pi],'ytick',[-pi 0 pi],'yticklabel',{'-pi',0,'pi'});
+set(h,'xlim',[uRate(1) uRate(end)]);
+set(hl1,'linewidth',1.5,'marker','o');
+set(hl2,'linewidth',1.5,'marker','+','linestyle',':');
+
 grid on
-ylabel('Resultant Vector Length');
+ylabel(h(1),'Resultant Vector Length');
+ylabel(h(2),'Resultant Vector Phase');
 xlabel('Repetition Rate (Hz)');
 
 
 
 
 
+%% rMTF (Firing Rate)
 
+cwin = [0.006 0.031]; % post-click counting window
 
+T = 1./uRate; % click period
+Ts = cell(size(T));
+for i = 1:length(T)
+    Ts{i} = 0:T(i):0.5-T(i);
+end
+Ts{1} = 0;
 
+f = findobj('name','DBRRTF_RASTER');
+if isempty(f)
+f = figure('Color',[0.98 0.98 0.98],'name','DBRRTF_RASTER');
+end
+figure(f)
 
+fn   = fieldnames(trials);
+Cspk = cell(size(fn));
+for i = 1:length(fn)
+    subplot(length(fn),1,i)
+    hold on
+    s = cell2mat(trials.(fn{i}));
+    % counting number of spikes per click within counting window cwin
+    for j = 1:length(Ts{i})
+        Cspk{i}(j) = sum(s >= Ts{i}(j) + cwin(1) & s <= Ts{i}(j) + cwin(2));
+        plot(Ts{i}(j)+cwin,[1 1],'-r');
+    end
+    Cspk{i} = Cspk{i} ./ length(trials.(fn{i})); % mean number of spikes per rep at each click
+    
+    hold off
+end
 
+f = findobj('name','DBRRTF_Analysis');
+if isempty(f)
+f = figure('Color',[0.98 0.98 0.98],'name','DBRRTF_Analysis');
+end
+figure(f)
 
+subplot(2,2,[3 4])
+cla
+hold on
 
+for i = 1:length(Cspk)
+%     stem3(T(i)*(0:length(Cspk{i})-1),ones(size(Cspk{i}))*(length(Cspk)-i),Cspk{i}, ...
+%         'o:','color',lc(i,:),'LineWidth',1,'MarkerSize',5,'MarkerFaceColor',[0.4 0.4 0.4])
+%     plot3(T(i)*(0:length(Cspk{i})-1),ones(size(Cspk{i}))*(length(Cspk)-i),Cspk{i}, ...
+%         '-','color',lc(i,:),'LineWidth',1)
+    plot(Ts{i},Cspk{i},'-o','color',lc(i,:),'LineWidth',2)
+end
+hold off
+title('Mean Spikes per Click')
+grid on
+% set(gca,'yticklabel',flipud(uRate));
+xlabel('time');
+% ylabel('Rep Rate (Hz)');
+ylabel('Mean # Spikes');
+% legend(fn,'Location','BestOutside')
 
 
 

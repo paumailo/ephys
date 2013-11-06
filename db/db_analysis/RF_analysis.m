@@ -125,8 +125,9 @@ h.UNIT.unitprops   = DB_GetUnitProps(h.unit_id,'RF$');
 
 UpdateWithDBParams(h.unit_id,h);
 
-set(h.updatedb,'Enable','on');
+h = UpdatePlot(h);
 
+set(h.updatedb,'Enable','on');
 
 
 
@@ -263,7 +264,8 @@ else
     yvals = yvals';
 end
 
-
+data = [zeros(1,length(xvals)); data]; % add some space below plot for contour function
+yvals = [yvals(1)-0.1 yvals];
 
 figure(h.RFfig);
 clf(h.RFfig);
@@ -384,12 +386,11 @@ ch(end+1) = plot(axY,E.cfio./max(E.cfio),yvals,'-s','markersize',3,'linewidth',0
 
 set(ch,'markerfacecolor',ccode,'Clipping','off','color','k');
 
-lh = legend(axY,{ ...
+legend(axY,{ ...
     sprintf('Q vals (%0.1f)',max(E.Qs)), ...
     sprintf('IO@BF (%0.1f)',max(E.bfio)), ...
     sprintf('IO@CF (%0.1f)',max(E.cfio)) ...
-    },'location','SouthWest');
-set(lh,'FontSize',7);
+    },'position',[0.73 0.77 0.22 0.12]);
 
 hold(axY,'off');
 
