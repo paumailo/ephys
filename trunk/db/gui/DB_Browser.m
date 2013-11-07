@@ -68,7 +68,8 @@ Connect2DB(h,dbpref);
 
 
 function closeme(hObj,~) %#ok<DEFNU>
-% UpdatePrefs(h.hierarchy,h);
+myclose;
+fprintf('\nConnection to database closed\n')
 delete(hObj);
 
 
