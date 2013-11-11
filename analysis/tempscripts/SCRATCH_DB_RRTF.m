@@ -1,4 +1,12 @@
 function SCRATCH_DB_RRTF
+
+if isempty(which('circ_r'))
+    a = repmat('*',1,60);
+    fprintf('%s\n\tRRTF requires the CircStat toolbox for Matlab\n%s\n',a,a)
+    return
+end
+
+
 %%
 IDs = getpref('DB_BROWSER_SELECTION');  
 
