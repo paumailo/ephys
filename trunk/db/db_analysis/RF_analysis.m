@@ -85,12 +85,35 @@ set(h.opt_dimx,'String',P.param_type(ind));
 set(h.opt_dimy,'String',P.param_type(ind));
 set(h.opt_numfields,'String',num2str((0:10)','%d'));
 
+rftypes = DB_GetRFtypes;
+rftypes.name{end+1} = '< ADD RF TYPE >';
+rftypes.description{end+1} = 'Select a receptive field type from the list or click ''< ADD RF TYPE >''';
+set(h.list_rftype,'String',rftypes.name,'Value',1);
+SelectRFtype(h.list_rftype,h);
+
 optnames = {'opt_dimx','opt_dimy','opt_xscalelog','opt_threshold', ...
     'opt_smooth2d','opt_interp','opt_cwinon','opt_cwinoff','opt_numfields', ...
     'opt_viewsurf'};
 optdefs = {'Freq','Levl',1,'2',1,1,'0','50','1',2};
 opts = getpref('RF_analysis_opts',optnames,optdefs);
 
+% replace default options with values from database
+T = DB_GetUnitProps(h.unit_id,'rftype');
+rftype = [];
+if ~isempty(T) && isfield(T,'guisettings')
+    vals = tokenize(T.guisettings{1},',');
+    opts{1} = vals{1};
+    opts{2} = vals{2};
+    opts{3} = str2num(vals{3}); %#ok<ST2NM>
+    opts{4} = vals{8};
+    opts{5} = str2num(vals{4}); %#ok<ST2NM>
+    opts{6} = str2num(vals{5}); %#ok<ST2NM>
+    opts{7} = vals{6};
+    opts{8} = vals{7};
+    setpref('RF_analysis_opts',optnames,opts);
+    
+    rftype = T.rftype;
+end
 
 for i = 1:length(opts)
     if ~(isfield(h,optnames{i}) && ishandle(h.(optnames{i}))), continue; end
@@ -111,11 +134,14 @@ for i = 1:length(opts)
     end
 end
 
-rftypes = DB_GetRFtypes;
-rftypes.name{end+1} = '< ADD RF TYPE >';
-rftypes.description{end+1} = 'Select a receptive field type from the list or click ''< ADD RF TYPE >''';
-set(h.list_rftype,'String',rftypes.name,'Value',1);
-SelectRFtype(h.list_rftype,h);
+
+if ~isempty(rftype)
+    s = get(h.list_rftype,'String');
+    i = ismember(s,rftype);
+    if ~any(i), i = 1; end
+    set(h.list_rftype,'Value',find(i));
+    SelectRFtype(h.list_rftype,h);
+end
 
 IDs = mym('SELECT * FROM v_ids WHERE unit = {Si}',h.unit_id);
 h.UNIT.IDs         = IDs;
@@ -123,7 +149,6 @@ h.UNIT.spiketimes  = DB_GetSpiketimes(h.unit_id);
 h.UNIT.blockparams = DB_GetParams(IDs.block);
 h.UNIT.unitprops   = DB_GetUnitProps(h.unit_id,'RF$');
 
-UpdateWithDBParams(h.unit_id,h);
 
 h = UpdatePlot(h);
 
@@ -133,7 +158,7 @@ set(h.updatedb,'Enable','on');
 
 
 
-function UpdateOpts(hObj,h) %#ok<DEFNU>
+function UpdateOpts(hObj,h)
 switch get(hObj,'Style')
     case 'checkbox'
         setpref('RF_analysis_opts',get(hObj,'Tag'),get(hObj,'Value'));
@@ -227,11 +252,8 @@ spnt = spnt * 1000; % rescale spont
 spnt = squeeze(mean(spnt));
 
 
-% if wants2d
-    data = squeeze(mean(data));
-% else
-    
-% end
+data = squeeze(mean(data));
+
 
 Nd = ndims(data);
 xdim = Nd;
@@ -242,10 +264,11 @@ tvals = vals{1};
 yvals = vals{2};
 xvals = vals{3};
 
-
 if opts.opt_smooth2d
-    data = sgsmooth2d(data);
-    spnt = sgsmooth2d(spnt);
+    data = [data; repmat(data(end,:),4,1)];
+    data = sgsmooth2d(data,10,4);
+    data = data(1:end-4,:);
+    spnt = sgsmooth2d(spnt,10,4);
 end
 
 if opts.opt_interp
@@ -328,7 +351,7 @@ UD.yvals = yvals;   UD.ydim  = ydim;
 Cdata = UpdateContours(axM,UD,str2num(opts.opt_numfields),str2num(opts.opt_threshold)); %#ok<ST2NM>
 
 if ~isempty(Cdata(1).id)
-    ccodes = lines(10);
+    ccodes = lines(50); ccodes(1,:) = [];
     for i = 1:length(Cdata)
         set(Cdata(i).h,'EdgeColor',ccodes(Cdata(i).id,:));
         Cdata(i).mask     = ContourMask(Cdata(i).contour,xvals,yvals);
@@ -337,6 +360,26 @@ if ~isempty(Cdata(1).id)
     end
 end
 UD.Cdata = Cdata;
+
+a = findobj('tag','axMinfo');
+if ~isempty(a), delete(a); end
+
+if isempty(Cdata.id)
+    annotation('textbox',[0.1 0.1 0.9 0.9],'String','NO FIELDS','tag','axMinfo', ...
+    'color','R','linestyle','none','fontsize',8);
+
+else
+astr = sprintf('BF = %0.1f Hz; CF = %0.1f Hz; MT = %0.1f dB\n', ...
+    Cdata(1).Features.bestfreq,Cdata(1).Features.charfreq,Cdata(1).Features.minthresh);
+if isfield(Cdata(1).Features.EXTRAS,'Q10dB')
+    astr = sprintf('%sQ10 = %0.1f',astr,Cdata(1).Features.EXTRAS.Q10dB);
+end
+if isfield(Cdata(1).Features.EXTRAS,'Q40dB')
+    astr = sprintf('%s; Q40 = %0.1f',astr,Cdata(1).Features.EXTRAS.Q40dB);
+end
+annotation('textbox',[0.1 0.1 0.9 0.9],'String',astr,'tag','axMinfo', ...
+    'color','k','linestyle','none','fontsize',8);
+end
 
 set(axM,'UserData',UD);
 
@@ -371,7 +414,7 @@ end
 
 hold(axM,'off');
 
-ccodes = lines(10);
+ccodes = lines(50); ccodes(1,:) = []; 
 ccode = ccodes(Cdata.id,:);
 
 hold(axY,'on');
@@ -386,15 +429,15 @@ ch(end+1) = plot(axY,E.cfio./max(E.cfio),yvals,'-s','markersize',3,'linewidth',0
 
 set(ch,'markerfacecolor',ccode,'Clipping','off','color','k');
 
-legend(axY,{ ...
-    sprintf('Q vals (%0.1f)',max(E.Qs)), ...
-    sprintf('IO@BF (%0.1f)',max(E.bfio)), ...
-    sprintf('IO@CF (%0.1f)',max(E.cfio)) ...
-    },'position',[0.73 0.77 0.22 0.12]);
+legstr = {[]};
+if ~isempty(E.Qs),   legstr{end+1} = sprintf('Q vals (%0.1f)',max(E.Qs));  end
+if ~isempty(E.bfio), legstr{end+1} = sprintf('IO@BF (%0.1f)',max(E.bfio)); end
+if ~isempty(E.bfio), legstr{end+1} = sprintf('IO@CF (%0.1f)',max(E.cfio)); end
+legstr(1) = [];
+
+legend(axY,legstr,'position',[0.73 0.77 0.22 0.12]);
 
 hold(axY,'off');
-
-
 
 
 
@@ -558,37 +601,6 @@ DB_UpdateUnitProps(h.unit_id,T,'identity',true);
 
 set(h.updatedb,'Enable','on');
 set(h.figure1,'Pointer','arrow'); drawnow
-
-
-
-function UpdateWithDBParams(unit_id,h)
-% R = DB_GetUnitProps(unit_id,'RFid*');
-
-T = DB_GetUnitProps(unit_id,'rftype');
-if isempty(T) || ~isfield(T,'guisettings'), return; end
-
-s = get(h.list_rftype,'String');
-i = ismember(s,T.rftype);
-set(h.list_rftype,'Value',find(i));
-SelectRFtype(h.list_rftype,h);
-
-vals = tokenize(T.guisettings{1},',');
-
-s = get(h.opt_dimx,'String');
-i = ismember(s,vals{1});
-set(h.opt_dimx,'Value',find(i));
-
-s = get(h.opt_dimy,'String');
-i = ismember(s,vals{2});
-set(h.opt_dimy,'Value',find(i));
-
-set(h.opt_xscalelog,'Value',str2num(vals{3})); %#ok<ST2NM>
-set(h.opt_smooth2d, 'Value',str2num(vals{4})); %#ok<ST2NM>
-set(h.opt_interp,   'Value',str2num(vals{5})); %#ok<ST2NM>
-set(h.opt_cwinon,   'String',vals{6});
-set(h.opt_cwinoff,  'String',vals{7});
-set(h.opt_threshold,'String',vals{8});
-
 
 
 
