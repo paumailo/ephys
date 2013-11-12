@@ -85,14 +85,16 @@ plotrf(rfdata*1000,rfvals);
 subplot(322)
 hold on
 set(gca,'clipping','off');
-m = mean(rfdata);
-m = max(m(:));
-plot3(xlim(gca),[level level],[1000 1000] * m,'-k','linewidth',1);
+x = xlim(gca);
+z = zlim(gca);
+po = patch([x fliplr(x)],ones(1,4)*level,[z(1) z(1) z(2) z(2)]);
+set(po,'zdata',[z(1) z(1) z(2) z(2)],'facecolor','w','facealpha',0.5, ...
+    'edgecolor','w','edgealpha',0.5)
 hold off
     
 % raster
 rast = genrast(h.RF.st,h.RF.P,level,rwin/1000);
-plotraster(h.RF.P,rast,rwin);
+plotraster(h.RF.P,rast,rwin,level);
 
 setpref('RF_FreqVsTime',{'rfwin','rwin','level'},{rfwin,rwin,level});
 
@@ -118,11 +120,14 @@ hax = surf(x/1000,y,data');
 shading flat
 view(2)
 axis tight
-set(gca,'xscale','log','fontsize',7,'xtick',[1 5 10 50],'xticklabel',[1 5 10 50])
+set(gca,'xscale','log','fontsize',7,'xtick',[1 5 10 50],'xticklabel',[1 5 10 50], ...
+    'zlim',[0 max(data(:))])
 set(hax,'ButtonDownFcn',{@clickrf,gcf});
 xlabel('Frequency (kHz)','fontsize',7)
 ylabel('Level (dB)','fontsize',7)
-h = colorbar('fontsize',7);
+h = colorbar('EastOutside','fontsize',7);
+c = get(gca,'clim');
+set(gca,'clim',[0 c(2)]);
 ylabel(h,'Firing Rate (Hz)','fontsize',7)
 
 
@@ -132,6 +137,7 @@ cp = get(gca,'CurrentPoint');
 level = cp(1,2);
 L = str2num(get(h.LevelList,'String')); %#ok<ST2NM>
 i = interp1(L,1:length(L),level,'nearest');
+if isempty(i) || isnan(i), return; end
 set(h.LevelList,'Value',i);
 UpdateFig(h.LevelList,'clickrf',f)
 
@@ -149,13 +155,13 @@ f = P.VALS.Freq(ind);
 [~,i] = sort(f);
 rast = rast(i);
 
-function plotraster(P,rast,win)
+function plotraster(P,rast,win,level)
 %% Plot Raster
 subplot(3,2,[3 6],'replace')
 cla
 
 rast = cellfun(@(a) (a*1000),rast,'UniformOutput',false); % s -> ms
-nreps = sum(P.VALS.Freq == P.lists.Freq(end) & P.VALS.Levl == P.lists.Levl(end));
+nreps = sum(P.VALS.Freq == P.lists.Freq(end) & P.VALS.Levl == level);
 f = P.lists.Freq / 1000;
 f = interp1(1:length(f),f,linspace(1,length(f),length(f)*nreps),'cubic');
 hold on
@@ -171,7 +177,7 @@ set(gca,'yscale','log','ylim',[min(P.lists.Freq) max(P.lists.Freq)]/1000, ...
 box on
 xlabel('Time (ms)','FontSize',9);
 ylabel('Frequency (kHz)','FontSize',9);
- 
+title(sprintf('%d dB',level));
     
     
     
