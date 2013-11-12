@@ -187,9 +187,3 @@ end
 
 varargout{1} = data;
 
-
-
-
-
-
-

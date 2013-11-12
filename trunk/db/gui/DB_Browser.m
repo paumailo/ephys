@@ -407,9 +407,13 @@ for i = 1:length(at.protocol_id_str)
     end
 end
 
-
+lasttool = getpref('DB_BROWSER_AnalysisTools','lasttool',[]);
+    
 if ~isempty(validtools)
-    set(h.list_analysis_tools,'Value',1,'String',validtools,'Enable','on');
+    v = 1;
+    if ~isempty(lasttool), v = find(strcmp(validtools,lasttool)); end
+    if isempty(v), v = 1; end
+    set(h.list_analysis_tools,'Value',v,'String',validtools,'Enable','on');
     set(h.launch_analysis,'Enable','on');    
 end
 
@@ -419,6 +423,7 @@ set(h.DB_Browser,'Pointer','watch'); drawnow
 tool = get_string(h.list_analysis_tools);
 feval(tool);
 set(h.DB_Browser,'Pointer','arrow'); drawnow
+setpref('DB_BROWSER_AnalysisTools','lasttool',tool);
 
 
 
