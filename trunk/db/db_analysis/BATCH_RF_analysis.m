@@ -27,6 +27,7 @@ if isempty(k), k = 1; end
 
 for u = k:nunits
     fprintf('Unit %d of %d\n',k,nunits)
+    RF_FreqVsTime(units(k));
     uiwait(RF_analysis(units(k)));
     k = k + 1;
     fprintf('\n')
