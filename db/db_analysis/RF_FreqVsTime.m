@@ -28,8 +28,8 @@ UpdateFig(h.LevelList,'init',f)
 function h = creategui(f)
 h = guidata(f);
 
-rfwin = [0 0.05]; % receptive field plot
-rwin  = [0 0.15]; % raster plot
+rfwin = [0 50]; % receptive field plot
+rwin  = [0 150]; % raster plot
 
 L = h.RF.P.lists.Levl;
 level = max(L);
@@ -120,8 +120,10 @@ hax = surf(x/1000,y,data');
 shading flat
 view(2)
 axis tight
+md = max(data(:));
+if isnan(md) || md == 0, md = 1; end
 set(gca,'xscale','log','fontsize',7,'xtick',[1 5 10 50],'xticklabel',[1 5 10 50], ...
-    'zlim',[0 max(data(:))])
+    'zlim',[0 md])
 set(hax,'ButtonDownFcn',{@clickrf,gcf});
 xlabel('Frequency (kHz)','fontsize',7)
 ylabel('Level (dB)','fontsize',7)
