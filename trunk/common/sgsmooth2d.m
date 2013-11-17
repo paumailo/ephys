@@ -17,9 +17,9 @@ if ~exist('F','var') || isempty(F), F = 4;  end
 
 
 if rem(floor(ncol/F),2)
-    smdata = sgolayfilt(data, floor(ncol/K), floor(ncol/F),[], 2); %#ok<NASGU>
+    smdata = sgolayfilt(data, floor(ncol/K), floor(ncol/F),[], 2); 
 else
-    smdata = sgolayfilt(data, floor(ncol/K), floor(ncol/F)+1,[], 2); %#ok<NASGU>
+    smdata = sgolayfilt(data, floor(ncol/K), floor(ncol/F)+1,[], 2); 
 end
 
 if rem(floor(nrow/F),2)
