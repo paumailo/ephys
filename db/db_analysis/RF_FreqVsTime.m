@@ -144,13 +144,13 @@ set(h.LevelList,'Value',i);
 UpdateFig(h.LevelList,'clickrf',f)
 
 function rast = genrast(st,P,level,win)
-%%
 ind = P.VALS.Levl == level;
-ons = P.VALS.onset(ind) + win(1);
-ofs = P.VALS.onset(ind) + win(2);
+ons  = P.VALS.onset(idx);
+wons = ons + win(1);
+wofs = ons + win(2);
 rast = cell(size(ons));
 for i = 1:length(ons)
-    sind = st >= ons(i) & st <= ofs(i);
+    sind = st >= wons(i) & st <= wofs(i);
     rast{i} = st(sind) - ons(i);
 end
 f = P.VALS.Freq(ind);
@@ -158,7 +158,6 @@ f = P.VALS.Freq(ind);
 rast = rast(i);
 
 function plotraster(P,rast,win,level)
-%% Plot Raster
 subplot(3,2,[3 6],'replace')
 cla
 
