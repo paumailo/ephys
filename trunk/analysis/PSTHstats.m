@@ -24,15 +24,16 @@ RSP = PSTH(rspIND,:);
 idx = find(rspIND);
 lat = bins(idx(x));
 
-for i = 1:size(RSP,2)
-    [h(i),p(i)] = kstest2(PRE(:,i),RSP(:,i),alpha);
-end
+% for i = 1:size(RSP,2)
+%     [h(i),p(i)] = kstest2(PRE(:,i),RSP(:,i),alpha);
+% end
+[h,p,ci,stats] = ttest2(RSP,mag,alpha);
 A.peak.magnitude   = mag; %#ok<*AGROW>
 A.peak.latency     = lat;
 A.peak.rejectnullh = h;
 A.peak.p           = p;
-% A.peak.ci          = ci;
-% A.peak.stats       = stats;
+A.peak.ci          = ci;
+A.peak.stats       = stats;
 
 % Mean Response
 [h,p,ci,stats] = vartest2(PRE,RSP,alpha);
