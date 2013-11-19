@@ -82,6 +82,11 @@ delete(hObj);
 
 %% Database
 function Connect2DB(h,dbpref,reg)
+set(gcf,'pointer','watch');
+ho = findobj(gcf,'enable','on');
+set(ho,'enable','off');
+drawnow
+
 if nargin == 1, dbpref = []; end
 
 if nargin == 3 && reg
@@ -106,6 +111,9 @@ i = find(ismember(dbs,dbpref));
 set(h.popup_databases,'String',dbs,'Value',i);
 
 UpdateLists(h.popup_databases,h);
+
+set(ho,'enable','on');
+set(gcf,'pointer','arrow');
 
 function UpdateLists(hObj,h)
 ord = h.hierarchy;
