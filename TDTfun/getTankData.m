@@ -214,10 +214,11 @@ for bidx = 1:length(cfg.blocks)
     DO.name = blocklist{bidx};
     DO.tank = cfg.tank;
     
-%     DO.Wave = [];
-%     DO.Snip = [];
-%     DO.Strm = [];
-%     DO.eNeu = [];
+    DO.Wave = [];
+    DO.AWav = [];
+    DO.Snip = [];
+    DO.Strm = [];
+    DO.eNeu = [];
     
     if ~cfg.silently, fprintf('Retrieving Block info %d of %d ... ',bidx,length(cfg.blocks)); end
     
