@@ -93,15 +93,15 @@ set(h.list_blocks,'Value',1,'String',blockstr, ...
 UpdateEventsList(h);
 
 function UpdateEventsList(h)
-set(findobj('type','figure'),'Pointer','watch'); 
-set(get(h.figure1,'children'),'Enable','off');drawnow
+% set(findobj('type','figure'),'Pointer','watch'); 
+% set(get(h.figure1,'children'),'Enable','off');drawnow
 
 blockstr = get_string(h.list_blocks);
 if strcmp(blockstr,'<NO BLOCKS FOUND>')
     set(h.list_event1,'Value',1,'String','<NO EVENTS FOUND>','UserData',[]);
     set(h.list_event2,'Value',1,'String','<NO EVENTS FOUND>','UserData',[]);
-    set(findobj('type','figure'),'Pointer','arrow');
-    set(get(h.figure1,'children'),'Enable','on');
+%     set(findobj('type','figure'),'Pointer','arrow');
+%     set(get(h.figure1,'children'),'Enable','on');
     return
 end
 
@@ -115,8 +115,8 @@ pspec = blockinfo.paramspec;
 if isempty(pspec) || isempty(pspec{1})
     set(h.list_event1,'Value',1,'String','<NO EVENTS FOUND>','UserData',[]);
     set(h.list_event2,'Value',1,'String','<NO EVENTS FOUND>','UserData',[]);
-    set(findobj('type','figure'),'Pointer','arrow');
-    set(get(h.figure1,'children'),'Enable','on');
+%     set(findobj('type','figure'),'Pointer','arrow');
+%     set(get(h.figure1,'children'),'Enable','on');
     return
 end
 
@@ -138,8 +138,8 @@ setappdata(h.figure1,'spikes',spikes);
 
 UpdateParamsList(h);
  
-set(findobj('type','figure'),'Pointer','arrow');
-set(get(h.figure1,'children'),'Enable','on');
+% set(findobj('type','figure'),'Pointer','arrow');
+% set(get(h.figure1,'children'),'Enable','on');
 
  
 function UpdateParamsList(h)
@@ -175,8 +175,8 @@ f = findobj('tag','TankDataViewer_PLOTS');
 if isempty(f)
     f = figure('tag','TankDataViewer_PLOTS');
 end
-set(findobj('type','figure'),'Pointer','watch');
-set(get(h.figure1,'children'),'Enable','off');drawnow
+% set(findobj('type','figure'),'Pointer','watch');
+% set(get(h.figure1,'children'),'Enable','off');drawnow
 
 spikes = getappdata(h.figure1,'spikes');
 blockinfo = get(h.list_event1,'UserData');
@@ -236,8 +236,8 @@ if get(h.opt_scaletogether,'Value')
 end
 fprintf('done\n')
 
-set(findobj('type','figure'),'Pointer','arrow');
-set(get(h.figure1,'children'),'Enable','on');
+% set(findobj('type','figure'),'Pointer','arrow');
+% set(get(h.figure1,'children'),'Enable','on');
 
 
 
