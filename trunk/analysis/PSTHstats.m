@@ -18,6 +18,7 @@ rspIND = bins >= rspwin(1) & bins < rspwin(2);
 PRE = PSTH(preIND,:);
 RSP = PSTH(rspIND,:);
 
+ncols = size(PSTH,2);
 
 % Peak Response
 [mag,peakidx] = max(RSP);
@@ -28,39 +29,42 @@ A.peak.magnitude   = mag; %#ok<*AGROW>
 A.peak.latency     = lat + rspwin(1);
 A.peak.rejectnullh = h;
 A.peak.p           = p;
-A.peak.ci          = ci;
+A.peak.ci          = -ci;
 A.peak.stats       = stats;
 
 % Mean Response
-[h,p,ci,stats] = vartest2(PRE,RSP,alpha);
+[h,p,ci,stats] = vartest2(PRE,RSP,alpha,'left');
 mag = mean(RSP);
 A.response.magnitude   = mag;
-A.response.latency     = lat + rspwin(1);
 A.response.rejectnullh = h;
 A.response.p           = p;
 A.response.ci          = ci;
 A.response.stats       = stats;
 
 
-% Onset
-onrsp = RSP(1:peakidx,:);
-thresh = repmat(A.response.ci(2,:),size(onrsp,1),1);
-sigind = onrsp > thresh;
-A.onset  = nan(1,size(sigind,2));
-A.offset = nan(1,size(sigind,2));
-for i = 1:size(sigind,2)
-    idx = find(sigind(:,i),1,'first');
-    if ~isempty(idx)
-        A.onset(i) = rspwin(1) + bins(rspidx(idx));
-    end
-    idx = find(sigind(:,i),1,'last');
-    if ~isempty(idx)
-        A.offset(i) = rspwin(1) + bins(rspidx(idx));
-    end
+% Response Onset
+% thresh = mean(PRE)+std(PRE)*5;
+
+m = mean(PRE(:));
+s = std(PRE(:));
+thresh = norminv(1-alpha,m,s);
+A.onset = nan(1,ncols);
+for i = 1:ncols
+    sigind = RSP(1:peakidx(i),i) >= thresh;
+    if ~any(sigind), continue; end
+    idx = find(sigind,1,'first');
+    A.onset(i) = rspwin(1) + bins(rspidx(idx));
 end
+A.response.threshold = thresh;
 
-
-
+% Response Offset
+A.offset = nan(1,ncols);
+for i = 1:ncols
+    sigind = RSP(peakidx(i):end,i) >= thresh;
+    if ~any(sigind), continue; end
+    idx = peakidx(i) + find(sigind,1,'last') - 1;
+    A.offset(i) = rspwin(1) + bins(rspidx(idx));
+end
 
 
 

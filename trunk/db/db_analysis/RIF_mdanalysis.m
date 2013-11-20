@@ -23,24 +23,31 @@ binsize = 0.001;
 
 [psth,vals] = shapedata_spikes(h.RF.st,h.RF.P,{'Levl'},'win',[-win(2) win(2)],'binsize',binsize);
 
-A = PSTHstats(psth,vals{1},'prewin',[-0.1 0],'rspwin',[0 0.1],'alpha',0.01);
+mp = max(psth(:));
+v = window(@gausswin,5);
+cpsth = zeros(size(psth));
+for i = 1:size(psth,2)
+    cpsth(:,i) = conv(psth(:,i),v,'same');
+end
+cpsth = cpsth / max(cpsth(:)) * mp;
+
+A = PSTHstats(cpsth,vals{1},'prewin',[-0.1 0],'rspwin',[0 0.1],'alpha',0.001);
 
 h.ax1 = subplot(121);
 h.ax2 = subplot(122);
 
-PlotRaster(h.ax1,h,win,A);
-Plot2dPSTH(h.ax2,psth,vals,A);
+cla([h.ax1 h.ax2])
+
+PlotRaster(h.ax1,h,win);
+PlotPSTH(h.ax1,cpsth,vals,A);
 
 
 
-function Plot2dPSTH(ax,psth,vals,A)
-v = window(@gausswin,5);
-for i = 1:size(psth,2)
-    psth(:,i) = conv(psth(:,i),v,'same');
-end
+function PlotPSTH(ax,psth,vals,A)
+
 
 axes(ax);
-cla(ax)
+% cla(ax)
 
 hold(ax,'on');
 mdv = max(diff(vals{2}));
@@ -48,23 +55,24 @@ mpsth = max(psth(:));
 spsth = psth/mpsth*mdv;
 for i = 1:size(psth,2)
     yoffset = vals{2}(i);
-    plot(vals{1}([1 end]),[yoffset yoffset],'-','color',[0.3 0.3 0.3],'linewidth',0.5);
-    y = vals{2}(i)+spsth(:,i);
-    if A.response.rejectnullh(i)
-        c = [0 0 0];
-    else
-        c = [0.6 0.6 0.6];
-    end
-    plot(vals{1},y,'-','color',c,'linewidth',2);
     
     if A.peak.rejectnullh(i)
         plot(A.peak.latency(i),yoffset+A.peak.magnitude(i)/mpsth*mdv,'*r');
     end
     
     if A.response.rejectnullh(i)
-        plot([A.onset(i) A.offset(i)],[yoffset yoffset],'-b','linewidth',2);
-        plot(A.onset(i),yoffset,'>b',A.offset(i),yoffset,'<b','markerfacecolor','b');
+         patch([A.onset(i) A.onset(i) A.offset(i) A.offset(i)],[yoffset(1) yoffset(1)+mdv yoffset(1)+mdv yoffset(1)], ...
+        [0.9 0.97 1.0],'EdgeColor',[0.9 0.97 1.0]);
     end
+    plot(vals{1}([1 end]),[yoffset yoffset],'-','color',[0.3 0.3 0.3],'linewidth',0.5);
+
+    if A.response.rejectnullh(i)
+        c = [0 0 0];
+    else
+        c = [0.6 0.6 0.6];
+    end
+    plot(vals{1},yoffset+spsth(:,i),'-','color',c,'linewidth',2);
+
 end
 ylim([vals{2}(1) vals{2}(end)+max(diff(vals{2}))]);
 plot(ax,[0 0],ylim(ax),'-k');
@@ -78,9 +86,9 @@ set(ax,'userdata',ud);
 
 
 
-function PlotRaster(ax,h,win,A)
+function PlotRaster(ax,h,win)
 axes(ax);
-cla(ax)
+% cla(ax)
 
 VALS = h.RF.P.VALS;
 st   = h.RF.st;
@@ -99,19 +107,29 @@ for i = 1:length(ons)
 end
 
 hold(ax,'on');
+% for i = 1:length(uL)
+%     if ~A.response.rejectnullh(i), continue; end
+% %     plot(A.onset(i),uL(i),'>',A.offset(i),uL(i),'<','color',[0.5 0.8 0.9],'markersize',5,'markerfacecolor',[0.5 0.8 0.9]);
+% %     plot([A.onset(i) A.offset(i)],[uL(i) uL(i)],'-','color',[0.5 0.8 0.9],'linewidth',2);
+%     patch([A.onset(i) A.onset(i) A.offset(i) A.offset(i)],[uL(i) uL(i)+dL uL(i)+dL uL(i)], ...
+%         [0.9 0.97 1.0],'EdgeColor',[0.9 0.97 1.0]);
+%         
+% end
 for i = 1:length(rast)
     if isempty(rast{i}), continue; end
     md = mod(i,nreps)/nreps*dL;
-    plot(rast{i},L(i) + md,'sk','markersize',1,'markerfacecolor','k');
+    plot(rast{i},L(i) + md,'s','color',[0.3 0.3 0.3], ...
+        'markersize',1,'markerfacecolor',[0.3 0.3 0.3]);
 end
+
 plot(repmat(win,length(uL),1)',[uL uL]','-k');
-plot([0 0],[uL(1) uL(end)],'-','color',[0.3 0.3 0.3]);
+plot([0 0],[uL(1) uL(end)+dL],'-','color',[0.3 0.3 0.3]);
 hold(ax,'off');
-box on
+box(ax,'on');
 d.rast = rast;
 d.vals = L;
-set(ax,'UserData',d);
-xlim(win); ylim([uL(1) uL(end)]);
+set(ax,'UserData',d,'clipping','off');
+xlim(win); ylim([uL(1) uL(end)+dL]);
 
 %%
 
