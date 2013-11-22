@@ -1,27 +1,99 @@
 function RIF_mdanalysis(unit_id)
-%%
+% RIF_mdanalysis
+% RIF_mdanalysis(unit_id)
+%
+% Rate-Intensity Function analysis.
+%
+% See also, RF_analysis
+% 
+% Daniel.Stolzberg@gmail.com 2013
 
 if nargin == 0 || isempty(unit_id)
     unit_id = getpref('DB_BROWSER_SELECTION','units');
 end
 
+defaults.respwin = [0 0.1];
+defaults.viewwin = [-0.025 0.1];
+defaults.prewin  = [-0.025 0];
+defaults.binsize = 0.001;
+settings = getpref('RIF_mdanalysis','settings',defaults);
+
+h = InitGUI(settings);
+set(h.figure,'Name',sprintf('Unit ID: %d',unit_id),'units','normalized');
+
+h.RIF.P  = DB_GetParams(unit_id,'unit');
+h.RIF.st = DB_GetSpiketimes(unit_id);
+
+guidata(h.figure,h);
+
+UpdateFig([],[],h.figure);
+
+function h = InitGUI(settings)
 f = findobj('tag','RF_FreqVsTime');
 if isempty(f)
 f = figure('Color',[0.98 0.98 0.98],'tag','RF_FreqVsTime');
 end
 figure(f);
 clf(f);
-set(f,'Name',sprintf('Unit ID: %d',unit_id),'units','normalized');
 
-h.RF.P  = DB_GetParams(unit_id,'unit');
-h.RF.st = DB_GetSpiketimes(unit_id);
+h.figure = f;
+h.mainax = axes('position',[0.1  0.1  0.4 0.7]);
+h.ioax   = axes('position',[0.65 0.1  0.3 0.3]);
+h.latax  = axes('position',[0.65 0.5  0.3 0.3]);
 
-guidata(f,h);
+fbc = get(f,'color');
 
-win = [-0.02 0.1];
+h.viewwin = uicontrol(f,'Style','edit','String',mat2str(settings.viewwin), ...
+    'units','normalized','Position',[0.38 0.91 0.2 0.025], ...
+    'Callback',{@UpdateFig,f},'Tag','viewwin','FontSize',10);
+uicontrol(f,'Style','text','String','View Window (ms):','HorizontalAlignment','right', ...
+    'units','normalized','Position',[0.0 0.91 0.35 0.025], ...
+    'BackgroundColor',fbc,'FontSize',12);
+
+h.prewin = uicontrol(f,'Style','edit','String',mat2str(settings.prewin), ...
+    'units','normalized','Position',[0.38 0.88 0.2 0.025], ...
+    'Callback',{@UpdateFig,f},'Tag','respwin','FontSize',10);
+uicontrol(f,'Style','text','String','Baseline Window (ms):','HorizontalAlignment','right', ...
+    'units','normalized','Position',[0.0 0.88 0.35 0.025], ...
+    'BackgroundColor',fbc,'FontSize',12);
+
+h.respwin = uicontrol(f,'Style','edit','String',mat2str(settings.respwin), ...
+    'units','normalized','Position',[0.38 0.85 0.2 0.025], ...
+    'Callback',{@UpdateFig,f},'Tag','respwin','FontSize',10);
+uicontrol(f,'Style','text','String','Response Window (ms):','HorizontalAlignment','right', ...
+    'units','normalized','Position',[0.0 0.85 0.35 0.025], ...
+    'BackgroundColor',fbc,'FontSize',12);
+
+h.updatedb = uicontrol(f,'Style','pushbutton','String','Update DB', ...
+    'units','normalized','Position',[0.65 0.85 0.25 0.08], ...
+    'Callback',{@UpdateDB,f},'Tag','updatedb','Fontsize',14);
+
+
+function UpdateDB(hObj,event,f) %#ok<INUSL>
+h = guidata(f);
+do = findobj(f,'enable','on');
+set(do,'enable','off');
+drawnow
+
+data = get(f,'UserData');
+
+A = data.A;
+
+
+
+set(do,'enable','on');
+
+function UpdateFig(hObj,event,f) %#ok<INUSL>
+h = guidata(f);
+
+vwin = str2num(get(h.viewwin,'String')); %#ok<*ST2NM>
+rwin = str2num(get(h.respwin,'String'));
+bwin = str2num(get(h.prewin,'String'));
 binsize = 0.001;
 
-[psth,vals] = shapedata_spikes(h.RF.st,h.RF.P,{'Levl'},'win',[-win(2) win(2)],'binsize',binsize);
+[psth,vals] = shapedata_spikes(h.RIF.st,h.RIF.P,{'Levl'}, ...
+    'win',vwin,'binsize',binsize,'func',@mean);
+psth = psth / binsize;
 
 mp = max(psth(:));
 v = window(@gausswin,5);
@@ -31,16 +103,27 @@ for i = 1:size(psth,2)
 end
 cpsth = cpsth / max(cpsth(:)) * mp;
 
-A = PSTHstats(cpsth,vals{1},'prewin',[-0.02 0], ...
-    'rspwin',[0.005 0.08],'alpha',0.001);
+A = PSTHstats(cpsth,vals{1},'prewin',bwin, 'rspwin',rwin,'alpha',0.001);
+
+cla([h.mainax h.ioax h.latax]);
+
+PlotRaster(h.mainax,h.RIF.st,h.RIF.P.VALS,vwin);
+PlotPSTH(h.mainax,cpsth,vals,A);
+PlotIO(h.ioax,A,vals{2})
+PlotLatency(h.latax,A,vals{2})
 
 
-h.ax1 = gca;
-cla(h.ax1);
+data.psth  = psth;
+data.cpsth = cpsth;
+data.A     = A;
+data.vals  = vals;
+set(h.figure,'UserData',data);
 
-PlotRaster(h.ax1,h,win);
-PlotPSTH(h.ax1,cpsth,vals,A);
-
+settings.respwin = str2num(get(h.respwin,'String'));
+settings.viewwin = str2num(get(h.viewwin,'String'));
+settings.prewin  = str2num(get(h.prewin,'String'));
+settings.binsize = 0.001;
+setpref('RIF_mdanalysis','settings',settings);
 
 
 function PlotPSTH(ax,psth,vals,A)
@@ -72,8 +155,6 @@ for i = 1:size(psth,2)
              'linewidth',2);
     end
     plot(vals{1}([1 end]),[yoffset yoffset],'-','color',[0.3 0.3 0.3],'linewidth',0.5);
-
-
 end
 ylim([vals{2}(1) vals{2}(end)+max(diff(vals{2}))]);
 plot(ax,[0 0],ylim(ax),'-k');
@@ -81,24 +162,23 @@ plot(ax,[0 0],ylim(ax),'-k');
 hold(ax,'off');
 box(ax,'on');
 
+xlabel('Time (s)','FontSize',14);
+ylabel('Level (dB)','FontSize',14);
+
 ud.psth = psth;
 ud.vals = vals;
 set(ax,'userdata',ud);
 
 
 
-function PlotRaster(ax,h,win)
+function PlotRaster(ax,st,vals,win)
 axes(ax);
-% cla(ax)
 
-VALS = h.RF.P.VALS;
-st   = h.RF.st;
-
-nreps = sum(VALS.Levl == VALS.Levl(1));
-[L,idx] = sort(VALS.Levl);
+nreps = sum(vals.Levl == vals.Levl(1));
+[L,idx] = sort(vals.Levl);
 uL = unique(L);
 dL = mean(diff(uL));
-ons  = VALS.onset(idx);
+ons  = vals.onset(idx);
 wons = ons + win(1);
 wofs = ons + win(2);
 rast = cell(size(ons));
@@ -108,14 +188,7 @@ for i = 1:length(ons)
 end
 
 hold(ax,'on');
-% for i = 1:length(uL)
-%     if ~A.response.rejectnullh(i), continue; end
-% %     plot(A.onset(i),uL(i),'>',A.offset(i),uL(i),'<','color',[0.5 0.8 0.9],'markersize',5,'markerfacecolor',[0.5 0.8 0.9]);
-% %     plot([A.onset(i) A.offset(i)],[uL(i) uL(i)],'-','color',[0.5 0.8 0.9],'linewidth',2);
-%     patch([A.onset(i) A.onset(i) A.offset(i) A.offset(i)],[uL(i) uL(i)+dL uL(i)+dL uL(i)], ...
-%         [0.9 0.97 1.0],'EdgeColor',[0.9 0.97 1.0]);
-%         
-% end
+
 for i = 1:length(rast)
     if isempty(rast{i}), continue; end
     md = mod(i,nreps)/nreps*dL;
@@ -132,16 +205,35 @@ d.vals = L;
 set(ax,'UserData',d,'clipping','off');
 xlim(win); ylim([uL(1) uL(end)+dL]);
 
-%%
 
 
+function PlotIO(ax,A,x)
+axes(ax);
+ip = A.peak.rejectnullh;
+ir = A.response.rejectnullh;
+plot(ax,x(ip),A.peak.magnitude(ip),'-*k', ...
+        x(ir),A.response.magnitude(ir),'-ok');
+xlabel(ax,'Level (dB)','FontSize',10)
+ylabel(ax,'Firing Rate (Hz)','FontSize',10)
+mdx = mean(diff(x));
+xlim(ax,[x(1)-mdx x(end)+mdx]);
 
-
-
-
-
-
-
+function PlotLatency(ax,A,x)
+axes(ax);
+ip = A.peak.rejectnullh;
+ir = A.response.rejectnullh;
+plot(ax,x(ip),A.peak.latency(ip)*1000,'-*r', ...
+        x(ir),A.onset.pk10(ir)*1000,'-or', ...
+        x(ir),A.onset.pk50(ir)*1000,'-og', ...
+        x(ir),A.onset.pk90(ir)*1000,'-ob', ...
+        x(ir),A.offset.pk10(ir)*1000,'-+r', ...
+        x(ir),A.offset.pk50(ir)*1000,'-+g', ...
+        x(ir),A.offset.pk90(ir)*1000,'-+b')
+xlabel(ax,'Level (dB)','FontSize',10)
+ylabel(ax,'Latency (ms)','FontSize',10)
+ylim(ax,[0 max(A.offset.pk10)*1000+5]);
+mdx = mean(diff(x));
+xlim(ax,[x(1)-mdx x(end)+mdx]);
 
 
 
