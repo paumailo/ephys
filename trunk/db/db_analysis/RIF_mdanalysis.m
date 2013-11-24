@@ -22,6 +22,21 @@ defaults.showhist   = 1;
 defaults.figpos     = get(gcf,'position');
 settings = getpref('RIF_mdanalysis','settings',defaults);
 
+
+onstr  = cellstr(num2str((10:20:90)','onset%dpk'))';
+offstr = cellstr(num2str((10:20:90)','offset%dpk'))';
+
+ondstr  = strtrim(cellstr(num2str((10:20:90)','Onset latency at %d%% of peak firing rate')))';
+offdstr = strtrim(cellstr(num2str((10:20:90)','Offset latency at %d%% of peak firing rate')))';
+
+name = [onstr, offstr, {'ci', 'p', 'peakfr', 'bestlevel','magnitude','rejectnullh','latency','maxmag','bestlevel','monotonicity','yintercept'}];
+unit = [cellstr(repmat('sec',10,1))', {[], [], 'Hz', 'dB', [], [],'sec','Hz','dB','Hz/dB','Hz'}];
+desc = [ondstr, offdstr, {'Confidence Interval', 'Statistical P-Value', 'Peak Firing Rate', ...
+    'Best Response Level', 'Magnitude of response', 'Reject Null Hypothesis','Response latency','Maximum response magnitude','Best Response Level','Monotonicity', ...
+    'Y-Intercept'}];
+DB_CheckAnalysisParams(name,desc,unit);
+
+
 h = InitGUI(settings);
 set(h.figure,'Name',sprintf('Unit ID: %d',unit_id),'units','normalized');
 
@@ -31,7 +46,7 @@ h.RIF.st = DB_GetSpiketimes(unit_id);
 
 guidata(h.figure,h);
 
-UpdateFig([],[],h.figure);
+UpdateFig([],[],false,h.figure);
 
 function h = InitGUI(settings)
 f = findobj('tag','RIF_mdanalysis');
@@ -52,31 +67,31 @@ fbc = get(f,'color');
 
 h.viewwin = uicontrol(f,'Style','edit','String',mat2str(settings.viewwin), ...
     'units','normalized','Position',[0.38 0.95 0.2 0.025], ...
-    'Callback',{@UpdateFig,f},'Tag','viewwin','FontSize',10,'BackgroundColor','w');
+    'Callback',{@UpdateFig,false,f},'Tag','viewwin','FontSize',10,'BackgroundColor','w');
 uicontrol(f,'Style','text','String','View Window (ms):','HorizontalAlignment','right', ...
     'units','normalized','Position',[0.0 0.95 0.35 0.025],'BackgroundColor',fbc,'FontSize',12);
 
 h.prewin = uicontrol(f,'Style','edit','String',mat2str(settings.prewin), ...
     'units','normalized','Position',[0.38 0.92 0.2 0.025], ...
-    'Callback',{@UpdateFig,f},'Tag','respwin','FontSize',10,'BackgroundColor','w');
+    'Callback',{@UpdateFig,false,f},'Tag','respwin','FontSize',10,'BackgroundColor','w');
 uicontrol(f,'Style','text','String','Baseline Window (ms):','HorizontalAlignment','right', ...
     'units','normalized','Position',[0.0 0.92 0.35 0.025],'BackgroundColor',fbc,'FontSize',12);
 
 h.respwin = uicontrol(f,'Style','edit','String',mat2str(settings.respwin), ...
     'units','normalized','Position',[0.38 0.89 0.2 0.025], ...
-    'Callback',{@UpdateFig,f},'Tag','respwin','FontSize',10,'BackgroundColor','w');
+    'Callback',{@UpdateFig,false,f},'Tag','respwin','FontSize',10,'BackgroundColor','w');
 uicontrol(f,'Style','text','String','Response Window (ms):','HorizontalAlignment','right', ...
     'units','normalized','Position',[0.0 0.89 0.35 0.025],'BackgroundColor',fbc,'FontSize',12);
 
+h.show_hist = uicontrol(f,'Style','checkbox','String','Show Histogram', ...
+    'units','normalized','Position',[0.15 0.86 0.3 0.025], ...
+    'Callback',{@UpdateFig,true,f},'Tag','show_hist','FontSize',10, ...
+    'BackgroundColor',fbc,'value',settings.showhist);
+
 h.show_raster = uicontrol(f,'Style','checkbox','String','Show Raster', ...
     'units','normalized','Position',[0.35 0.86 0.2 0.025], ...
-    'Callback',{@UpdateFig,f},'Tag','show_raster','FontSize',10, ...
+    'Callback',{@UpdateFig,true,f},'Tag','show_raster','FontSize',10, ...
     'BackgroundColor',fbc,'value',settings.showraster);
-
-h.show_hist = uicontrol(f,'Style','checkbox','String','Show Histogram', ...
-    'units','normalized','Position',[0.05 0.86 0.3 0.025], ...
-    'Callback',{@UpdateFig,f},'Tag','show_hist','FontSize',10, ...
-    'BackgroundColor',fbc,'value',settings.showhist);
 
 h.updatedb = uicontrol(f,'Style','pushbutton','String','Update DB', ...
     'units','normalized','Position',[0.65 0.90 0.25 0.08], ...
@@ -86,11 +101,15 @@ h.response_threshold = uicontrol(f,'Style','pushbutton','String','Response Thres
     'units','normalized','Position',[0.65 0.86 0.2 0.025], ...
     'Callback',{@ResponseThreshold,f},'Tag','updatedb','Fontsize',8);
 
-h.turning_point = uicontrol(f,'Style','pushbutton','String','Transition Point', ...
-    'units','normalized','Position',[0.65 0.83 0.2 0.025], ...
-    'Callback',{@TransitionPoint,f},'Tag','updatedb','Fontsize',8);
+h.resptranspoint = uicontrol(f,'Style','pushbutton','String','Response Trans Pnt', ...
+    'units','normalized','Position',[0.65 0.83 0.15 0.025], ...
+    'Callback',{@TransPoint,'response',f},'Tag','updatedb','Fontsize',8);
 
-function TransitionPoint(hObj,event,f) %#ok<INUSL>
+h.peaktranspoint = uicontrol(f,'Style','pushbutton','String','Peak Trans Pnt', ...
+    'units','normalized','Position',[0.8 0.83 0.1 0.025], ...
+    'Callback',{@TransPoint,'peak',f},'Tag','updatedb','Fontsize',8);
+
+function TransPoint(hObj,event,type,f) %#ok<INUSL>
 do = findobj(f,'enable','on');
 set(do,'enable','off');
 drawnow
@@ -98,7 +117,7 @@ drawnow
 UD = get(f,'UserData');
 A = UD.A;
 
-fprintf('Click on a Firing Rate Input/Output plot to set Transition Point\n')
+% fprintf('Click on a Firing Rate Input/Output plot to set Transition Point\n')
 
 [x,~,b] = ginput(1);
 
@@ -114,15 +133,25 @@ if ~strcmp(get(ax,'tag'),'io')
     return
 end
 
-xi = interp1(UD.vals{2},1:length(UD.vals{2}),x,'nearest');
-A.response.features.transpoint = UD.vals{2}(xi);
+levels = UD.vals{2};
+xi = interp1(levels,1:length(levels),x,'nearest');
+A.(type).features.transpoint = levels(xi);
 
-fprintf('\tNew transition point = %d dB\n',A.response.features.transpoint);
+if A.(type).features.transpoint == levels(end)
+    p = polyfit(levels',A.(type).magnitude,1);
+else
+    p = polyfit(levels(xi:end)',A.(type).magnitude(xi:end),1);
+end
+A.(type).features.monotonicity = p(1);
+A.(type).features.yintercept   = p(2);
+
+fprintf('\t%s transition point = %d dB\n',type,A.(type).features.transpoint)
+fprintf('\t%s monotonicity     = %0.3f Hz/dB\n',type,A.(type).features.monotonicity)
 
 UD.A = A;
 set(f,'UserData',UD);
 
-UpdateFig([],'maintain',f);
+UpdateFig([],[],true,f);
 
 set(do,'enable','on');
 
@@ -134,7 +163,7 @@ drawnow
 UD = get(f,'UserData');
 A = UD.A;
 
-fprintf('Click on a plot to set Response threshold\n')
+% fprintf('Click on a plot to set Response threshold\n')
 
 [x,y,b] = ginput(1);
 
@@ -163,7 +192,7 @@ fprintf('\tNew threshold = %d dB\n',A.response.features.threshold);
 UD.A = A;
 set(f,'UserData',UD);
 
-UpdateFig([],'maintain',f);
+UpdateFig([],[],true,f);
 
 set(do,'enable','on');
 
@@ -187,31 +216,31 @@ cpsth = cpsth / max(cpsth(:)) * mp;
 
 A = PSTHstats(cpsth,vals{1},'levels',vals{2},'prewin',bwin,'rspwin',rwin,'alpha',0.001);
 
-settings.respwin = str2num(get(h.respwin,'String'));
-settings.viewwin = str2num(get(h.viewwin,'String'));
-settings.prewin  = str2num(get(h.prewin,'String'));
+settings.respwin    = str2num(get(h.respwin,'String'));
+settings.viewwin    = str2num(get(h.viewwin,'String'));
+settings.prewin     = str2num(get(h.prewin,'String'));
 settings.showraster = get(h.show_raster,'Value');
-settings.showhist = get(h.show_hist,'Value');
-settings.binsize = 0.001;
-settings.figpos  = get(h.figure,'Position');
+settings.showhist   = get(h.show_hist,'Value');
+settings.binsize    = 0.001;
+settings.figpos     = get(h.figure,'Position');
 setpref('RIF_mdanalysis','settings',settings);
 
-data.psth  = psth;
-data.cpsth = cpsth;
-data.A     = A;
-data.vals  = vals;
-data.settings = settings;
+data.psth       = psth;
+data.cpsth      = cpsth;
+data.A          = A;
+data.vals       = vals;
+data.settings   = settings;
 set(h.figure,'UserData',data);
 
 
-function UpdateFig(hObj,event,f) %#ok<INUSL>
+function UpdateFig(hObj,event,maintain,f) %#ok<INUSL>
 h = guidata(f);
 
 cla(h.mainax);
 cla(h.ioax);
 cla(h.latax);
 
-if ~strcmp(event,'maintain')
+if ~maintain
     GenPSTH(h);
 end
 
@@ -248,28 +277,12 @@ R = rmfield(R,'features');
 
 R.level = strtrim(cellstr(num2str(data.vals{2},'Resp_%0.1fdB')));
 
-onstr  = cellstr(num2str((10:20:90)','onset%dpk'))';
-offstr = cellstr(num2str((10:20:90)','offset%dpk'))';
-
-ondstr  = strtrim(cellstr(num2str((10:20:90)','Onset latency at %d%% of peak firing rate')))';
-offdstr = strtrim(cellstr(num2str((10:20:90)','Offset latency at %d%% of peak firing rate')))';
-
-name = [onstr, offstr, {'ci', 'p', 'peakfr', 'bestlevel','magnitude','rejectnullh'}];
-unit = [cellstr(repmat('sec',10,1))', {[], [], 'Hz', 'dB', [], []}];
-desc = [ondstr, offdstr, {'Confidence Interval', 'Statistical P-Value', 'Peak Firing Rate', ...
-    'Best Response Level', 'Magnitude of response', 'Reject Null Hypothesis'}];
-DB_CheckAnalysisParams(name,desc,unit);
 
 R = rmfield(R,'stats');
 R.ci = cellstr(num2str(R.ci'));
 DB_UpdateUnitProps(h.unit_id,R,'level');
 
 
-name = {'latency','maxmag','bestlevel','monotonicity','yintercept'};
-unit = {'sec','Hz','dB','Hz/dB','Hz'};
-desc = {'Response latency','Maximum response magnitude','Best Response Level','Monotonicity', ...
-    'Y-Intercept'};
-DB_CheckAnalysisParams(name,desc,unit);
 Rfeatures.group = 'ResponseFeature';
 DB_UpdateUnitProps(h.unit_id,Rfeatures,'group');
 
@@ -390,13 +403,21 @@ plot(ax,A.peak.features.bestlevel,A.peak.features.maxmag,'or', ...
 thresh = A.response.features.threshold;
 plot(ax,thresh*[1 1],ylim,'-b');
 
-p = [A.peak.features.monotonicity A.peak.features.yintercept];
-y = polyval(p,[A.peak.features.bestlevel x(end)]);
-plot(ax,[A.peak.features.bestlevel x(end)],y,'-r','linewidth',2);
+if isfield(A.peak.features,'transpoint')
+    p = [A.peak.features.monotonicity A.peak.features.yintercept];
+    y = polyval(p,[A.peak.features.transpoint x(end)]);
+    plot(ax,[A.peak.features.transpoint x(end)],y,'-r','linewidth',2);
+    i = A.peak.features.transpoint == A.levels;
+    plot(ax,A.peak.features.transpoint,A.peak.magnitude(i),'xc','linewidth',3,'markersize',12);
+end
 
-p = [A.response.features.monotonicity A.response.features.yintercept];
-y = polyval(p,[A.response.features.bestlevel x(end)]);
-plot(ax,[A.response.features.bestlevel x(end)],y,'-r','linewidth',2);
+if isfield(A.response.features,'transpoint')
+    p = [A.response.features.monotonicity A.response.features.yintercept];
+    y = polyval(p,[A.response.features.transpoint x(end)]);
+    plot(ax,[A.response.features.transpoint x(end)],y,'-r','linewidth',2);
+    i = A.response.features.transpoint == A.levels;
+    plot(ax,A.response.features.transpoint,A.response.magnitude(i),'xc','linewidth',3,'markersize',12);
+end
 
 hold(ax,'off');
 xlabel(ax,'Level (dB)','FontSize',8)
@@ -412,9 +433,9 @@ axes(ax);
 
 plot(ax,A.response.onset50pk*1000,x,'-+g', ...
         A.response.offset50pk*1000,x,'-og', ...
-        A.peak.latency*1000,x,'-*m', ...
         A.response.onset10pk*1000,x,'-+r', ...
-        A.response.offset10pk*1000,x,'-or');
+        A.response.offset10pk*1000,x,'-or', ...
+        A.peak.latency*1000,x,'-*m');
     
 hold(ax,'on');
 
@@ -428,7 +449,7 @@ xlabel(ax,'Latency (ms)','FontSize',8)
 xlim(ax,[0 max(A.response.offset50pk)*1000+5]);
 mdx = mean(diff(x));
 ylim(ax,[x(1)-mdx x(end)+mdx]);
-h = legend(ax,{'50% Onset','50% Offset','Peak','10% Onset','10% Offset'},'location','northeast');
+h = legend(ax,{'50% Onset','50% Offset','10% Onset','10% Offset','Peak'},'location','northeast');
 set(h,'FontSize',6);
 set(ax,'tag','latency');
 
