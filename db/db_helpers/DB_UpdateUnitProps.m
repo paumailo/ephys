@@ -33,6 +33,8 @@ if nargin >= 3 && ~isfield(P,groupid)
     error('The groupid string must be a fieldname in structure P');
 end
 
+if nargin < 4, verbose = true; end
+
 ap = mym('SELECT id, name FROM db_util.analysis_params');
 
 fn = fieldnames(P)';
@@ -53,42 +55,34 @@ dltstr = ['DELETE FROM up USING unit_properties AS up INNER JOIN db_util.analysi
 mymstrf = 'REPLACE unit_properties (unit_id,group_id,param_id,paramF) VALUES (%d,"%s",%d,%f)';
 mymstrs = 'REPLACE unit_properties (unit_id,group_id,param_id,paramS) VALUES (%d,"%s",%d,"%s")';
 
-fstrf = '%s unit id %d\t%s: %s\t%s: "%s"\n';
-fstrs = '%s unit id %d\t%s: %s\t%s: %0.3f\n';
+fstrs = '%s unit id %d\t%s: %s\t%s: "%s"\n';
+fstrf = '%s unit id %d\t%s: %s\t%s: %0.3f\n';
 
 for f = fn
     f = char(f); %#ok<FXSET>
     id = ap.id(ismember(ap.name,f));
-    if ischar(P.(f)), P.(f) = cellstr(P.(f)); end
-    if iscellstr(P.(f))
-        for i = 1:numel(P.(groupid))
-            if i > numel(P.(f)), continue; end
-            c = myms(sprintf(chkstr,unit_id,P.(groupid){i},f));
-            if ~isempty(c), mym(sprintf(dltstr,unit_id,P.(groupid){i},f)); end            
-            mym(sprintf(mymstrs,unit_id,P.(groupid){i},id,P.(f){i}));
-            if verbose
-                if ~isempty(c)
-                    fprintf(fstrf,'Updated',unit_id,groupid,P.(groupid){i},f,P.(f){i})
-                else
-                    fprintf(fstrf,'Added',unit_id,groupid,P.(groupid){i},f,P.(f){i})
-                end
-            end
-        end
-    else
-        for i = 1:numel(P.(groupid))
-            if i > numel(P.(f)), continue; end
-            c = myms(sprintf(chkstr,unit_id,P.(groupid){i},f));
-            if ~isempty(c), mym(sprintf(dltstr,unit_id,P.(groupid){i},f)); end
-            mym(sprintf(mymstrf,unit_id,P.(groupid){i},id,P.(f)(i)));
-            if verbose
-                if ~isempty(c)
-                    fprintf(fstrs,'Updated',unit_id,groupid,P.(groupid){i},f,P.(f)(i))
-                else
-                    fprintf(fstrs,'Added',unit_id,groupid,P.(groupid){i},f,P.(f)(i))
-                end
-            end
+    if ischar(P.(f))
+        P.(f) = cellstr(P.(f));
+    elseif isnumeric(P.(f)) || islogical(P.(f))
+        P.(f) = num2cell(P.(f));
+    end
+    
+    for i = 1:numel(P.(groupid))
+        if i > numel(P.(f)), continue; end
+        c = myms(sprintf(chkstr,unit_id,P.(groupid){i},f));
+        if ~isempty(c), mym(sprintf(dltstr,unit_id,P.(groupid){i},f)); end
+        if isnan(P.(f){i}), P.(f){i} = 'NULL'; end
+        if ischar(P.(f){i}), mymstr = mymstrs; else mymstr = mymstrf; end
+        mym(sprintf(mymstr,unit_id,P.(groupid){i},id,P.(f){i}));
+        if ~verbose, continue; end
+        if isempty(c), vstr = 'Added'; else vstr = 'Updated'; end
+        if isnumeric(P.(f){i}) || islogical(P.(f){i})
+            fprintf(fstrf,vstr,unit_id,groupid,P.(groupid){i},f,P.(f){i})
+        else
+            fprintf(fstrs,vstr,unit_id,groupid,P.(groupid){i},f,P.(f){i})
         end
     end
+    
 end
 
 

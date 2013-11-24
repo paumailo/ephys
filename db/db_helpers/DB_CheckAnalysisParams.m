@@ -50,7 +50,9 @@ for i = 1:length(n)
 % make sure analysis_params are up to date because units column was added
 % later on
 
-    if ~isempty(u{i}) && ~strcmp(u{i},p.units{ind})
+    if ~any(ind)
+        continue
+    elseif ~isempty(u{i}) && ~strcmp(u{i},p.units{ind})
         mym(['UPDATE db_util.analysis_params ', ...
             'SET units = "{S}" ', ...
             'WHERE name = "{S}"'],u{i},n{i});

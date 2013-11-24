@@ -145,7 +145,7 @@ UpdateFig(h.LevelList,'clickrf',f)
 
 function rast = genrast(st,P,level,win)
 ind = P.VALS.Levl == level;
-ons  = P.VALS.onset(idx);
+ons  = P.VALS.onset(ind);
 wons = ons + win(1);
 wofs = ons + win(2);
 rast = cell(size(ons));
