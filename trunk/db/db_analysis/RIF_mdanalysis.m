@@ -191,7 +191,7 @@ switch  get(ax,'tag')
     case 'main'
         dB = y;
         
-    case 'io'
+    case {'peakio','respio'}
         dB = x;
         
     case 'latency'
@@ -258,7 +258,7 @@ set(do,'enable','on');
 
 
 %%
-function A = GenPSTH(h)
+function data = GenPSTH(h)
 vwin = str2num(get(h.viewwin,'String')); %#ok<*ST2NM>
 rwin = str2num(get(h.respwin,'String'));
 bwin = str2num(get(h.prewin,'String'));
@@ -303,13 +303,17 @@ cla(h.latax);
 
 UD = get(f,'UserData');
 
-A = GatherDBdata(h.unit_id,UD.A);
+if isempty(UD) || ~keep
+    UD = GenPSTH(h);
+end
 
-if ~keep || isempty(A), A = GenPSTH(h); end
-
-UD.A = A;
-
-set(f,'UserData',UD);
+if ~keep && isfield(UD,'A') && isfield(UD.A,'levels')
+    UD.A = GatherDBdata(h.unit_id,UD.A);
+    if isempty(UD.A)
+        UD = GenPSTH(h);
+    end
+    set(f,'UserData',UD);
+end
 
 UpdatePlots(f);
 
@@ -398,12 +402,12 @@ B.peak.magnitude    = [P.magnitude];
 B.peak.latency      = [P.latency];
 B.peak.rejectnullh  = [P.rejectnullh];
 B.peak.p            = [P.p];
-B.peak.ci           = str2num(cell2mat([P.ci]'));
+B.peak.ci           = str2num(cell2mat([P.ci]'))';
 
 B.response.magnitude    = [R.magnitude];
 B.response.p            = [R.p];
 B.response.rejectnullh  = [R.rejectnullh];
-B.response.ci           = str2num(cell2mat([R.ci]'));
+B.response.ci           = str2num(cell2mat([R.ci]'))';
 for i = 10:20:90
     fn = sprintf('onset%dpk',i);
     B.response.(fn) = [R.(fn)];
@@ -446,12 +450,12 @@ for i = 1:size(psth,2)
         plot(vals{1},yoffset+spsth(:,i),'-','color',c,'linewidth',2);
     end
     
-    if ~isnan(A.peak.rejectnullh(i)) && A.peak.rejectnullh(i)
+    if ~isnan(A.peak.rejectnullh(i))
         peakmag = A.peak.magnitude(i);
         plot(A.peak.latency(i),yoffset+peakmag/mpsth*mdv,'*m');
     end
     
-    if ~isnan(A.response.rejectnullh(i)) && A.response.rejectnullh(i)
+    if ~isnan(A.response.rejectnullh(i))
         plot([A.response.onset10pk(i) A.response.offset10pk(i)],yoffset+peakmag*[0.10 0.10]/mpsth*mdv,'-r', ...
              [A.response.onset50pk(i) A.response.offset50pk(i)],yoffset+peakmag*[0.50 0.50]/mpsth*mdv,'-g', ...
              'linewidth',2);
@@ -514,40 +518,40 @@ axes(ax);
 [yyax,h1,h2] = plotyy(ax,x,A.peak.magnitude,x,A.response.magnitude);
 
 % peak IO
-set(h1,'marker','o','color','k')
-set(yyax(1),'ycolor','k')
+set(h1,'marker','*','color','m')
+set(yyax(1),'ycolor','m')
 
 hold(yyax(1),'on')
-plot(yyax(1),A.peak.features.bestlevel,A.peak.features.maxmag,'or', ...
-    'markerfacecolor','r');
+plot(yyax(1),A.peak.features.bestlevel,A.peak.features.maxmag,'om', ...
+    'markerfacecolor','m');
 
 if isfield(A.peak.features,'transpoint')
     p = [A.peak.features.monotonicity A.peak.features.yintercept];
     y = polyval(p,[A.peak.features.transpoint x(end)]);
     plot(yyax(1),[A.peak.features.transpoint x(end)],y,'-r','linewidth',2);
     i = A.peak.features.transpoint == A.levels;
-    plot(yyax(1),A.peak.features.transpoint,A.peak.magnitude(i),'xc', ...
+    plot(yyax(1),A.peak.features.transpoint,A.peak.magnitude(i),'xm', ...
         'linewidth',3,'markersize',12);
 end
 hold(yyax(1),'off')
 
 % response IO
-set(h2,'marker','*','color','m');
-set(yyax(2),'ycolor','m')
+set(h2,'marker','o','color','k');
+set(yyax(2),'ycolor','k')
 
 hold(yyax(2),'on')
-plot(yyax(2),A.response.features.bestlevel,A.response.features.maxmag,'or', ...
-    'markerfacecolor','r');
+plot(yyax(2),A.response.features.bestlevel,A.response.features.maxmag,'ok', ...
+    'markerfacecolor','k');
 
 thresh = A.response.features.threshold;
 plot(yyax(2),thresh*[1 1],ylim,'-b');
 
-if isfield(A.peak.features,'transpoint')
+if isfield(A.response.features,'transpoint')
     p = [A.response.features.monotonicity A.response.features.yintercept];
     y = polyval(p,[A.response.features.transpoint x(end)]);
     plot(yyax(2),[A.response.features.transpoint x(end)],y,'-r','linewidth',2);
     i = A.response.features.transpoint == A.levels;
-    plot(yyax(2),A.response.features.transpoint,A.response.magnitude(i),'xc', ...
+    plot(yyax(2),A.response.features.transpoint,A.response.magnitude(i),'xk', ...
         'linewidth',3,'markersize',12);
 end
 
@@ -557,8 +561,8 @@ xlabel(yyax(1),'Level (dB)','FontSize',8)
 ylabel(yyax(1),'Firing Rate (Hz)','FontSize',8)
 mdx = mean(diff(x));
 set(yyax,'xlim',[x(1)-mdx x(end)+mdx]);
-h(1) = legend(yyax(1),{'Peak'},'location','southeast');
-h(2) = legend(yyax(2),{'Response'},'location','northwest');
+h(1) = legend(yyax(1),{'Peak'},'location','northwest');
+h(2) = legend(yyax(2),{'Response'},'location','southeast');
 set(h(1),'FontSize',6,'box','off');
 set(h(2),'FontSize',6,'box','off');
 set(yyax(1),'tag','peakio');
