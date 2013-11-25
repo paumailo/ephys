@@ -1,4 +1,3 @@
-%% GUI
 function RIF_mdanalysis(unit_id)
 % RIF_mdanalysis
 % RIF_mdanalysis(unit_id)
@@ -109,6 +108,11 @@ h.peaktranspoint = uicontrol(f,'Style','pushbutton','String','Peak Trans Pnt', .
     'units','normalized','Position',[0.8 0.83 0.1 0.025], ...
     'Callback',{@TransPoint,'peak',f},'Tag','updatedb','Fontsize',8);
 
+
+
+
+
+%% User interaction
 function TransPoint(hObj,event,type,f) %#ok<INUSL>
 do = findobj(f,'enable','on');
 set(do,'enable','off');
@@ -232,7 +236,6 @@ data.vals       = vals;
 data.settings   = settings;
 set(h.figure,'UserData',data);
 
-
 function UpdateFig(hObj,event,maintain,f) %#ok<INUSL>
 h = guidata(f);
 
@@ -245,6 +248,11 @@ if ~maintain
 end
 
 UD = get(f,'UserData');
+
+UD.A = GatherDBdata(h.unit_id,UD.A);
+
+set(f,'UserData',UD);
+
 settings = UD.settings;
 
 if get(h.show_raster,'Value')
@@ -253,6 +261,13 @@ end
 PlotPSTH(h.mainax,UD.cpsth,UD.vals,UD.A);
 PlotIO(h.ioax,UD.A,UD.vals{2})
 PlotLatency(h.latax,UD.A,UD.vals{2})
+
+
+
+
+
+
+
 
 
 
@@ -300,6 +315,27 @@ DB_UpdateUnitProps(h.unit_id,Rfeatures,'group');
 
 
 set(do,'enable','on');
+
+function A = GatherDBdata(unit_id,A)
+
+
+P = DB_GetUnitProps(unit_id);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 %% Plots
