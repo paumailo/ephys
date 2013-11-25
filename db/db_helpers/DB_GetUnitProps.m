@@ -37,7 +37,9 @@ for i = 1:length(upar)
         ind = iind & ismember(dbP.group_id,ugrp{j});
         if ~any(ind), continue; end
         if isnan(dbP.paramF(ind))
-            P.(upar{i})(j) = dbP.paramS(ind);
+            S = dbP.paramS(ind);
+            if strcmpi(S,'NULL'), S = nan; end
+            P.(upar{i})(j) = S;
         else
             P.(upar{i})(j) = dbP.paramF(ind);
         end
