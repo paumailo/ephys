@@ -16,7 +16,7 @@ units = myms(sprintf(['SELECT DISTINCT v.unit FROM v_ids v ', ...
 nunits = length(units);
 
 %%
-rng(123,'twister'); % Important: do not chang this seed value from 123
+rng(123,'twister'); % Important: do not change this seed value from 123
 units = units(randperm(nunits));
 
 %%

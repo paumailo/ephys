@@ -36,12 +36,13 @@ end
 function RF_analysis_OpeningFcn(hObj, ~, h, varargin)
 h.output = hObj;
 
-
 if length(varargin) == 1
     h.unit_id = varargin{1};
 else
     h.unit_id = getpref('DB_BROWSER_SELECTION','units');
 end
+
+Check4DBparams;
 
 h = InitializeRF(h);
 
@@ -55,9 +56,20 @@ guidata(hObj, h);
 function varargout = RF_analysis_OutputFcn(hObj, ~, h)  %#ok<INUSL>
 varargout{1} = h.output;
 
+if ispref('RF_analysis_GUI')
+    pos = getpref('RF_analysis_GUI','windowpos');
+    if ~isempty(pos) && length(pos) == 4
+        set(h.figure1,'position',pos);
+    end
+end
 
 
 
+
+function CloseMe(h)
+pos = get(h.figure1,'Position');
+setpref('RF_analysis_GUI','windowpos',pos);
+delete(h.figure1);
 
 
 
@@ -154,11 +166,7 @@ h = UpdatePlot(h);
 
 set(h.updatedb,'Enable','on');
 
-
-
-
-
-function UpdateOpts(hObj,h)
+function UpdateOpts(hObj,h) %#ok<DEFNU>
 switch get(hObj,'Style')
     case 'checkbox'
         setpref('RF_analysis_opts',get(hObj,'Tag'),get(hObj,'Value'));
@@ -171,6 +179,19 @@ end
 h = UpdatePlot(h);
 
 guidata(h.figure1,h);
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -209,12 +230,6 @@ for i = 1:length(Cc)
     Cs(i).contour = Cc{i}; %#ok<AGROW>
     Cs(i).h       = ch(i); %#ok<AGROW>
 end
-
-
-
-
-
-
 
 function h = UpdatePlot(h)
 
@@ -299,14 +314,23 @@ set(h.RFfig,'Name',sprintf('Unit %d',IDs.unit),'NumberTitle','off', ...
 axM = subplot('Position',[0.1  0.1  0.6  0.6],'Parent',h.RFfig,'NextPlot','Add','Tag','MainAxes');
 axX = subplot('Position',[0.1  0.75 0.6  0.1],'Parent',h.RFfig,'NextPlot','Add','Tag','SumX');
 axY = subplot('Position',[0.75 0.1  0.2  0.6],'Parent',h.RFfig,'NextPlot','Add','Tag','SumY');
+axH = subplot('position',[0.7  0.75 0.25 0.2],'Parent',h.RFfig,'NextPlot','Replace','Tag','Hist');
 
+
+% Main RF plot
 surf(axM,xvals,yvals,data)
+
+
+% data histogram
+PlotDataHist(axH,data,spnt,str2num(opts.opt_threshold)); %#ok<ST2NM>
+
+
 
 % crossection of receptive field
 crsX  = mean(data,ydim);
 scrsX = mean(spnt,ydim);
 plot(axX,xvals,crsX,'-k','linewidth',2)
-plot(axX,xvals,scrsX,':','color',[0.6 0.6 0.6]);
+plot(axX,xvals,scrsX,'-','color',[0.6 0.6 0.6]);
 
 set([axM axX axY],'box','on');
 set([axM axY],'xgrid','on','ygrid','on','zgrid','on');
@@ -324,7 +348,7 @@ else
     set([axM axX],'xscale','linear');
 end
 
-set(axX,'xaxislocation','top','yaxislocation','right');
+set(axX,'xaxislocation','top','yaxislocation','left');
 set(axY,'xaxislocation','bottom','yaxislocation','right');
 
 xlabel(axM,dimx);  ylabel(axM,dimy); zlabel(axM,'Firing Rate (Hz)');
@@ -355,7 +379,7 @@ if ~isempty(Cdata(1).id)
     for i = 1:length(Cdata)
         set(Cdata(i).h,'EdgeColor',ccodes(Cdata(i).id,:));
         Cdata(i).mask     = ContourMask(Cdata(i).contour,xvals,yvals);
-        Cdata(i).Features = ComputeResponseFeatures(data,Cdata(i),xvals,yvals);
+        Cdata(i).Features = ResponseFeatures(data,Cdata(i),xvals,yvals);
         PlotFeatures(axM,axY,data,Cdata(i),xvals,yvals);
     end
 end
@@ -387,8 +411,6 @@ h.RFax_main = axM;
 h.RFax_crsX = axX;
 h.RFax_crsY = axY;
 h.RFax_ch = [Cdata.h];
-
-
 
 function PlotFeatures(axM,axY,data,Cdata,xvals,yvals)
 F = Cdata.Features;
@@ -428,6 +450,7 @@ ch(end+1) = plot(axY,E.bfio./max(E.bfio),yvals,'-d','markersize',3,'linewidth',0
 ch(end+1) = plot(axY,E.cfio./max(E.cfio),yvals,'-s','markersize',3,'linewidth',0.1);
 
 set(ch,'markerfacecolor',ccode,'Clipping','off','color','k');
+hold(axY,'off');
 
 legstr = {[]};
 if ~isempty(E.Qs),   legstr{end+1} = sprintf('Q vals (%0.1f)',max(E.Qs));  end
@@ -435,20 +458,47 @@ if ~isempty(E.bfio), legstr{end+1} = sprintf('IO@BF (%0.1f)',max(E.bfio)); end
 if ~isempty(E.bfio), legstr{end+1} = sprintf('IO@CF (%0.1f)',max(E.cfio)); end
 legstr(1) = [];
 
-legend(axY,legstr,'position',[0.73 0.77 0.22 0.12]);
+% legend(axY,legstr,'position',[0.73 0.77 0.22 0.12]);
+legend(axY,legstr,'location','best','fontsize',8);
 
-hold(axY,'off');
+function PlotDataHist(ax,data,spont,nstd)
+data = data(:); spont = spont(:);
+% q = quantile(data,[0.25 0.5 0.75]);
+c = mean(spont) + std(spont) * nstd;
+
+[h,b] = hist(data,100);
+bar(ax,b,h,'b','edgecolor','none')
+axis(ax,'tight')
+hold(ax,'on');
+y = ylim(ax);
+% plot([q; q],repmat(y',1,3),'-k')
+plot([c c],y,'-r')
+hold(ax,'off');
+set(ax,'ytick',[],'xtick',[]);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 %% Analysis functions
-function F = ComputeResponseFeatures(data,Cdata,xvals,yvals)
+function F = ResponseFeatures(data,Cdata,xvals,yvals)
 mdata = nan(size(data));
 mdata(Cdata.mask) = data(Cdata.mask);
 
-[F.minthresh,cfi] = min(Cdata.contour(2,:));  % minimum threshold
-F.charfreq = Cdata.contour(1,cfi);            % characteristic frequency
+F.minthresh = min(Cdata.contour(2,:));  % minimum threshold
+ind = Cdata.contour(2,:) <= F.minthresh + 1; % find mean CF near threshold
+F.charfreq = mean(Cdata.contour(1,ind)); % characteristic frequency
 xi = interp1(xvals,xvals,F.charfreq,'nearest');
 F.EXTRAS.cfio = data(:,xvals==xi); %*CharFreq IO function
 
@@ -469,15 +519,14 @@ for i = 1:length(BWy)
     Hfind = find(Cdata.mask(yind,:),1,'last');  Hfbw(i) = xvals(Hfind); %#ok<AGROW>
     BW = Hfbw(i) - Lfbw(i);
     Q  = F.charfreq ./ BW;
-    F.(sprintf('BW%02ddB',i*5))     = BW;
-    F.EXTRAS.(sprintf('Q%ddB',i*5)) = Q;
+    F.EXTRAS.(sprintf('BW%02ddB',i*5)) = BW;
+    F.EXTRAS.(sprintf('Q%ddB',i*5))    = Q;
     F.EXTRAS.Qs(i) = Q;
 end
 F.EXTRAS.BWy     = BWy;
 F.EXTRAS.bwLf    = Lfbw;
 F.EXTRAS.bwHf    = Hfbw;
 F.EXTRAS.bwyvals = bwlevel;
-
 
 
 function mask = ContourMask(C,xvals,yvals)
@@ -522,85 +571,6 @@ while true
     if k > n, break; end
     i = i + 1;
 end
-
-
-
-
-
-function UpdateDB(h) %#ok<DEFNU>
-set(h.figure1,'Pointer','watch');
-set(h.updatedb,'Enable','off');
-drawnow
-
-axM = h.RFax_main;
-
-UD = get(axM,'UserData');
-
-if isempty(UD) ||  ~isfield(UD,'Cdata'), return; end
-
-i = 1;
-for bw = 5:5:100;
-    BWn{i} = sprintf('BW%02ddB',bw); %#ok<AGROW>
-    BWd{i} = sprintf('Frequency bandwidth (in Hz) at %d dB above minimum threshold',bw); %#ok<AGROW>
-    BWu{i} = 'Hz'; %#ok<AGROW>
-    i = i + 1;
-end
-n = {'bestfreq','charfreq','minthresh','rftype','spontrate','maxrate','bestlevel','numfields', ...
-    'guisettings'};
-u = {'Hz','Hz','dB',[],'Hz','Hz','dB',[],[]};
-d = {'Best Frequency','Characteristic Frequency','Minimum Threshold', ...
-'Receptive Field Type','Spontaneous Firing Rate','Maximum Firing Rate in RF', ...
-'Best response level','Number of receptive fields','String of GUI settings for analysis'};
-n = [n BWn];
-d = [d BWd];
-u = [u BWu];
-DB_CheckAnalysisParams(n,d,u);
-
-
-Cdata = UD.Cdata;
-if isempty(Cdata(1).id)
-    fprintf('No features have been identified for unit %d.\n',h.unit_id)
-    set(h.updatedb,'Enable','on');
-    set(h.figure1,'Pointer','arrow'); drawnow
-    return
-end
-
-for i = 1:length(Cdata)
-    cf = Cdata(i).Features;
-    R.identity{i}   = sprintf('RFid%02d',Cdata(i).id);
-    R.bestfreq(i)   = cf.bestfreq;
-    R.charfreq(i)   = cf.charfreq;
-    R.minthresh(i)  = cf.minthresh;
-    R.spontrate(i)  = UD.spontmean;
-    R.maxrate(i)    = cf.maxrate;
-    R.bestlevel(i)  = cf.bestlevel;
-    for j = 1:length(cf.EXTRAS.BWy)
-        bwfn = sprintf('BW%02ddB',j*5);
-        if ~isfield(cf,bwfn), break; end
-        R.(bwfn)(i) = cf.(bwfn);
-    end
-end
-
-DB_UpdateUnitProps(h.unit_id,R,'identity',true);
-
-m = myms(sprintf(['SELECT COUNT(DISTINCT(group_id)) FROM v_unit_props ', ...
-        'WHERE group_id REGEXP "RFid*" AND unit_id = %d'],h.unit_id));
-for i = length(Cdata)+1:m
-    mym('DELETE FROM unit_properties WHERE unit_id = {Si} AND group_id = "{S}"', ...
-        h.unit_id,sprintf('RFid%02d',i));
-end
-
-T.identity    = 'rftype';
-T.rftype      = get_string(h.list_rftype);
-T.numfields   = length(Cdata);
-T.guisettings = sprintf('%s,%s,%d,%d,%d,%s,%s,%s', ...
-    get_string(h.opt_dimx),get_string(h.opt_dimy),...
-    get(h.opt_xscalelog,'Value'),get(h.opt_smooth2d,'Value'),get(h.opt_interp,'Value'), ...
-    get(h.opt_cwinon,'String'),get(h.opt_cwinoff,'String'),get(h.opt_threshold,'String'));
-DB_UpdateUnitProps(h.unit_id,T,'identity',true);
-
-set(h.updatedb,'Enable','on');
-set(h.figure1,'Pointer','arrow'); drawnow
 
 
 
@@ -649,10 +619,6 @@ if addrftype
 end
 
 
- 
-
-
-
 function SelectRFtype(hObj,h)
 if strcmp(get_string(hObj),'< ADD RF TYPE >')
     rftypes = DB_GetRFtypes(true);
@@ -671,7 +637,96 @@ set(h.txt_rftypedesc,'String',sprintf('[ID% 3d]\n%s\n',rftypes.id(i),rftypes.des
 
 
 
+%% Database
+function Check4DBparams
+persistent p_dbchecked
 
+if ~isempty(p_dbchecked) && p_dbchecked, return; end
+
+L = (5:5:100)';
+LowFreqN  = strtrim(cellstr(num2str(L(:),'LowFreq%02ddB')))';
+HighFreqN = strtrim(cellstr(num2str(L(:),'HighFreq%02ddB')))';
+
+LowFreqD  = strtrim(cellstr(num2str(L(:),'Low frequency border at %d dB above minimum threshold')))';
+HighFreqD = strtrim(cellstr(num2str(L(:),'High frequency border at %d dB above minimum threshold')))';
+
+LowFreqU  = repmat({'Hz'},size(LowFreqN));
+HighFreqU = repmat({'Hz'},size(HighFreqN));
+
+n = {'bestfreq','charfreq','minthresh','rftype','spontrate','maxrate','bestlevel','numfields', ...
+    'guisettings'};
+u = {'Hz','Hz','dB',[],'Hz','Hz','dB',[],[]};
+d = {'Best Frequency','Characteristic Frequency','Minimum Threshold', ...
+'Receptive Field Type','Spontaneous Firing Rate','Maximum Firing Rate in RF', ...
+'Best response level','Number of receptive fields','String of GUI settings for analysis'};
+n = [n LowFreqN HighFreqN];
+d = [d LowFreqD HighFreqD];
+u = [u LowFreqU HighFreqU];
+
+try
+    DB_CheckAnalysisParams(n,d,u);
+    p_dbchecked = true;
+catch me
+    p_dbchecked = false;
+    rethrow(me);
+end
+
+function UpdateDB(h) %#ok<DEFNU>
+set(h.figure1,'Pointer','watch');
+set(h.updatedb,'Enable','off');
+drawnow
+
+axM = h.RFax_main;
+
+UD = get(axM,'UserData');
+
+if isempty(UD) ||  ~isfield(UD,'Cdata'), return; end
+
+Cdata = UD.Cdata;
+if isempty(Cdata(1).id)
+    fprintf('No features have been identified for unit %d.\n',h.unit_id)
+    set(h.updatedb,'Enable','on');
+    set(h.figure1,'Pointer','arrow'); drawnow
+    return
+end
+
+for i = 1:length(Cdata)
+    cf = Cdata(i).Features;
+    R.identity{i}   = sprintf('RFid%02d',Cdata(i).id);
+    R.bestfreq(i)   = cf.bestfreq;
+    R.charfreq(i)   = cf.charfreq;
+    R.minthresh(i)  = cf.minthresh;
+    R.spontrate(i)  = UD.spontmean;
+    R.maxrate(i)    = cf.maxrate;
+    R.bestlevel(i)  = cf.bestlevel;
+    for j = 1:length(cf.EXTRAS.bwLf)
+        fn = sprintf('LowFreq%02ddB',j*5);
+        R.(fn)(i) = cf.EXTRAS.bwLf(j);
+        fn = sprintf('HighFreq%02ddB',j*5);
+        R.(fn)(i) = cf.EXTRAS.bwHf(j);
+    end
+end
+
+DB_UpdateUnitProps(h.unit_id,R,'identity',true);
+
+m = myms(sprintf(['SELECT COUNT(DISTINCT(group_id)) FROM v_unit_props ', ...
+        'WHERE group_id REGEXP "RFid*" AND unit_id = %d'],h.unit_id));
+for i = length(Cdata)+1:m
+    mym('DELETE FROM unit_properties WHERE unit_id = {Si} AND group_id = "{S}"', ...
+        h.unit_id,sprintf('RFid%02d',i));
+end
+
+T.identity    = 'rftype';
+T.rftype      = get_string(h.list_rftype);
+T.numfields   = length(Cdata);
+T.guisettings = sprintf('%s,%s,%d,%d,%d,%s,%s,%s', ...
+    get_string(h.opt_dimx),get_string(h.opt_dimy),...
+    get(h.opt_xscalelog,'Value'),get(h.opt_smooth2d,'Value'),get(h.opt_interp,'Value'), ...
+    get(h.opt_cwinon,'String'),get(h.opt_cwinoff,'String'),get(h.opt_threshold,'String'));
+DB_UpdateUnitProps(h.unit_id,T,'identity',true);
+
+set(h.updatedb,'Enable','on');
+set(h.figure1,'Pointer','arrow'); drawnow
 
 
 
@@ -682,3 +737,7 @@ set(h.txt_rftypedesc,'String',sprintf('[ID% 3d]\n%s\n',rftypes.id(i),rftypes.des
 function LocatePlotFig %#ok<DEFNU>
 f = findobj('tag','RFfig','-and','type','figure');
 if ~isempty(f), figure(f); end
+
+
+
+
