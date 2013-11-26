@@ -1,5 +1,10 @@
 function RF_FreqVsTime(unit_id)
-%%
+% RF_FreqVsTime
+% RF_FreqVsTime(unit_id)
+% 
+% Visualize receptive field as frequency vs time raster
+%
+% daniel.stolzberg@gmail.com 2013
 
 if nargin == 0 || isempty(unit_id)
     unit_id = getpref('DB_BROWSER_SELECTION','units');
@@ -82,7 +87,7 @@ rfwin = str2num(get(h.rfwin,'String')); %#ok<ST2NM>
     'win',rfwin/1000,'binsize',0.001,'func','sum');
 plotrf(rfdata*1000,rfvals);
    
-subplot(322)
+subplot(3,5,[4 5])
 hold on
 set(gca,'clipping','off');
 x = xlim(gca);
@@ -94,14 +99,42 @@ hold off
     
 % raster
 rast = genrast(h.RF.st,h.RF.P,level,rwin/1000);
-plotraster(h.RF.P,rast,rwin,level);
+plotraster(h.RF.P,rast,rwin,rfwin,level);
+
+% histogram
+plothist(rast,h.RF.P.lists.Freq,rfwin);
 
 setpref('RF_FreqVsTime',{'rfwin','rwin','level'},{rfwin,rwin,level});
 
 
+function plothist(rast,Freq,win)
+subplot(3,5,[10 15]);
+f = Freq / 1000;
+nfreqs = length(f);
+nreps = length(rast) / length(f);
+
+trast = cellfun(@(x) (x(x>=win(1) & x < win(2))),rast,'UniformOutput',false);
+cnt = cellfun(@numel,trast);
+cnt = reshape(cnt,nreps,nfreqs);
+h = mean(cnt);
+ch = conv(h,gausswin(5),'same');
+ch = ch / max(ch) * max(h);
+
+
+plot(ch,f,'-','linewidth',2,'color',[0.4 0.4 0.4]);
+hold on
+b = barh(f,h,'hist');
+delete(findobj(gca,'marker','*'));
+set(b,'facecolor',[0.8 0.94 1],'edgecolor','none');
+hold off
+
+set(gca,'yscale','log','ylim',[f(1) f(end)],'yaxislocation','right', ...
+    'ytick',[1 5 10 50],'yticklabel',[1 5 10 50])
+xlabel('Mean spike count','fontsize',8);
+
 function plotrf(data,vals)
 %% Plot Receptive Field
-subplot(3,2,2,'replace')
+subplot(3,5,[4 5])
 cla
 
 x = vals{2};
@@ -157,14 +190,22 @@ f = P.VALS.Freq(ind);
 [~,i] = sort(f);
 rast = rast(i);
 
-function plotraster(P,rast,win,level)
-subplot(3,2,[3 6],'replace')
+function plotraster(P,rast,win,respwin,level)
+subplot(3,5,[6 14],'replace')
 cla
+
 
 rast = cellfun(@(a) (a*1000),rast,'UniformOutput',false); % s -> ms
 nreps = sum(P.VALS.Freq == P.lists.Freq(end) & P.VALS.Levl == level);
 f = P.lists.Freq / 1000;
 f = interp1(1:length(f),f,linspace(1,length(f),length(f)*nreps),'cubic');
+
+minf = min(f);
+maxf = max(f);
+patch([respwin fliplr(respwin)],[minf minf maxf maxf],[0.8 0.94 1], ...
+    'EdgeColor','none');
+
+
 hold on
 for i = 1:length(rast)
     if isempty(rast{i}), continue; end
@@ -178,7 +219,7 @@ set(gca,'yscale','log','ylim',[min(P.lists.Freq) max(P.lists.Freq)]/1000, ...
 box on
 xlabel('Time (ms)','FontSize',9);
 ylabel('Frequency (kHz)','FontSize',9);
-title(sprintf('%d dB',level));
+title(sprintf('%d dB',level),'FontSize',14);
     
     
     
