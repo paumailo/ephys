@@ -10,7 +10,7 @@ function dbs = DB_Connect(host,user,pass)
 % DJS 2013
 
 prevcon = getpref('DB_Connect',{'host','user','pass'},{'','',''});
-if nargin >= 1 && islogical(host)
+if nargin >= 1 && islogical(host) && host == true
     % force update
     newcon = PromptNewInfo(prevcon);
     if ~isempty(newcon)

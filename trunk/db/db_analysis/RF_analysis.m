@@ -66,7 +66,7 @@ end
 
 
 
-function CloseMe(h)
+function CloseMe(h) %#ok<DEFNU>
 pos = get(h.figure1,'Position');
 setpref('RF_analysis_GUI','windowpos',pos);
 delete(h.figure1);
@@ -388,7 +388,7 @@ UD.Cdata = Cdata;
 a = findobj('tag','axMinfo');
 if ~isempty(a), delete(a); end
 
-if isempty(Cdata.id)
+if isempty(Cdata(1).id)
     annotation('textbox',[0.1 0.1 0.9 0.9],'String','NO FIELDS','tag','axMinfo', ...
     'color','R','linestyle','none','fontsize',8);
 
@@ -458,8 +458,11 @@ if ~isempty(E.bfio), legstr{end+1} = sprintf('IO@BF (%0.1f)',max(E.bfio)); end
 if ~isempty(E.bfio), legstr{end+1} = sprintf('IO@CF (%0.1f)',max(E.cfio)); end
 legstr(1) = [];
 
+set(axY,'xlim',[0 1.1]);
+
 % legend(axY,legstr,'position',[0.73 0.77 0.22 0.12]);
-legend(axY,legstr,'location','best','fontsize',8);
+h = legend(axY,legstr,'location','southoutside','fontsize',8);
+set(h,'box','off');
 
 function PlotDataHist(ax,data,spont,nstd)
 data = data(:); spont = spont(:);
@@ -467,7 +470,7 @@ data = data(:); spont = spont(:);
 c = mean(spont) + std(spont) * nstd;
 
 [h,b] = hist(data,100);
-bar(ax,b,h,'b','edgecolor','none')
+bar(ax,b,h,'edgecolor','none','facecolor',[0.6 0.6 0.6])
 axis(ax,'tight')
 hold(ax,'on');
 y = ylim(ax);
