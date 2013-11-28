@@ -33,17 +33,25 @@ UpdateFig(h.LevelList,'init',f)
 function h = creategui(f)
 h = guidata(f);
 
+h.figure = f;
+
+set(f,'CloseRequestFcn',@CloseMe);
+
 rfwin = [0 50]; % receptive field plot
 rwin  = [0 150]; % raster plot
 
 L = h.RF.P.lists.Levl;
 level = max(L);
 
-opts = getpref('RF_FreqVsTime',{'rfwin','rwin','level'},{rfwin,rwin,level});
+opts = getpref('RF_FreqVsTime',{'rfwin','rwin','level','windowpos'},{rfwin,rwin,level,[]});
 
 rfwin = opts{1};
 rwin  = opts{2};
 level = opts{3};
+
+if ~isempty(opts{4}) && length(opts{4}) == 4
+    set(f,'position',opts{4});
+end
 
 ind = level == L;
 if ~any(ind), ind = L == max(L); end
@@ -71,8 +79,15 @@ uicontrol(f,'Style','text','String','RF Window (ms):','HorizontalAlignment','rig
     'units','normalized','Position',[0.0 0.74 0.29 0.05], ...
     'BackgroundColor',fbc,'FontSize',12);
 
-
 guidata(f,h);
+
+
+function CloseMe(hObj,~)
+h = guidata(hObj);
+pos = get(h.figure,'Position');
+setpref('RF_FreqVsTime','windowpos',pos);
+delete(h.figure);
+
 
 function UpdateFig(hObj,event,f) %#ok<INUSL>
 h = guidata(f);
@@ -83,11 +98,11 @@ rwin  = str2num(get(h.rwin,'String')); %#ok<ST2NM>
 rfwin = str2num(get(h.rfwin,'String')); %#ok<ST2NM>
 
 % receptive field
+subplot(3,5,[4 5],'replace')
 [rfdata,rfvals] = shapedata_spikes(h.RF.st,h.RF.P,{'Freq','Levl'}, ...
-    'win',rfwin/1000,'binsize',0.001,'func','sum');
+    'win',[0 0.05],'binsize',0.001,'func','sum');
 plotrf(rfdata*1000,rfvals);
-   
-subplot(3,5,[4 5])
+  
 hold on
 set(gca,'clipping','off');
 x = xlim(gca);
@@ -98,20 +113,30 @@ set(po,'zdata',[z(1) z(1) z(2) z(2)],'facecolor','w','facealpha',0.5, ...
 hold off
     
 % raster
+subplot(3,5,[6 14],'replace')
 rast = genrast(h.RF.st,h.RF.P,level,rwin/1000);
 plotraster(h.RF.P,rast,rwin,rfwin,level);
+hold on
+plot([0 0],ylim,'-','color',[0.6 0.6 0.6]);
+hold off
 
 % histogram
-plothist(rast,h.RF.P.lists.Freq,rfwin);
+rfdata = shapedata_spikes(h.RF.st,h.RF.P,{'Freq','Levl'}, ...
+    'win',[-0.05 0],'binsize',0.001,'func','sum');
+% spontrate = squeeze(mean(rfdata));
+spontrate = mean(rfdata(:));
+plothist(rast,h.RF.P.lists.Freq,rfwin,spontrate);
 
 setpref('RF_FreqVsTime',{'rfwin','rwin','level'},{rfwin,rwin,level});
 
 
-function plothist(rast,Freq,win)
+function plothist(rast,Freq,win,spontrate)
 subplot(3,5,[10 15]);
 f = Freq / 1000;
 nfreqs = length(f);
 nreps = length(rast) / length(f);
+
+win = win / 1000;
 
 trast = cellfun(@(x) (x(x>=win(1) & x < win(2))),rast,'UniformOutput',false);
 cnt = cellfun(@numel,trast);
@@ -126,17 +151,15 @@ hold on
 b = barh(f,h,'hist');
 delete(findobj(gca,'marker','*'));
 set(b,'facecolor',[0.8 0.94 1],'edgecolor','none');
-hold off
-
 set(gca,'yscale','log','ylim',[f(1) f(end)],'yaxislocation','right', ...
     'ytick',[1 5 10 50],'yticklabel',[1 5 10 50])
+plot([1 1]*spontrate,ylim,'-','color',[0.5 0.5 0.5])
+hold off
+
 xlabel('Mean spike count','fontsize',8);
 
 function plotrf(data,vals)
 %% Plot Receptive Field
-subplot(3,5,[4 5])
-cla
-
 x = vals{2};
 y = vals{3};
 
@@ -177,7 +200,7 @@ set(h.LevelList,'Value',i);
 UpdateFig(h.LevelList,'clickrf',f)
 
 function rast = genrast(st,P,level,win)
-ind = P.VALS.Levl == level;
+ind  = P.VALS.Levl == level;
 ons  = P.VALS.onset(ind);
 wons = ons + win(1);
 wofs = ons + win(2);
@@ -191,10 +214,6 @@ f = P.VALS.Freq(ind);
 rast = rast(i);
 
 function plotraster(P,rast,win,respwin,level)
-subplot(3,5,[6 14],'replace')
-cla
-
-
 rast = cellfun(@(a) (a*1000),rast,'UniformOutput',false); % s -> ms
 nreps = sum(P.VALS.Freq == P.lists.Freq(end) & P.VALS.Levl == level);
 f = P.lists.Freq / 1000;
