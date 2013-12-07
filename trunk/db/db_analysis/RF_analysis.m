@@ -390,19 +390,19 @@ if ~isempty(a), delete(a); end
 
 if isempty(Cdata(1).id)
     annotation('textbox',[0.1 0.1 0.9 0.9],'String','NO FIELDS','tag','axMinfo', ...
-    'color','R','linestyle','none','fontsize',8);
-
+        'color','R','linestyle','none','fontsize',8);
+    
 else
-astr = sprintf('BF = %0.1f Hz; CF = %0.1f Hz; MT = %0.1f dB\n', ...
-    Cdata(1).Features.bestfreq,Cdata(1).Features.charfreq,Cdata(1).Features.minthresh);
-if isfield(Cdata(1).Features.EXTRAS,'Q10dB')
-    astr = sprintf('%sQ10 = %0.1f',astr,Cdata(1).Features.EXTRAS.Q10dB);
-end
-if isfield(Cdata(1).Features.EXTRAS,'Q40dB')
-    astr = sprintf('%s; Q40 = %0.1f',astr,Cdata(1).Features.EXTRAS.Q40dB);
-end
-annotation('textbox',[0.1 0.1 0.9 0.9],'String',astr,'tag','axMinfo', ...
-    'color','k','linestyle','none','fontsize',8);
+    astr = sprintf('BF = %0.1f Hz; CF = %0.1f Hz; MT = %0.1f dB\n', ...
+        Cdata(1).Features.bestfreq,Cdata(1).Features.charfreq,Cdata(1).Features.minthresh);
+    if isfield(Cdata(1).Features.EXTRAS,'Q10dB')
+        astr = sprintf('%sQ10 = %0.1f',astr,Cdata(1).Features.EXTRAS.Q10dB);
+    end
+    if isfield(Cdata(1).Features.EXTRAS,'Q40dB')
+        astr = sprintf('%s; Q40 = %0.1f',astr,Cdata(1).Features.EXTRAS.Q40dB);
+    end
+    annotation('textbox',[0.1 0.1 0.9 0.9],'String',astr,'tag','axMinfo', ...
+        'color','k','linestyle','none','fontsize',8);
 end
 
 set(axM,'UserData',UD);
@@ -517,7 +517,7 @@ BWy = interp1(yvals,yvals,bwlevel,'nearest');
 Lfbw = []; Hfbw = []; F.EXTRAS.Qs = [];
 for i = 1:length(BWy)
     yind = BWy(i) == yvals;
-    if ~any(Cdata.mask(yind,:)), break; end
+    if ~any(Cdata.mask(yind,:)), continue; end
     Lfind = find(Cdata.mask(yind,:),1,'first'); Lfbw(i) = xvals(Lfind); %#ok<AGROW>
     Hfind = find(Cdata.mask(yind,:),1,'last');  Hfbw(i) = xvals(Hfind); %#ok<AGROW>
     BW = Hfbw(i) - Lfbw(i);
@@ -540,6 +540,10 @@ yi = interp1(yvals,yvals,C(2,:),'nearest');
 LfC = C(:,1:inflcty);        Lfyi = yi(1:inflcty);
 HfC = C(:,inflcty+1:end);    Hfyi = yi(inflcty+1:end);
 
+if mean(HfC(1,:)) < mean(LfC(1,:)) % this can happen
+    a = HfC;    HfC = LfC;      LfC = a;
+    a = Hfyi;   Hfyi = Lfyi;    Lfyi = a;
+end
 
 mask = true(length(yvals),length(xvals));
 
@@ -553,8 +557,8 @@ for i = 1:size(HfC,2)
     mask(a,:) = mask(a,:) & xvals <= HfC(1,i);
 end
 
-v = min(yi);
-mask(yvals<v,:) = false;
+% v = min(yi);
+% mask(yvals<v,:) = false;
 
 
 function Cs = CutContours(C)
