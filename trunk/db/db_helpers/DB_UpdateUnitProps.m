@@ -25,6 +25,8 @@ function DB_UpdateUnitProps(unit_id,P,groupid,verbose)
 % If verbose is true, then the updating progress will be displayed in the
 % command window. (default = false)
 %
+% See also, DB_GetUnitProps, DB_CheckAnalysisParams
+% 
 % DJS 2013 daniel.stolzberg@gmail.com
 
 narginchk(3,4);
