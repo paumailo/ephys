@@ -13,6 +13,8 @@ function P = DB_GetUnitProps(unit_id,group_id)
 % If group_id is not specified or empty, then all parameters will be
 % returned for the unit.
 %
+% See also, DB_UpdateUnitProps, DB_CheckAnalysisParams
+% 
 % DJS 2013 daniel.stolzberg@gmail.com
 
 narginchk(1,2);

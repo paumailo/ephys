@@ -22,6 +22,8 @@ function DB_CheckAnalysisParams(n,d,u)
 % u = {'dB','Hz','dB'};
 % DB_CheckAnalysisParams(n,d,u);
 %
+% See also, DB_GetUnitProps, DB_UpdateUnitProps
+%
 % DJS 2013 daniel.stolzberg@gmail.com
 
 narginchk(2,3);

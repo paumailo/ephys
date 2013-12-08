@@ -5,7 +5,6 @@ function RF_FreqVsTime(unit_id)
 % Visualize receptive field as frequency vs time raster
 %
 % daniel.stolzberg@gmail.com 2013
-
 if nargin == 0 || isempty(unit_id)
     unit_id = getpref('DB_BROWSER_SELECTION','units');
 end
@@ -14,26 +13,37 @@ f = findobj('tag','RF_FreqVsTime');
 if isempty(f)
 f = figure('Color',[0.98 0.98 0.98],'tag','RF_FreqVsTime');
 end
-figure(f);
-clf(f);
-set(f,'Name',sprintf('Unit ID: %d',unit_id),'units','normalized');
 
-h.RF.P = DB_GetParams(unit_id,'unit');
-h.RF.st = DB_GetSpiketimes(unit_id);
+h.unit_id = unit_id;
+h.f  = f;
+guidata(h.f,h);
 
-guidata(f,h);
-
-h = creategui(f);
-
-UpdateFig(h.LevelList,'init',f)
+h = init([],[],f);
+guidata(h.f,h);
 
 
+function h = init(~,~,f)
+h = guidata(f);
+figure(h.f);
+clf(h.f);
+set(h.f,'Name',sprintf('Unit ID: %d',h.unit_id),'units','normalized');
+
+h.RF.P = DB_GetParams(h.unit_id,'unit');
+h.RF.st = DB_GetSpiketimes(h.unit_id);
+
+h.dBprops = DB_GetUnitProps(h.unit_id,'RFid01');
+
+guidata(h.f,h);
+
+h = creategui(h.f);
+
+UpdateFig(h.LevelList,'init',h.f)
 
 
 function h = creategui(f)
 h = guidata(f);
 
-h.figure = f;
+h.f = f;
 
 set(f,'CloseRequestFcn',@CloseMe);
 
@@ -79,14 +89,18 @@ uicontrol(f,'Style','text','String','RF Window (ms):','HorizontalAlignment','rig
     'units','normalized','Position',[0.0 0.74 0.29 0.05], ...
     'BackgroundColor',fbc,'FontSize',12);
 
+h.refresh = uicontrol(f,'Style','pushbutton','String','refresh', ...
+    'units','normalized','Position',[0.0 0.94 0.1 0.05], ...
+    'Callback',{@init,f},'Tag','refresh');
+
 guidata(f,h);
 
 
 function CloseMe(hObj,~)
 h = guidata(hObj);
-pos = get(h.figure,'Position');
+pos = get(h.f,'Position');
 setpref('RF_FreqVsTime','windowpos',pos);
-delete(h.figure);
+delete(h.f);
 
 
 function UpdateFig(hObj,event,f) %#ok<INUSL>
@@ -102,7 +116,6 @@ subplot(3,5,[4 5],'replace')
 [rfdata,rfvals] = shapedata_spikes(h.RF.st,h.RF.P,{'Freq','Levl'}, ...
     'win',[0 0.05],'binsize',0.001,'func','sum');
 plotrf(rfdata*1000,rfvals);
-  
 hold on
 set(gca,'clipping','off');
 x = xlim(gca);
@@ -110,6 +123,7 @@ z = zlim(gca);
 po = patch([x fliplr(x)],ones(1,4)*level,[z(1) z(1) z(2) z(2)]);
 set(po,'zdata',[z(1) z(1) z(2) z(2)],'facecolor','w','facealpha',0.5, ...
     'edgecolor','w','edgealpha',0.5)
+plotrffeatures(gca,h.dBprops);
 hold off
     
 % raster
@@ -117,15 +131,18 @@ subplot(3,5,[6 14],'replace')
 rast = genrast(h.RF.st,h.RF.P,level,rwin/1000);
 plotraster(h.RF.P,rast,rwin,rfwin,level);
 hold on
+plotrasterfeatures(gca,h.dBprops,level);
 plot([0 0],ylim,'-','color',[0.6 0.6 0.6]);
 hold off
 
 % histogram
 rfdata = shapedata_spikes(h.RF.st,h.RF.P,{'Freq','Levl'}, ...
     'win',[-0.05 0],'binsize',0.001,'func','sum');
-% spontrate = squeeze(mean(rfdata));
 spontrate = mean(rfdata(:));
 plothist(rast,h.RF.P.lists.Freq,rfwin,spontrate);
+hold on
+plotrasterfeatures(gca,h.dBprops,level);
+hold off
 
 setpref('RF_FreqVsTime',{'rfwin','rwin','level'},{rfwin,rwin,level});
 
@@ -242,12 +259,61 @@ title(sprintf('%d dB',level),'FontSize',14);
     
     
     
-    
-    
-    
-    
-    
-    
+function plotrasterfeatures(ax,p,level)
+if isempty(p), return; end
+
+x = xlim(ax);
+
+y = 0:5:100;
+
+flevel = round(level - p.minthresh);
+flevel = interp1(y,y,flevel,'nearest');
+LowFreq  = sprintf('LowFreq%02ddB',flevel);
+HighFreq = sprintf('HighFreq%02ddB',flevel);
+
+mlevel = interp1(y,y,p.minthresh,'nearest');
+
+set(ax,'clipping','off')
+
+fn = fieldnames(p)';
+for f = fn
+    f = char(f); %#ok<FXSET>
+    switch f
+        case 'bestfreq'
+        
+        case 'charfreq'
+            if ~(level == mlevel), continue; end
+            plot(ax,x,[1 1]*p.charfreq/1000,'-r');
+            plot(ax,x(1),p.charfreq/1000,'>r','markerfacecolor','r');
+            plot(ax,x(2),p.charfreq/1000,'<r','markerfacecolor','r');
+                    
+        case LowFreq
+            plot(ax,x,[1 1]*p.(f)/1000,'-^','color',[0.57 0.57 0.98], ...
+                'markerfacecolor',[0.57 0.57 0.98]);
+            
+        case HighFreq
+            plot(ax,x,[1 1]*p.(f)/1000,'-v','color',[0.98 0.57 0.57], ...
+                'markerfacecolor',[0.98 0.57 0.57]);
+    end    
+end
+
+
+function plotrffeatures(ax,p)
+if isempty(p), return; end
+
+set(ax,'clipping','off')
+
+z = get(ax,'zlim');
+
+plot3(ax,[1 1]*p.charfreq/1000,[1 1]*p.minthresh,z,'^-r', ...
+    'markerfacecolor','r','markersize',4);
+
+fn = fieldnames(p)';
+
+
+
+
+
     
     
     
