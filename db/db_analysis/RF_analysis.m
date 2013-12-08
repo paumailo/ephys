@@ -46,7 +46,7 @@ Check4DBparams;
 
 h = InitializeRF(h);
 
-h = UpdatePlot(h);
+% h = UpdatePlot(h);
 
 guidata(hObj, h);
 
@@ -578,7 +578,6 @@ while true
     if k > n, break; end
     i = i + 1;
 end
-
 
 
 function rftypes = DB_GetRFtypes(addrftype)
