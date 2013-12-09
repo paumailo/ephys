@@ -1,4 +1,4 @@
-function RIF_mdanalysis(unit_id)
+function f = RIF_mdanalysis(unit_id)
 % RIF_mdanalysis
 % RIF_mdanalysis(unit_id)
 %
@@ -46,6 +46,8 @@ h.RIF.st = DB_GetSpiketimes(unit_id);
 guidata(h.figure,h);
 
 UpdateFig([],[],false,h.figure);
+
+f = h.figure;
 
 function h = InitGUI(settings)
 f = findobj('tag','RIF_mdanalysis');
