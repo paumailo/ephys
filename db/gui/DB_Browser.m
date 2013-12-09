@@ -414,6 +414,7 @@ for i = 1:length(at.protocol_id_str)
         end
     end
 end
+validtools = unique(validtools);
 
 lasttool = getpref('DB_BROWSER_AnalysisTools','lasttool',[]);
     
