@@ -10,13 +10,22 @@ function RunAutoClassReport(TANKS)
 %
 % See also, RunAutoClass, Pooling_GUI2
 
+if nargin == 0 || isempty(TANKS)
+    [TANKS,OK] = TDT_TankSelect('SelectionMode','multiple');
+end
 
+if ~OK, return; end
+
+cfg = [];
+cfg.blocks  = 'all';
+cfg.datatype = 'Spikes';
+% cfg.datatype = 'Stream';
 
 for i = 1:length(TANKS)
     
     [~,T,~] = fileparts(TANKS{i});
     
-    resultsdir = ['C:\AutoClass_Files\AC2_RESULTS\' T '\'];
+    resultsdir = ['W:\AutoClass_Files\AC2_RESULTS\' T '\'];
     
     d = dir(resultsdir);
     k = findincell(strfind({d.name},'SNIP'));
@@ -27,7 +36,7 @@ for i = 1:length(TANKS)
         AutoClassReport2(f);
     end    
 end
-fprintf('*** We''re all done here ***'\n)
+fprintf('*** We''re all done here ***')
 
 
 

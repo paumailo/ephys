@@ -44,7 +44,7 @@ cfg.datatype = 'Spikes';
 
 % Maximum number of AutoClass threads to launch at once.  Usually set to
 % number of processors - 1
-NThreads = 3; 
+NThreads = 8; 
 
 for tind = 1:length(TANKS)
     [~,TANKS{tind},~] = fileparts(TANKS{tind});
@@ -79,7 +79,7 @@ for tind = 1:length(TANKS)
         
         cfg.Spikes = spikes(i);
         cfg.TankCFG  = scfg;
-        cfg.AutoClass.resultsdir = ['C:\AutoClass_Files\AC2_RESULTS\' cfg.tank '\'];
+        cfg.AutoClass.resultsdir = ['W:\AutoClass_Files\AC2_RESULTS\' cfg.tank '\'];
         cfg.AutoClass.fileroot   = sprintf('%s_%03.0f',cfg.tank,spikes(i).channel);
         cfg.PCA.filename = fullfile(cfg.AutoClass.resultsdir,[cfg.AutoClass.fileroot '_PCA.mat']);
         
