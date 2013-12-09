@@ -49,20 +49,31 @@ elseif ~iscellstr(P.(groupid))
     P.(groupid) = cellstr(P.(groupid));
 end
 
-chkstr = 'SELECT id FROM v_unit_props WHERE unit_id = %d AND group_id = "%s" AND param = "%s"';
-dltstr = ['DELETE FROM up USING unit_properties AS up INNER JOIN db_util.analysis_params AS ap ', ...
-          'ON ap.id = up.param_id WHERE up.unit_id = %d AND up.group_id = "%s" ', ...
-          'AND ap.name = "%s"'];
+fstrs = 'unit id %d\t%s: %s\t%s: %s\n';
 
-mymstrf = 'REPLACE unit_properties (unit_id,group_id,param_id,paramF) VALUES (%d,"%s",%d,%f)';
-mymstrs = 'REPLACE unit_properties (unit_id,group_id,param_id,paramS) VALUES (%d,"%s",%d,"%s")';
+% UNIT_ID, PARAM_ID,GROUP_ID,PARAMS,PARAMF
+fstr = '%d,%d,"%s","%s","%s"\r\n';
 
-fstrs = '%s unit id %d\t%s: %s\t%s: "%s"\n';
-fstrf = '%s unit id %d\t%s: %s\t%s: %0.3f\n';
+fname = fullfile(cd,'DB_TMP.txt');
+fid = fopen(fname,'w');
+
+[pnames,pids] = myms('SELECT DISTINCT name,id FROM db_util.analysis_params');
+
+dltstr = ['DELETE FROM unit_properties ', ...
+          'WHERE unit_id = %d AND group_id = "%s" AND param_id = %d'];
+for f = fn
+    f = char(f); %#ok<FXSET>
+    ind = ismember(pnames,f);
+    p = pids(ind);
+    for i = 1:numel(P.(groupid))
+        mym(sprintf(dltstr,unit_id,P.(groupid){i},p));
+    end
+end
+
 
 for f = fn
     f = char(f); %#ok<FXSET>
-    id = ap.id(ismember(ap.name,f));
+    paramid = ap.id(ismember(ap.name,f));
     if ischar(P.(f))
         P.(f) = cellstr(P.(f));
     elseif isnumeric(P.(f)) || islogical(P.(f))
@@ -70,26 +81,52 @@ for f = fn
     end
     
     for i = 1:numel(P.(groupid))
+
+        
         if i > numel(P.(f)), continue; end
-        c = myms(sprintf(chkstr,unit_id,P.(groupid){i},f));
-        if ~isempty(c), mym(sprintf(dltstr,unit_id,P.(groupid){i},f)); end
+        
         if isnan(P.(f){i}), P.(f){i} = 'NULL'; end
-        if ischar(P.(f){i}), mymstr = mymstrs; else mymstr = mymstrf; end
-        mym(sprintf(mymstr,unit_id,P.(groupid){i},id,P.(f){i}));
-        if ~verbose, continue; end
-        if isempty(c), vstr = 'Added'; else vstr = 'Updated'; end
+
         if isnumeric(P.(f){i}) || islogical(P.(f){i})
-            fprintf(fstrf,vstr,unit_id,groupid,P.(groupid){i},f,P.(f){i})
+            paramS = 'NULL'; paramF = num2str(P.(f){i},'%0.6f');
+            
         else
-            fprintf(fstrs,vstr,unit_id,groupid,P.(groupid){i},f,P.(f){i})
+            paramS = P.(f){i}; paramF = 'NULL';
+            
         end
+        fprintf(fid,fstr,unit_id,paramid,P.(groupid){i},paramS,paramF);
+        
+        if verbose
+            if ischar(P.(f){i})
+                fprintf(fstrs,unit_id,groupid,P.(groupid){i},f,paramS)
+            else
+                fprintf(fstrs,unit_id,groupid,P.(groupid){i},f,paramF)
+            end
+        end
+
     end
     
 end
 
+fclose(fid);
 
+% replace '\' with '\\'  ... there's gotta be a bette way to do this
+dbfname = '';
+i = strfind(fname,'\');
+k = 1;
+for j = 1:length(i)
+    dbfname = [dbfname '\\',fname(k:i(j)-1)]; %#ok<AGROW>
+    k = i(j)+1;
+end
+dbfname(1:2) = []; dbfname = [dbfname '\\'];
+dbfname = fullfile(dbfname,'DB_TMP.txt');
 
-
+fprintf('Updating ...')
+mym(sprintf(['LOAD DATA LOCAL INFILE ''%s'' INTO TABLE unit_properties ', ...
+    'FIELDS TERMINATED BY '','' OPTIONALLY ENCLOSED BY ''"''', ...
+    'LINES TERMINATED BY ''\r\n''', ...
+    '(unit_id,param_id,group_id,paramS,paramF)',],dbfname))
+fprintf(' done\n')
 
 
 

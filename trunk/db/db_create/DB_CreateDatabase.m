@@ -12,7 +12,8 @@ if any(strcmpi(dbs,name))
 %     fprintf(['A database called "%s" already exists on the server ', ...
 %              '... rebuilding tables\n'],name)
 else
-    dbadd(name);
+%     dbadd(name);
+    mym(sprintf('create database if not exists %s default character set utf8',name))
     fprintf('''%s'' database created ... building tables\n',name)
 end
 
