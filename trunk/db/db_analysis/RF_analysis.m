@@ -201,6 +201,7 @@ guidata(h.figure1,h);
 %% Plotting functions
 function Cs = UpdateContours(axM,RF,nFields,nstd)
 critval = RF.spontmean + RF.spontstd * nstd;
+if critval == 0, critval = 1; end
 
 [C,ch] = contour3(axM,RF.xvals,RF.yvals,RF.data,[critval critval]);
 set(ch,'EdgeColor',[0.4 0.4 0.4],'LineWidth',2)
@@ -313,7 +314,7 @@ set(h.RFfig,'Name',sprintf('Unit %d',IDs.unit),'NumberTitle','off', ...
 
 axM = subplot('Position',[0.1  0.1  0.6  0.6],'Parent',h.RFfig,'NextPlot','Add','Tag','MainAxes');
 axX = subplot('Position',[0.1  0.75 0.6  0.1],'Parent',h.RFfig,'NextPlot','Add','Tag','SumX');
-axY = subplot('Position',[0.75 0.1  0.2  0.6],'Parent',h.RFfig,'NextPlot','Add','Tag','SumY');
+axY = subplot('Position',[0.72 0.02  0.2  0.65],'Parent',h.RFfig,'NextPlot','Add','Tag','SumY');
 axH = subplot('position',[0.7  0.75 0.25 0.2],'Parent',h.RFfig,'NextPlot','Replace','Tag','Hist');
 
 
@@ -334,8 +335,11 @@ plot(axX,xvals,scrsX,'-','color',[0.6 0.6 0.6]);
 
 set([axM axX axY],'box','on');
 set([axM axY],'xgrid','on','ygrid','on','zgrid','on');
+set([axX axY],'FontSize',8);
 
-view(axM,opts.opt_viewsurf);
+if ~isempty(opts.opt_viewsurf)
+    view(axM,opts.opt_viewsurf);
+end
 shading(axM,'flat')
 
 set([axM axX],'xlim',[xvals(1) xvals(end)]);
@@ -371,14 +375,20 @@ UD.opts  = opts;
 UD.tvals = tvals;   UD.tdim  = tdim;
 UD.xvals = xvals;   UD.xdim  = xdim;
 UD.yvals = yvals;   UD.ydim  = ydim;
+UD.nstd = str2num(opts.opt_threshold); %#ok<ST2NM>
+UD.nfields = str2num(opts.opt_numfields); %#ok<ST2NM>
 
-Cdata = UpdateContours(axM,UD,str2num(opts.opt_numfields),str2num(opts.opt_threshold)); %#ok<ST2NM>
+Cdata = UpdateContours(axM,UD,UD.nfields,UD.nstd);
 
 if ~isempty(Cdata(1).id)
     ccodes = lines(50); ccodes(1,:) = [];
+    m = max(data(:));
+    critval = UD.spontmean + UD.spontstd * UD.nstd;
     for i = 1:length(Cdata)
         set(Cdata(i).h,'EdgeColor',ccodes(Cdata(i).id,:));
-        Cdata(i).mask     = ContourMask(Cdata(i).contour,xvals,yvals);
+%         Cdata(i).mask     = ContourMask(Cdata(i).contour,xvals,yvals);
+        Cdata(i).mask     = im2bw(data/m,critval/m);
+        % stats = regionprops(bw,'all');
         Cdata(i).Features = ResponseFeatures(data,Cdata(i),xvals,yvals);
         PlotFeatures(axM,axY,data,Cdata(i),xvals,yvals);
     end
@@ -401,7 +411,7 @@ else
     if isfield(Cdata(1).Features.EXTRAS,'Q40dB')
         astr = sprintf('%s; Q40 = %0.1f',astr,Cdata(1).Features.EXTRAS.Q40dB);
     end
-    annotation('textbox',[0.1 0.1 0.9 0.9],'String',astr,'tag','axMinfo', ...
+    annotation(h.figure1,'textbox',[0.1 0.1 0.9 0.9],'String',astr,'tag','axMinfo', ...
         'color','k','linestyle','none','fontsize',8);
 end
 
@@ -466,20 +476,18 @@ set(h,'box','off');
 
 function PlotDataHist(ax,data,spont,nstd)
 data = data(:); spont = spont(:);
-% q = quantile(data,[0.25 0.5 0.75]);
 c = mean(spont) + std(spont) * nstd;
-
+if c == 0, c = 1; end
 [h,b] = hist(data,100);
 bar(ax,b,h,'edgecolor','none','facecolor',[0.6 0.6 0.6])
 axis(ax,'tight')
 hold(ax,'on');
 y = ylim(ax);
-% plot([q; q],repmat(y',1,3),'-k')
 plot([c c],y,'-r')
 hold(ax,'off');
-set(ax,'ytick',[],'xtick',[]);
-
-
+set(ax,'fontsize',6);
+ylabel(ax,'Pixel Count','fontsize',6);
+xlabel(ax,'Firing Rate','fontsize',6);
 
 
 
@@ -557,8 +565,6 @@ for i = 1:size(HfC,2)
     mask(a,:) = mask(a,:) & xvals <= HfC(1,i);
 end
 
-% v = min(yi);
-% mask(yvals<v,:) = false;
 
 
 function Cs = CutContours(C)
