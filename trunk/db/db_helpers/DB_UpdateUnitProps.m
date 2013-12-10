@@ -65,6 +65,7 @@ for f = fn
     f = char(f); %#ok<FXSET>
     ind = ismember(pnames,f);
     p = pids(ind);
+    if ~any(ind), continue; end % <- this may mean that the parameter was not added to db_util.analysis_params
     for i = 1:numel(P.(groupid))
         mym(sprintf(dltstr,unit_id,P.(groupid){i},p));
     end
