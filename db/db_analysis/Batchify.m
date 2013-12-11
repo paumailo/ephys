@@ -26,9 +26,9 @@ units = units(randperm(nunits));
 k = inputdlg(sprintf(['Enter the unit sequence number (1 to %d) ', ...
     'at which you would like to start: '],nunits),'Batch Analysis');
 
-k = str2num(k{1}); %#ok<ST2NM>
+if isempty(k{1}), return; end
 
-if isempty(k), k = 1; end
+k = str2num(k{1}); %#ok<ST2NM>
 
 
 for u = k:nunits
@@ -61,15 +61,15 @@ if isempty(f)
         'units','normalized','Position',[0.05 0.05 0.5 0.9], ...
         'Tag','Quit','Fontsize',16);
     
-    uicontrol(f,'Style','pushbutton','String','Skip >', ...
+    uicontrol(f,'Style','pushbutton','String','Next >', ...
         'units','normalized','Position',[0.55 0.05 0.4 0.9], ...
-        'Tag','Skip','Fontsize',16);    
+        'Tag','Next','Fontsize',16);    
 end
 
 set(f,'CloseRequestFcn',{@KillBatch,f,af});
 
 set(findobj(f,'Tag','Quit'),'Callback',{@KillBatch,f,af});
-set(findobj(f,'Tag','Skip'),'Callback',{@SkipUnit,af});
+set(findobj(f,'Tag','Next'),'Callback',{@NextUnit,af});
 
 winontop(f);
 
@@ -85,6 +85,6 @@ uiresume(af);
 delete(f);
 
 
-function SkipUnit(~,~,af)
+function NextUnit(~,~,af)
 delete(af);
 

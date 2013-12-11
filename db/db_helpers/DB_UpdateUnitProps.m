@@ -51,8 +51,6 @@ end
 
 fstrs = 'unit id %d\t%s: %s\t%s: %s\n';
 
-% UNIT_ID, PARAM_ID,GROUP_ID,PARAMS,PARAMF
-fstr = '%d,%d,"%s","%s","%s"\r\n';
 
 fname = fullfile(cd,'DB_TMP.txt');
 fid = fopen(fname,'w');
@@ -88,21 +86,21 @@ for f = fn
         
         if isnan(P.(f){i}), P.(f){i} = 'NULL'; end
 
+        % UNIT_ID, PARAM_ID,GROUP_ID,PARAMS,PARAMF
         if isnumeric(P.(f){i}) || islogical(P.(f){i})
-            paramS = 'NULL'; paramF = num2str(P.(f){i},'%0.6f');
+            fprintf(fid,'%d,%d,"%s",NULL,%0.6f\r\n', ...
+                unit_id,paramid,P.(groupid){i},P.(f){i});
+            par = num2str(P.(f){i},'%0.6f');
             
         else
-            paramS = P.(f){i}; paramF = 'NULL';
+            fprintf(fid,'%d,%d,"%s","%s",NULL\r\n', ...
+                unit_id,paramid,P.(groupid){i},P.(f){i});
+            par = P.(f){i};
             
         end
-        fprintf(fid,fstr,unit_id,paramid,P.(groupid){i},paramS,paramF);
         
         if verbose
-            if ischar(P.(f){i})
-                fprintf(fstrs,unit_id,groupid,P.(groupid){i},f,paramS)
-            else
-                fprintf(fstrs,unit_id,groupid,P.(groupid){i},f,paramF)
-            end
+            fprintf(fstrs,unit_id,groupid,P.(groupid){i},f,par)
         end
 
     end
