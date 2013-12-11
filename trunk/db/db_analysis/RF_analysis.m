@@ -89,8 +89,7 @@ delete(h.figure1);
 
 %% GUI functions
 function h = InitializeRF(h)
-ID = mym('SELECT block FROM v_ids WHERE unit = {Si}',h.unit_id);
-P  = DB_GetParams(ID.block);
+P  = DB_GetParams(h.unit_id,'unit');
 
 ind = ~ismember(P.param_type,{'onset','offset','prot'});
 set(h.opt_dimx,'String',P.param_type(ind));
@@ -111,8 +110,7 @@ opts = getpref('RF_analysis_opts',optnames,optdefs);
 
 % replace default options with values from database
 T = DB_GetUnitProps(h.unit_id,'rftype');
-rftype = [];
-if ~isempty(T) && isfield(T,'guisettings')
+if ~isempty(T) && isfield(T,'guisettings') && iscell(T.guisettings)
     vals = tokenize(T.guisettings{1},',');
     opts{1} = vals{1};
     opts{2} = vals{2};
@@ -122,9 +120,13 @@ if ~isempty(T) && isfield(T,'guisettings')
     opts{6} = str2num(vals{5}); %#ok<ST2NM>
     opts{7} = vals{6};
     opts{8} = vals{7};
-    setpref('RF_analysis_opts',optnames,opts);
-    
-    rftype = T.rftype;
+    setpref('RF_analysis_opts',optnames,opts);    
+end
+
+if isfield(T,'rftype') && iscellstr(T.rftype)
+    rftype = char(T.rftype);
+else
+    rftype = [];
 end
 
 for i = 1:length(opts)
@@ -147,7 +149,7 @@ for i = 1:length(opts)
 end
 
 
-if ~isempty(rftype)
+if ~isempty(rftype) && ischar(rftype)
     s = get(h.list_rftype,'String');
     i = ismember(s,rftype);
     if ~any(i), i = 1; end
@@ -160,7 +162,6 @@ h.UNIT.IDs         = IDs;
 h.UNIT.spiketimes  = DB_GetSpiketimes(h.unit_id);
 h.UNIT.blockparams = DB_GetParams(IDs.block);
 h.UNIT.unitprops   = DB_GetUnitProps(h.unit_id,'RF$');
-
 
 h = UpdatePlot(h);
 
@@ -203,11 +204,11 @@ guidata(h.figure1,h);
 
 
 %% Plotting functions
-function Cs = UpdateContours(axM,RF,nFields,nstd)
-critval = RF.spontmean + RF.spontstd * nstd;
-if critval == 0, critval = 1; end
+function Cs = UpdateContours(axM,data,RF,nFields,critval)
+% critval = RF.spontmean + RF.spontstd * nstd;
+if critval == 0, critval = 0.5; end
 
-[C,ch] = contour3(axM,RF.xvals,RF.yvals,RF.data,[critval critval]);
+[C,ch] = contour3(axM,RF.xvals,RF.yvals,data,[critval critval]);
 set(ch,'EdgeColor',[0.4 0.4 0.4],'LineWidth',2)
 
 if isempty(C)
@@ -382,17 +383,20 @@ UD.yvals = yvals;   UD.ydim  = ydim;
 UD.nstd = str2num(opts.opt_threshold); %#ok<ST2NM>
 UD.nfields = str2num(opts.opt_numfields); %#ok<ST2NM>
 
-Cdata = UpdateContours(axM,UD,UD.nfields,UD.nstd);
+
+critval = UD.spontmean + UD.spontstd * UD.nstd;
+m = max(data(:));
+if m < critval, critval = m*0.99; end
+bw = im2bw(data/m,critval/m);
+% stats = regionprops(bw,'all');
+Cdata = UpdateContours(axM,bw,UD,UD.nfields,0.5);
 
 if ~isempty(Cdata(1).id)
     ccodes = lines(50); ccodes(1,:) = [];
-    m = max(data(:));
-    critval = UD.spontmean + UD.spontstd * UD.nstd;
     for i = 1:length(Cdata)
-        set(Cdata(i).h,'EdgeColor',ccodes(Cdata(i).id,:));
-%         Cdata(i).mask     = ContourMask(Cdata(i).contour,xvals,yvals);
-        Cdata(i).mask     = im2bw(data/m,critval/m);
-        % stats = regionprops(bw,'all');
+        z = critval * ones(size(get(Cdata(i).h,'zdata')));
+        set(Cdata(i).h,'EdgeColor',ccodes(Cdata(i).id,:),'zdata',z);
+        Cdata(i).mask     = ContourMask(Cdata(i).contour,xvals,yvals);
         Cdata(i).Features = ResponseFeatures(data,Cdata(i),xvals,yvals);
         PlotFeatures(axM,axY,data,Cdata(i),xvals,yvals);
     end
@@ -591,15 +595,20 @@ end
 
 
 function rftypes = DB_GetRFtypes(addrftype)
+persistent checkrftypes
+
 if nargin == 0, addrftype = false; end
 
-mym(['CREATE TABLE IF NOT EXISTS class_lists.rf_types (', ...
-    'id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,', ...
-    'name VARCHAR(45) NOT NULL,', ...
-    'description VARCHAR(500) NULL,', ...
-    'PRIMARY KEY (id, name),', ...
-    'UNIQUE INDEX id_UNIQUE (id ASC),', ...
-    'UNIQUE INDEX name_UNIQUE (name ASC))']);
+if isempty(checkrftypes) || ~checkrftypes
+    mym(['CREATE TABLE IF NOT EXISTS class_lists.rf_types (', ...
+        'id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,', ...
+        'name VARCHAR(45) NOT NULL,', ...
+        'description VARCHAR(500) NULL,', ...
+        'PRIMARY KEY (id, name),', ...
+        'UNIQUE INDEX id_UNIQUE (id ASC),', ...
+        'UNIQUE INDEX name_UNIQUE (name ASC))']);
+    checkrftypes = true;
+end
 
 rftypes = mym('SELECT * FROM class_lists.rf_types');
 

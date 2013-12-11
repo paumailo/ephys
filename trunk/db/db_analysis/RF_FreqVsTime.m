@@ -305,10 +305,11 @@ set(ax,'clipping','off')
 
 z = get(ax,'zlim');
 
+if ~all(isfield(p,{'charfreq','minthresh'})), return; end
+
 plot3(ax,[1 1]*p.charfreq/1000,[1 1]*p.minthresh,z,'^-r', ...
     'markerfacecolor','r','markersize',4);
 
-fn = fieldnames(p)';
 
 
 
