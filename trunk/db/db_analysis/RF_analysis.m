@@ -164,7 +164,11 @@ h.UNIT.unitprops   = DB_GetUnitProps(h.unit_id,'RF$');
 
 h = UpdatePlot(h);
 
+RF_FreqVsTime(h.unit_id);
+
 set(h.updatedb,'Enable','on');
+
+
 
 function UpdateOpts(hObj,h) %#ok<DEFNU>
 switch get(hObj,'Style')
@@ -234,9 +238,9 @@ end
 
 function h = UpdatePlot(h)
 
-h.RFfig = findobj('tag','RFfig');
+h.RFfig = findobj('tag','RF_analysis');
 if isempty(h.RFfig)
-    h.RFfig = figure('tag','RFfig');
+    h.RFfig = figure('tag','RF_analysis');
 else
     ax = findobj(h.RFfig,'tag','MainAxes');
     opt_viewsurf = get(ax,'View');
@@ -411,7 +415,7 @@ else
     if isfield(Cdata(1).Features.EXTRAS,'Q40dB')
         astr = sprintf('%s; Q40 = %0.1f',astr,Cdata(1).Features.EXTRAS.Q40dB);
     end
-    annotation(h.figure1,'textbox',[0.1 0.1 0.9 0.9],'String',astr,'tag','axMinfo', ...
+    annotation(h.RFfig,'textbox',[0.1 0.1 0.9 0.9],'String',astr,'tag','axMinfo', ...
         'color','k','linestyle','none','fontsize',8);
 end
 
@@ -737,6 +741,10 @@ T.guisettings = sprintf('%s,%s,%d,%d,%d,%s,%s,%s', ...
     get(h.opt_cwinon,'String'),get(h.opt_cwinoff,'String'),get(h.opt_threshold,'String'));
 DB_UpdateUnitProps(h.unit_id,T,'identity',true);
 
+
+RF_FreqVsTime(h.unit_id);
+
+
 set(h.updatedb,'Enable','on');
 set(h.figure1,'Pointer','arrow'); drawnow
 
@@ -747,7 +755,7 @@ set(h.figure1,'Pointer','arrow'); drawnow
 
 
 function LocatePlotFig %#ok<DEFNU>
-f = findobj('tag','RFfig','-and','type','figure');
+f = findobj('tag','RF_analysis','-and','type','figure');
 if ~isempty(f), figure(f); end
 
 

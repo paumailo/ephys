@@ -444,7 +444,6 @@ start(T);
 set(h.control_pause,  'Enable','on');
 set(h.EPhysController,'Pointer','arrow'); drawnow
 
-
 function control_pause_Callback(hObj, ~, h) %#ok<INUSD,DEFNU>
 global G_PAUSE
 
@@ -562,7 +561,6 @@ for i = 1:length(trigstr)
     DA.SetTargetVal(trig_str{i},0);
 end
 
-
 function t = DAZBUSBtrig(DA,flags)
 % This will trigger zBusB synchronously across modules
 %   Note: Two ScriptTag components must be included in one of the RPvds
@@ -581,9 +579,6 @@ if isempty(flags.ZBUSB_ON), t = hat; return; end
 DA.SetTargetVal(flags.ZBUSB_ON,1);
 t = hat; % start timer for next trial
 DA.SetTargetVal(flags.ZBUSB_OFF,1);
-
-
-
 
 function protocol = InitParams(protocol)
 % look for parameters starting with the $ flag.  These will be used at
@@ -688,7 +683,7 @@ else
 end
 
 %--------------------------------------------------------------------------
-% Check if session has been completed (or user has manually halted session)
+% Check if session has been completed (or user has manually halted session in OpenWorkbench)
 G_COMPILED.FINISHED = G_COMPILED.tidx > size(G_COMPILED.trials,1) ...
                       || G_DA.GetSysMode < 2;
 if G_COMPILED.FINISHED
@@ -744,7 +739,6 @@ UpdateProgress(h,G_COMPILED.tidx/size(G_COMPILED.trials,1),trem);
 
 % Increment trial index
 G_COMPILED.tidx = G_COMPILED.tidx + 1;
-
 
 function i = ITI(Opts)
 % Genereate next inter-trigger-interval
