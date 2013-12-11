@@ -404,12 +404,22 @@ B.peak.magnitude    = [P.magnitude];
 B.peak.latency      = [P.latency];
 B.peak.rejectnullh  = [P.rejectnullh];
 B.peak.p            = [P.p];
-B.peak.ci           = str2num(cell2mat([P.ci]'))';
+if iscell(P(1).ci)
+    B.peak.ci       = str2num(cell2mat([P.ci]'))';
+else
+    B.peak.ci       = [P.ci];
+end
+    
 
 B.response.magnitude    = [R.magnitude];
 B.response.p            = [R.p];
 B.response.rejectnullh  = [R.rejectnullh];
-B.response.ci           = str2num(cell2mat([R.ci]'))';
+if iscell(R(1).ci)
+    B.response.ci       = str2num(cell2mat([R.ci]'))';
+else
+    B.response.ci       = [R.ci];
+end
+
 for i = 10:20:90
     fn = sprintf('onset%dpk',i);
     B.response.(fn) = [R.(fn)];

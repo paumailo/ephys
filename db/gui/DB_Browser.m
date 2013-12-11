@@ -382,7 +382,7 @@ ylim(h.axes_unit,[-y y]);
 function Check4AnalysisTools(h)
 natstr = '< NO ANALYSIS TOOLS >';
 set(h.list_analysis_tools,'Value',1,'String',natstr,'Enable','off');
-set(h.launch_analysis,'Enable','off');
+set([h.launch_analysis h.launch_batch_analysis],'Enable','off');
 
 ids = getpref('DB_BROWSER_SELECTION');
 
@@ -423,7 +423,7 @@ if ~isempty(validtools)
     if ~isempty(lasttool), v = find(strcmp(validtools,lasttool)); end
     if isempty(v), v = 1; end
     set(h.list_analysis_tools,'Value',v,'String',validtools,'Enable','on');
-    set(h.launch_analysis,'Enable','on');    
+    set([h.launch_analysis h.launch_batch_analysis],'Enable','on');    
 end
 
 
@@ -434,7 +434,12 @@ feval(tool);
 set(h.DB_Browser,'Pointer','arrow'); drawnow
 setpref('DB_BROWSER_AnalysisTools','lasttool',tool);
 
-
+function LaunchBatchAnalysisTool(h) %#ok<DEFNU>
+set(h.DB_Browser,'Pointer','watch'); drawnow
+tool = get_string(h.list_analysis_tools);
+Batchify(tool);
+set(h.DB_Browser,'Pointer','arrow'); drawnow
+setpref('DB_BROWSER_AnalysisTools','lasttool',tool);
 
 
 function ScrollUnits(direction,h) %#ok<DEFNU>

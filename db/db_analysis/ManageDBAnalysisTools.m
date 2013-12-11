@@ -3,7 +3,7 @@ function varargout = ManageDBAnalysisTools(varargin)
 
 % Edit the above text to modify the response to help ManageDBAnalysisTools
 
-% Last Modified by GUIDE v2.5 17-Aug-2013 13:19:54
+% Last Modified by GUIDE v2.5 11-Dec-2013 14:53:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -95,6 +95,19 @@ mym(['REPLACE db_util.analysis_tools (tool,protocol_id_str) ', ...
 UpdateAnalysisTools(h);
 ResetProtocols(h);
 CheckProtButtons(h);
+
+function remove_tool_Callback(~, ~, h) %#ok<DEFNU>
+tool = get_string(h.tools);
+
+mym('DELETE FROM db_util.analysis_tools WHERE tool = "{S}"',tool);
+
+UpdateAnalysisTools(h);
+
+tools_Callback(h.tools, [], h);
+
+CheckProtButtons(h);
+
+
 
 
 function UpdateAnalysisTools(h)
@@ -212,3 +225,4 @@ UpdateDB(h);
 
 function Done(h) %#ok<DEFNU>
 close(h.figure1);
+
