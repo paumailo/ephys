@@ -2,9 +2,12 @@ function Batchify(analysisfcn)
 global KILLBATCH
 KILLBATCH = false;
 
-ids = getpref('DB_BROWSER_SELECTION',{'experiments','blocks'});
+exptid  = getpref('DB_BROWSER_SELECTION','experiments');
+blockid = getpref('DB_BROWSER_SELECTION','blocks');
 
-prot = myms(sprintf('SELECT protocol FROM blocks WHERE id = %d LIMIT 1',ids{2}));
+exptname = char(myms(sprintf('SELECT name FROM experiments WHERE id = %d',exptid)));
+
+prot = myms(sprintf('SELECT protocol FROM blocks WHERE id = %d LIMIT 1',blockid));
 
 units = myms(sprintf(['SELECT DISTINCT v.unit FROM v_ids v ', ...
                       'JOIN units u ON u.id = v.unit ', ...
@@ -13,12 +16,12 @@ units = myms(sprintf(['SELECT DISTINCT v.unit FROM v_ids v ', ...
                       'JOIN db_util.protocol_types pt ON pt.pid = b.protocol ', ...
                       'WHERE v.experiment = %d ', ...
                       'AND u.pool > 0 and b.protocol = %d ', ...
-                      'AND u.in_use = TRUE AND b.in_use = TRUE'],ids{1},prot));
+                      'AND u.in_use = TRUE AND b.in_use = TRUE'],exptid,prot));
 
 nunits = length(units);
 
-
-rng(123,'twister'); % Important: do not change this seed value from 123
+% Important: do not change this seed value from 123
+rng(123,'twister');
 units = units(randperm(nunits));
 
 if ischar(analysisfcn)
@@ -27,7 +30,7 @@ else
     astr = func2str(analysisfcn);
 end
 
-groupid = sprintf('Expt%03d_%s_LASTIDX',ids{1},astr);
+groupid = sprintf('Expt%03d_%s_LASTIDX',exptid,astr);
 
 k = myms(sprintf(['SELECT paramF FROM unit_properties WHERE unit_id = 0 ', ...
     'AND group_id = "%s"'],groupid));
@@ -41,8 +44,12 @@ end
 
 kstr = {num2str(k,'%d')};
 
-k = inputdlg(sprintf(['%s\n\nEnter the unit sequence number (1 to %d) ', ...
-    'at which you would like to start: '],astr,nunits),'Batch Analysis',1,kstr);
+prompt = sprintf(['Analysis: % 26s\nExperiment: % 19d. %s\n', ...
+                  '# Valid Units: % 25d\nLast index: % 28d\n\n', ...
+                  'Enter the unit sequence number (1 to %d) ', ...
+                  'at which you would like to start:\n '], ...
+                  astr,exptid,exptname,nunits,k,nunits);
+k = inputdlg(prompt,'Batch Analysis',1,kstr);
 
 if isempty(k), return; end % cancelled
 
@@ -74,7 +81,8 @@ f = findobj('type','figure','-and','tag','Batchify');
 if isempty(f)
     f = figure('tag','Batchify','name','BATCH','units','normalized', ...
         'toolbar','none','dockcontrols','off','menubar','none', ...
-        'numbertitle','off','position',[0.25 0.67 0.2 0.05]);
+        'numbertitle','off','position',[0.25 0.67 0.2 0.05], ...
+        'Resize','off');
     
     
     uicontrol(f,'Style','pushbutton','String','Quit Batch', ...
