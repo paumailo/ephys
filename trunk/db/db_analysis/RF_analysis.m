@@ -561,6 +561,24 @@ if mean(HfC(1,:)) < mean(LfC(1,:)) % this can happen
     a = Hfyi;   Hfyi = Lfyi;    Lfyi = a;
 end
 
+for i = 2:length(Lfyi)
+    if Lfyi(i-1) > Lfyi(i)
+        v = Lfyi(i);
+    else
+        v = Lfyi(i-1);
+    end
+    Lfyi(i) = v;
+end
+for i = length(Hfyi)-1:-1:1
+    if Hfyi(i+1) > Hfyi(i)
+        v = Hfyi(i);
+    else
+        v = Hfyi(i+1);
+    end
+    Hfyi(i) = v;
+end
+
+
 mask = true(length(yvals),length(xvals));
 
 for i = 1:size(LfC,2)
