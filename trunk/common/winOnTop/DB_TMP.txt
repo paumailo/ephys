@@ -1,0 +1,3 @@
+27226,23,"rftype","P - Primary-like","NULL"
+27226,480,"rftype","NULL","1.000000"
+27226,565,"rftype","Freq,Levl,1,1,1,0,50,7","NULL"
