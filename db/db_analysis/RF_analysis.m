@@ -439,7 +439,8 @@ hold(axM,'on');
 xi = interp1(xvals,xvals,F.charfreq,'nearest');
 yi = interp1(yvals,yvals,F.minthresh,'nearest');
 dz = data(yi==yvals,xi==xvals);
-plot3(axM,F.charfreq,F.minthresh,dz,'sm','linewidth',2,'markersize',10);
+plot3(axM,F.charfreq,F.minthresh,dz,'^r','linewidth',2,'markersize',10, ...
+    'markerfacecolor','r');
 
 dz = data(yvals==F.bestlevel,xvals==F.bestfreq);
 plot3(axM,F.bestfreq,F.bestlevel,dz,'d','linewidth',2,'markersize',10, ...
@@ -485,18 +486,23 @@ set(h,'box','off');
 function PlotDataHist(ax,data,spont,nstd)
 data = data(:); spont = spont(:);
 c = mean(spont) + std(spont) * nstd;
-if c == 0, c = 1; end
+if c == 0, c = 0.5; end
 [h,b] = hist(data,100);
-bar(ax,b,h,'edgecolor','none','facecolor',[0.6 0.6 0.6])
+bar(ax,b,h,'edgecolor','none','facecolor',[0.6 0.6 0.6]);
 axis(ax,'tight')
 hold(ax,'on');
-y = ylim(ax);
-plot([c c],y,'-r')
+plot(ax,[c c],ylim(ax),'r')
 hold(ax,'off');
 set(ax,'fontsize',6);
 ylabel(ax,'Pixel Count','fontsize',6);
 xlabel(ax,'Firing Rate','fontsize',6);
+% set(ax,'ButtonDownFcn',{@AdjustThreshold},'HitTest','on');
+% set(get(ax,'children'),'HitTest','off');
 
+
+% function AdjustThreshold
+% 
+% disp('asdf')
 
 
 
@@ -528,7 +534,7 @@ F.bestlevel   = yvals(bfi);                   % best response level
 F.EXTRAS.bfio = data(:,bfj); %*BestFreq IO function
 
 % compute bandwidths at 5dB steps above minimum threshold
-bwlevel = F.minthresh+5:5:max(yvals);
+bwlevel = F.minthresh+5:5:max(Cdata.contour(2,:));
 BWy = interp1(yvals,yvals,bwlevel,'nearest');
 Lfbw = []; Hfbw = []; F.EXTRAS.Qs = [];
 for i = 1:length(BWy)
@@ -561,6 +567,10 @@ if mean(HfC(1,:)) < mean(LfC(1,:)) % this can happen
     a = Hfyi;   Hfyi = Lfyi;    Lfyi = a;
 end
 
+% this can happen with closed receptive fields
+if LfC(1,1) > LfC(1,end), LfC = fliplr(LfC); Lfyi = fliplr(Lfyi); end
+if HfC(1,1) < HfC(1,end), HfC = fliplr(HfC); Hfyi = fliplr(Hfyi); end
+
 for i = 2:length(Lfyi)
     if Lfyi(i-1) > Lfyi(i)
         v = Lfyi(i);
@@ -591,6 +601,8 @@ for i = 1:size(HfC,2)
     mask(a,:) = mask(a,:) & xvals <= HfC(1,i);
 end
 
+ind = yvals > max([Lfyi Hfyi]) | yvals < min([Lfyi Hfyi]);
+mask(ind,:) = false;
 
 
 function Cs = CutContours(C)
