@@ -562,14 +562,23 @@ yi = interp1(yvals,yvals,C(2,:),'nearest');
 LfC = C(:,1:inflcty);        Lfyi = yi(1:inflcty);
 HfC = C(:,inflcty+1:end);    Hfyi = yi(inflcty+1:end);
 
+if isempty(LfC) || isempty(HfC)
+    mask = false(length(yvals),length(xvals));
+    return
+end
+
 if mean(HfC(1,:)) < mean(LfC(1,:)) % this can happen
     a = HfC;    HfC = LfC;      LfC = a;
     a = Hfyi;   Hfyi = Lfyi;    Lfyi = a;
 end
 
 % this can happen with closed receptive fields
-if LfC(1,1) > LfC(1,end), LfC = fliplr(LfC); Lfyi = fliplr(Lfyi); end
-if HfC(1,1) < HfC(1,end), HfC = fliplr(HfC); Hfyi = fliplr(Hfyi); end
+if LfC(1,1) > LfC(1,end) &&  HfC(1,1) < HfC(1,end)
+    LfC = fliplr(LfC); Lfyi = fliplr(Lfyi);
+    HfC = fliplr(HfC); Hfyi = fliplr(Hfyi);
+elseif HfC(1,1) > HfC(1,end)
+    HfC = fliplr(HfC); Hfyi = fliplr(Hfyi); 
+end
 
 for i = 2:length(Lfyi)
     if Lfyi(i-1) > Lfyi(i)
@@ -587,7 +596,6 @@ for i = length(Hfyi)-1:-1:1
     end
     Hfyi(i) = v;
 end
-
 
 mask = true(length(yvals),length(xvals));
 

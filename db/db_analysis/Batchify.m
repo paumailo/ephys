@@ -108,7 +108,7 @@ global KILLBATCH
 
 KILLBATCH = true;
 
-uiresume(af);
+if ishandle(af), uiresume(af); end
 
 delete(f);
 
