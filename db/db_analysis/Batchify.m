@@ -22,14 +22,34 @@ rng(123,'twister'); % Important: do not change this seed value from 123
 units = units(randperm(nunits));
 
 %%
+if ischar(analysisfcn)
+    astr = analysisfcn;
+else
+    astr = func2str(analysisfcn);
+end
 
-k = inputdlg(sprintf(['Enter the unit sequence number (1 to %d) ', ...
-    'at which you would like to start: '],nunits),'Batch Analysis');
+groupid = sprintf('Expt%03d_%s_LASTIDX',ids{1},astr);
 
-if isempty(k{1}), return; end
+k = myms(sprintf(['SELECT paramF FROM unit_properties WHERE unit_id = 0 ', ...
+    'AND group_id = "%s"'],groupid));
+
+if isempty(k)
+    k = 1;
+    mym(sprintf(['INSERT unit_properties (unit_id,param_id,group_id,paramF) ', ...
+        'VALUES (0,(SELECT id FROM db_util.analysis_params WHERE name = "INFO"),', ...
+        '"%s",1)'],groupid));
+end
+
+kstr = {num2str(k,'%d')};
+
+k = inputdlg(sprintf(['%s\n\nEnter the unit sequence number (1 to %d) ', ...
+    'at which you would like to start: '],astr,nunits),'Batch Analysis',1,kstr);
+
+if isempty(k), return; end
 
 k = str2num(k{1}); %#ok<ST2NM>
-
+DB_CheckAnalysisParams({'INFO'},{''},{''})
+lidxstr = 'UPDATE unit_properties SET paramF = %d WHERE group_id = "%s"';
 
 for u = k:nunits
     fprintf('Unit %d of %d\n',k,nunits)
@@ -37,6 +57,7 @@ for u = k:nunits
     f = LaunchBatchGUI(af);
     set(f,'Name',sprintf('BATCH: Unit %d of %d',k,nunits));
     uiwait(af);
+    myms(sprintf(lidxstr,k,groupid));
     if KILLBATCH, break; end %#ok<UNRCH>
     k = k + 1;
     fprintf('\n')

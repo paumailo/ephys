@@ -89,10 +89,6 @@ uicontrol(f,'Style','text','String','RF Window (ms):','HorizontalAlignment','rig
     'units','normalized','Position',[0.0 0.74 0.29 0.05], ...
     'BackgroundColor',fbc,'FontSize',12);
 
-h.refresh = uicontrol(f,'Style','pushbutton','String','refresh', ...
-    'units','normalized','Position',[0.0 0.94 0.1 0.05], ...
-    'Callback',{@init,f},'Tag','refresh');
-
 guidata(f,h);
 
 
