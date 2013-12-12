@@ -49,7 +49,7 @@ elseif ~iscellstr(P.(groupid))
     P.(groupid) = cellstr(P.(groupid));
 end
 
-fstrs = 'unit id %d\t%s: %s\t%s: %s\n';
+fstrs = 'unit id %d\t%s: %s\t%- 16s % 12s\n';
 
 
 fname = fullfile(cd,'DB_TMP.txt');
@@ -100,7 +100,8 @@ for f = fn
         end
         
         if verbose
-            fprintf(fstrs,unit_id,groupid,P.(groupid){i},f,par)
+            fprintf(fstrs,unit_id,groupid,P.(groupid){i},[f ':'],par)
+            drawnow
         end
 
     end

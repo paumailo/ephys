@@ -1,7 +1,7 @@
 function Batchify(analysisfcn)
 global KILLBATCH
 KILLBATCH = false;
-%%
+
 ids = getpref('DB_BROWSER_SELECTION',{'experiments','blocks'});
 
 prot = myms(sprintf('SELECT protocol FROM blocks WHERE id = %d LIMIT 1',ids{2}));
@@ -17,11 +17,10 @@ units = myms(sprintf(['SELECT DISTINCT v.unit FROM v_ids v ', ...
 
 nunits = length(units);
 
-%%
+
 rng(123,'twister'); % Important: do not change this seed value from 123
 units = units(randperm(nunits));
 
-%%
 if ischar(analysisfcn)
     astr = analysisfcn;
 else
@@ -45,7 +44,7 @@ kstr = {num2str(k,'%d')};
 k = inputdlg(sprintf(['%s\n\nEnter the unit sequence number (1 to %d) ', ...
     'at which you would like to start: '],astr,nunits),'Batch Analysis',1,kstr);
 
-if isempty(k), return; end
+if isempty(k), return; end % cancelled
 
 k = str2num(k{1}); %#ok<ST2NM>
 DB_CheckAnalysisParams({'INFO'},{''},{''})
