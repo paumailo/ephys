@@ -114,5 +114,6 @@ delete(f);
 
 
 function NextUnit(~,~,af)
+if ~ishandle(af), return; end
 delete(af);
 

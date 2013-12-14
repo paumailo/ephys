@@ -59,7 +59,7 @@ varargout{1} = h.output;
 if ispref('RF_analysis_GUI')
     pos = getpref('RF_analysis_GUI','windowpos');
     if ~isempty(pos) && length(pos) == 4
-        set(h.figure1,'position',pos);
+        set(h.RF_analysis_main,'position',pos);
     end
 end
 
@@ -67,9 +67,9 @@ end
 
 
 function CloseMe(h) %#ok<DEFNU>
-pos = get(h.figure1,'Position');
+pos = get(h.RF_analysis_main,'Position');
 setpref('RF_analysis_GUI','windowpos',pos);
-delete(h.figure1);
+delete(h.RF_analysis_main);
 
 
 
@@ -183,7 +183,7 @@ end
 
 h = UpdatePlot(h);
 
-guidata(h.figure1,h);
+guidata(h.RF_analysis_main,h);
 
 
 
@@ -536,10 +536,13 @@ F.EXTRAS.bfio = data(:,bfj); %*BestFreq IO function
 % compute bandwidths at 5dB steps above minimum threshold
 bwlevel = F.minthresh+5:5:max(Cdata.contour(2,:));
 BWy = interp1(yvals,yvals,bwlevel,'nearest');
-Lfbw = []; Hfbw = []; F.EXTRAS.Qs = [];
+Lfbw = []; Hfbw = []; F.EXTRAS.Qs = []; k = [];
 for i = 1:length(BWy)
     yind = BWy(i) == yvals;
-    if ~any(Cdata.mask(yind,:)), continue; end
+    if ~any(Cdata.mask(yind,:)) % can happen with a closed receptive field
+        k(end+1) = i; %#ok<AGROW>
+        continue
+    end
     Lfind = find(Cdata.mask(yind,:),1,'first'); Lfbw(i) = xvals(Lfind); %#ok<AGROW>
     Hfind = find(Cdata.mask(yind,:),1,'last');  Hfbw(i) = xvals(Hfind); %#ok<AGROW>
     BW = Hfbw(i) - Lfbw(i);
@@ -547,6 +550,10 @@ for i = 1:length(BWy)
     F.EXTRAS.(sprintf('BW%02ddB',i*5)) = BW;
     F.EXTRAS.(sprintf('Q%ddB',i*5))    = Q;
     F.EXTRAS.Qs(i) = Q;
+end
+if ~isempty(k)
+    BWy(k)     = [];
+    bwlevel(k) = [];
 end
 F.EXTRAS.BWy     = BWy;
 F.EXTRAS.bwLf    = Lfbw;
@@ -735,7 +742,7 @@ catch me
 end
 
 function UpdateDB(h) %#ok<DEFNU>
-set(h.figure1,'Pointer','watch');
+set(h.RF_analysis_main,'Pointer','watch');
 set(h.updatedb,'Enable','off');
 drawnow
 
@@ -749,7 +756,7 @@ Cdata = UD.Cdata;
 if isempty(Cdata(1).id)
     fprintf('No features have been identified for unit %d.\n',h.unit_id)
     set(h.updatedb,'Enable','on');
-    set(h.figure1,'Pointer','arrow'); drawnow
+    set(h.RF_analysis_main,'Pointer','arrow'); drawnow
     return
 end
 
@@ -793,7 +800,7 @@ RF_FreqVsTime(h.unit_id);
 
 
 set(h.updatedb,'Enable','on');
-set(h.figure1,'Pointer','arrow'); drawnow
+set(h.RF_analysis_main,'Pointer','arrow'); drawnow
 
 
 

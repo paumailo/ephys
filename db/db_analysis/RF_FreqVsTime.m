@@ -110,7 +110,7 @@ rfwin = str2num(get(h.rfwin,'String')); %#ok<ST2NM>
 % receptive field
 subplot(3,5,[4 5],'replace')
 [rfdata,rfvals] = shapedata_spikes(h.RF.st,h.RF.P,{'Freq','Levl'}, ...
-    'win',[0 0.05],'binsize',0.001,'func','sum');
+    'win',rfwin/1000,'binsize',0.001,'func','sum');
 plotrf(rfdata*1000,rfvals);
 hold on
 set(gca,'clipping','off');
@@ -268,6 +268,7 @@ LowFreq  = sprintf('LowFreq%02ddB',flevel);
 HighFreq = sprintf('HighFreq%02ddB',flevel);
 
 mlevel = interp1(y,y,p.minthresh,'nearest');
+if isnan(mlevel), mlevel = 0; end
 
 set(ax,'clipping','off')
 
@@ -278,7 +279,7 @@ for f = fn
         case 'bestfreq'
         
         case 'charfreq'
-            if ~(level == mlevel), continue; end
+            if level ~= mlevel, continue; end
             plot(ax,x,[1 1]*p.charfreq/1000,'-r');
             plot(ax,x(1),p.charfreq/1000,'>r','markerfacecolor','r');
             plot(ax,x(2),p.charfreq/1000,'<r','markerfacecolor','r');
@@ -303,7 +304,7 @@ z = get(ax,'zlim');
 
 if ~all(isfield(p,{'charfreq','minthresh'})), return; end
 
-plot3(ax,[1 1]*p.charfreq/1000,[1 1]*p.minthresh,z,'^-r', ...
+plot3(ax,[1 1]*p.charfreq/1000,[1 1]*round(p.minthresh),z,'^-r', ...
     'markerfacecolor','r','markersize',4);
 
 
