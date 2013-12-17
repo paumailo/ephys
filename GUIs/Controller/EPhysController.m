@@ -271,9 +271,9 @@ protocol_list_Callback(h.protocol_list, [], h);
 
 %% Session Control 
 function control_record_Callback(hObj, ~, h) 
-clear global G_DA G_TT G_COMPILED
+clear global G_DA G_TT G_COMPILED G_STARTTIME
 
-global G_DA G_COMPILED G_PAUSE G_FLAGS
+global G_DA G_COMPILED G_PAUSE G_FLAGS G_STARTTIME
 
 G_PAUSE = false;
 
@@ -322,9 +322,6 @@ end
 % Copy COMPILED protocol to global variable (G_COMPILED)
 G_COMPILED = protocol.COMPILED;
 
-% update progress bar
-trem = mean(protocol.COMPILED.OPTIONS.ISI)/1000 * size(protocol.COMPILED.trials,1);
-UpdateProgress(h,0,trem);
 
 % Instantiate OpenDeveloper ActiveX control and select active tank
 if ~isa(G_DA,'COM.TDevAcc_X'), G_DA = TDT_SetupDA; end
@@ -404,6 +401,7 @@ monitor_channel_Callback(h.monitor_channel, [], h);
 t = hat;
 per = t + ITI(G_COMPILED.OPTIONS);
 
+
 % Create new timer to control experiment
 T = timerfind('Name','EPhysTimer');
 if ~isempty(T), stop(T); delete(T); end
@@ -437,6 +435,11 @@ else
     G_DA.SetSysMode(2); % Preview
     fprintf('* Previewing data ... data is not being recorded to tank *\n')
 end
+
+G_STARTTIME = clock;
+% update progress bar
+trem = mean(protocol.COMPILED.OPTIONS.ISI)/1000 * size(protocol.COMPILED.trials,1);
+UpdateProgress(h,0,trem);
 
 % Start timer
 start(T);
@@ -780,9 +783,14 @@ i = fix(i) / 1000; % round to nearest millisecond
 
 %% GUI Functions
 function UpdateProgress(h,v,trem)
+global G_STARTTIME
+
+et = etime(clock,G_STARTTIME);
+
+
 % Update progress bar
 set(h.progress_status,'String', ...
-    sprintf('Progress: %0.1f%% | Time Remaining: %0.1f min',v*100,trem/60));
+    sprintf('Progress: %0.1f%% | Time Elapsed: %0.1f min | Remaining: %0.1f min',v*100,et/60,trem/60));
 
 if ~isfield(h,'progbar') || ~ishandle(h.progbar)
     % set handle to progress bar line object
