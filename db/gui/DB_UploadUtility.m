@@ -643,8 +643,14 @@ set(allobjs,'Enable','off');
             eval(sprintf('%sFs = B(1).%s.%s.fs;',Q.eventtype{j},Q.eventtype{j},Q.events{j}));
         end
         
-        snipEvent   = Q.events{strcmp('snips',Q.eventtype)};
-        streamEvent = Q.events{strcmp('streams',Q.eventtype)};
+        snipEvent   = [];
+        streamEvent = [];
+        
+        ei = strcmp('snips',Q.eventtype);
+        if any(ei), snipEvent   = Q.events{ei}; end
+        
+        ei = strcmp('streams',Q.eventtype);
+        if any(ei), streamEvent = Q.events{ei}; end
         
         mym(['INSERT tanks (exp_id,tank_condition,tank_date,tank_time,name,spike_fs,wave_fs,tank_notes) ', ...
             'VALUES ({Si},"{S}","{S}","{S}","{S}",{S},{S},"{S}")'], ...
@@ -731,7 +737,7 @@ set(allobjs,'Enable','off');
                 'SortName',Q.sortname);
             
             % update channels
-            if ~isempty(data.streams)
+            if ~isempty(data.streams) && ~isempty(streamEvent)
                 channels = data.streams.(streamEvent).chan;
             else
                 channels = unique(data.snips.(snipEvent).chan);
@@ -785,7 +791,7 @@ set(allobjs,'Enable','off');
                 
             end
             
-            if ~isempty(data.streams)
+            if ~isempty(data.streams) && ~isempty(streamEvent)
                 % update wave_data
                 DB_UploadWaveData(Q.tank,B(j).info.blockname,streamEvent);
                 
