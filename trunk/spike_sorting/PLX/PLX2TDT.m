@@ -15,6 +15,7 @@ function PLX2TDT(plxfilename,varargin)
 %   EVENT               (depends)               If not specified, then the
 %                                               event will be automatically
 %                                               chosen from tank.
+%   CHANNELS            all channels
 % 
 % See also, TDT2PLX
 %
@@ -142,9 +143,9 @@ for b = blocks
     end
 end
 
-
 CloseUp(TTX,TTXfig)
 
+clear mexPlex
 
 
 
