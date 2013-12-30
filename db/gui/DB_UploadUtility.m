@@ -601,6 +601,7 @@ if ~strcmp(dbcurr,curdb), dbopen(curdb); end
 
 allobjs = findobj(h.figure1,'Enable','on');
 set(allobjs,'Enable','off');
+drawnow
 
 % try
     for i = 1:length(Queue)

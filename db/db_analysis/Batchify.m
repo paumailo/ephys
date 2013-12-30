@@ -1,9 +1,20 @@
-function Batchify(analysisfcn)
+function Batchify(analysisfcn,blockid)
+% Batchify(analysisfcn)
+% Batchify(analysisfcn,blockid)
+% 
+% 
+% Daniel.Stolzberg@gmail.com 2013
+
 global KILLBATCH
 KILLBATCH = false;
 
+assert(nargin == 1 || nargin == 2,'Function requires 1 or 2 inputs');
+
+if nargin == 1
+    blockid = getpref('DB_BROWSER_SELECTION','blocks');
+end
+
 exptid  = getpref('DB_BROWSER_SELECTION','experiments');
-blockid = getpref('DB_BROWSER_SELECTION','blocks');
 
 exptname = char(myms(sprintf('SELECT name FROM experiments WHERE id = %d',exptid)));
 
@@ -14,9 +25,11 @@ units = myms(sprintf(['SELECT DISTINCT v.unit FROM v_ids v ', ...
                       'LEFT OUTER JOIN v_unit_props p ON p.unit_id = v.unit ', ...
                       'JOIN blocks b ON v.block = b.id ', ...
                       'JOIN db_util.protocol_types pt ON pt.pid = b.protocol ', ...
+                      'JOIN tanks t ON v.tank = t.id ', ...
                       'WHERE v.experiment = %d ', ...
                       'AND u.pool > 0 and b.protocol = %d ', ...
-                      'AND u.in_use = TRUE AND b.in_use = TRUE'],exptid,prot));
+                      'AND u.in_use = TRUE AND b.in_use = TRUE ', ...
+                      'AND t.in_use = TRUE'],exptid,prot));
 
 nunits = length(units);
 
@@ -37,9 +50,9 @@ k = myms(sprintf(['SELECT paramF FROM unit_properties WHERE unit_id = 0 ', ...
 
 if isempty(k)
     k = 1;
-    mym(sprintf(['INSERT unit_properties (unit_id,param_id,group_id,paramF) ', ...
+    mym(['INSERT unit_properties (unit_id,param_id,group_id,paramF) ', ...
         'VALUES (0,(SELECT id FROM db_util.analysis_params WHERE name = "INFO"),', ...
-        '"%s",1)'],groupid));
+        '"{S}",1)'],groupid);
 end
 
 kstr = {num2str(k,'%d')};

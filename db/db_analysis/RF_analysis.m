@@ -208,6 +208,7 @@ function Cs = UpdateContours(axM,data,RF,nFields,critval)
 % critval = RF.spontmean + RF.spontstd * nstd;
 if critval == 0, critval = 0.5; end
 
+
 [C,ch] = contour3(axM,RF.xvals,RF.yvals,data,[critval critval]);
 set(ch,'EdgeColor',[0.4 0.4 0.4],'LineWidth',2)
 
