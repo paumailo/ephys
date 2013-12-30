@@ -205,13 +205,15 @@ set(h.panel_classes,'Title', ...
     sprintf('Classes: %d classes based on %d spikes', ...
     length(h.UCLASSES),size(h.CLASSLIST,2)));
 
-tw = cfg.Spikes.timestamps;
 ts = zeros(sum(cfg.Spikes.blockspikes),1);
-ts(1:cfg.Spikes.blockspikes(1)) = tw{1};
-k = cfg.Spikes.blockspikes(1)+1;
-for i = 2:length(tw)
-    ts(k:k+length(tw{i})-1) = tw{i}+ts(k-1);
-    k = sum(cfg.Spikes.blockspikes(1:i))+1;
+tw = cfg.Spikes.timestamps;
+ind = find(~cellfun(@isempty,tw));
+
+ts(1:cfg.Spikes.blockspikes(ind(1))) = tw{ind(1)};
+k = cfg.Spikes.blockspikes(ind(1))+1;
+for i = 2:length(ind)
+    ts(k:k+length(tw{ind(i)})-1) = tw{ind(i)}+ts(k-1);
+    k = sum(cfg.Spikes.blockspikes(ind(1:i)))+1;
 end
 h.TS_WRAPPED   = cell2mat(tw');
 h.TS_UNWRAPPED = ts;
