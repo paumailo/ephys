@@ -5,6 +5,7 @@ function RF_FreqVsTime(unit_id)
 % Visualize receptive field as frequency vs time raster
 %
 % daniel.stolzberg@gmail.com 2013
+
 if nargin == 0 || isempty(unit_id)
     unit_id = getpref('DB_BROWSER_SELECTION','units');
 end
@@ -237,14 +238,22 @@ maxf = max(f);
 patch([respwin fliplr(respwin)],[minf minf maxf maxf],[0.8 0.94 1], ...
     'EdgeColor','none');
 
+mcs = gray(nreps+2); mcs(nreps+1:end,:) = [];
+mcs = flipud(mcs);
+ki = mod(1:length(rast),nreps);
+ki(ki == 0) = nreps;
 
+k = 1;
 hold on
 for i = 1:length(rast)
+    if ki(i) == 1, k = 1;  end
     if isempty(rast{i}), continue; end
-    plot(rast{i},f(i),'sk');
+    line(rast{i},f(i),'marker','s','markersize',2, ...
+        'markerfacecolor',mcs(k,:),'color',mcs(k,:));
+    k = k + 1;
 end
 hold off
-set(get(gca,'children'),'markersize',2,'markerfacecolor','k');
+% set(get(gca,'children'),'markersize',2,'markerfacecolor','k');
 set(gca,'yscale','log','ylim',[min(P.lists.Freq) max(P.lists.Freq)]/1000, ...
     'ytick',[1 5 10 50],'yticklabel',[1 5 10 50],'xlim',win, ...
     'tickdir','out');
@@ -253,7 +262,7 @@ xlabel('Time (ms)','FontSize',9);
 ylabel('Frequency (kHz)','FontSize',9);
 title(sprintf('%d dB',level),'FontSize',14);
     
-    
+
     
 function plotrasterfeatures(ax,p,level)
 if isempty(p), return; end

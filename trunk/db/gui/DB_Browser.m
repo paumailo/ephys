@@ -116,6 +116,8 @@ set(ho,'enable','on');
 set(gcf,'pointer','arrow');
 
 function UpdateLists(hObj,h)
+set(h.DB_Browser,'Pointer','watch'); drawnow
+
 ord = h.hierarchy;
 
 if hObj == -1, hObj = h.list_blocks; end
@@ -128,8 +130,6 @@ starth = find(strcmp(str,ord));
 if strncmp(get(hObj,'tag'),'showall',7)
     starth = starth - 1;
 end
-
-set(h.DB_Browser,'Pointer','watch'); drawnow
 
 UpdatePrefs(ord(starth:end),h);
 
@@ -167,7 +167,8 @@ for i = starth:length(ord)
     switch ord{i}
         case 'databases'
             if ~isempty(iustr), iustr = 'WHERE in_use = TRUE'; end
-            e = mym('SELECT CONCAT(id,". ",name) AS str FROM experiments {S}',iustr);
+            e = mym(['SELECT CONCAT(id,". ",name) AS str FROM experiments {S} ', ...
+                'ORDER BY id'],iustr);
             
         case 'experiments'
             e = mym(['SELECT CONCAT(id,". ",tank_condition," [",name,"]") ', ...
