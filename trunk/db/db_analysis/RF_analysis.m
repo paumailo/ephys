@@ -350,8 +350,14 @@ shading(axM,'flat')
 
 set([axM axX],'xlim',[xvals(1) xvals(end)]);
 set([axM axY],'ylim',[yvals(1) yvals(end)]);
-set(axX,'ylim',[0 max([crsX(:); scrsX(:)])]);
-set(axM,'zlim',[0 max(data(:))]);
+if any(data(:))
+    set(axX,'ylim',[0 max([crsX(:); scrsX(:)])]);
+    set(axM,'zlim',[0 max(data(:))]);
+else
+    set(axX,'ylim',[0 1]);
+    set(axM,'zlim',[0 1]);
+end
+
 if opts.opt_xscalelog
     set([axM axX],'xscale','log');
 else
