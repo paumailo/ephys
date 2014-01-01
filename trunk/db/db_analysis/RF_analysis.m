@@ -542,17 +542,17 @@ if critval == 0, critval = 0.5; end
 mh = max(h);
 hold(ax,'on');
 patch([lbs lbs ubs ubs],[0 mh mh 0],[0.8 0.94 1],'EdgeColor','none');
-bax = bar(ax,b,h,'edgecolor','none','facecolor',[0.6 0.6 0.6]);
+bar(ax,b,h,'edgecolor','none','facecolor',[0.6 0.6 0.6]);
 axis(ax,'tight')
 y = ylim(ax);
 plot(ax,critval*[1 1],y,'r')
 hold(ax,'off');
-set(ax,'fontsize',6);
+set(ax,'fontsize',6,'box','on');
 ylabel(ax,'Pixel Count','fontsize',6);
 xlabel(ax,'Firing Rate','fontsize',6);
 title(ax,'Threshold','fontsize',7);
-set([ax, bax],'ButtonDownFcn',@AdjustThreshold,'HitTest','on');
-% xlim(ax,[0 max(xlim(ax))]);
+set([ax; get(ax,'children')],'ButtonDownFcn',@AdjustThreshold,'HitTest','on');
+
 
 function AdjustThreshold(hObj,~)
 h = guidata(hObj);
