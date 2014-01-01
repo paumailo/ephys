@@ -328,10 +328,6 @@ axH = subplot('position',[0.7  0.75 0.25 0.2],'Parent',h.RFfig,'NextPlot','Repla
 surf(axM,xvals,yvals,data)
 
 
-% data histogram
-PlotDataHist(axH,data,spnt,str2num(opts.opt_threshold)); %#ok<ST2NM>
-
-
 
 % crossection of receptive field
 crsX  = mean(data,ydim);
@@ -381,8 +377,9 @@ set(axX,'Position',[p(1) 0.75 p(3) 0.1]);
 UD.IDs   = IDs;
 UD.data  = data;
 UD.spnt  = spnt;
-UD.spontmean = mean(spnt(:));
-UD.spontstd  = std(spnt(:));
+UD.spontmean   = mean(spnt(:));
+UD.spontmedian = std(spnt(:));
+UD.spontstd    = std(spnt(:));
 UD.opts  = opts;
 UD.tvals = tvals;   UD.tdim  = tdim;
 UD.xvals = xvals;   UD.xdim  = xdim;
@@ -391,13 +388,58 @@ UD.nstd = str2num(opts.opt_threshold); %#ok<ST2NM>
 UD.nfields = str2num(opts.opt_numfields); %#ok<ST2NM>
 
 
-critval = UD.spontmean + UD.spontstd * UD.nstd;
+set(axM,'UserData',UD);
+
+h.RFax_main = axM;
+h.RFax_crsX = axX;
+h.RFax_crsY = axY;
+h.ax_hist   = axH;
+
+guidata(h.RFfig,h);
+
+RFprocessing(h)
+
+function RFprocessing(h,critval)
+
+axM = h.RFax_main;
+axY = h.RFax_crsY;
+axH = h.ax_hist;
+
+UD = get(axM,'UserData');
+
+data = UD.data;
+spnt = UD.spnt;
+xvals = UD.xvals;
+yvals = UD.yvals;
+
+if ~exist('critval','var'), critval = []; end
+
+if isempty(critval)
+    critval = UD.spontmean + UD.spontstd * UD.nstd;
+else
+    m = mean(UD.spnt(:));
+    s = std(UD.spnt(:));
+    z = (critval - m)/s;
+    z = round(z*100)/100;
+    UD.nstd = z;
+    set(h.opt_threshold,'String',num2str(UD.nstd,'%0.2f'));
+end
+
+% data histogram
+PlotDataHist(axH,data,spnt,critval);
+
+
+delete(findobj(axM,'type','line','-or','type','patch'))
+
 m = max(data(:));
 if m < critval, critval = m*0.99; end
 bw = im2bw(data/m,critval/m);
 % stats = regionprops(bw,'all');
+hold(axM,'on');
 Cdata = UpdateContours(axM,bw,UD,UD.nfields,0.5);
+hold(axM,'off');
 
+cla(axY);
 if ~isempty(Cdata(1).id)
     ccodes = lines(50); ccodes(1,:) = [];
     for i = 1:length(Cdata)
@@ -426,16 +468,14 @@ else
     if isfield(Cdata(1).Features.EXTRAS,'Q40dB')
         astr = sprintf('%s; Q40 = %0.1f',astr,Cdata(1).Features.EXTRAS.Q40dB);
     end
-    annotation(h.RFfig,'textbox',[0.1 0.1 0.9 0.9],'String',astr,'tag','axMinfo', ...
-        'color','k','linestyle','none','fontsize',8);
+    annotation(h.RFfig,'textbox',[0.1 0.9 0.5 0.09],'String',astr,'tag','axMinfo', ...
+        'color','k','linestyle','-','fontsize',8,'backgroundcolor','w','hittest','off');
 end
 
 set(axM,'UserData',UD);
 
-h.RFax_main = axM;
-h.RFax_crsX = axX;
-h.RFax_crsY = axY;
 h.RFax_ch = [Cdata.h];
+guidata(axM,h);
 
 function PlotFeatures(axM,axY,data,Cdata,xvals,yvals)
 F = Cdata.Features;
@@ -490,26 +530,35 @@ set(axY,'xlim',[0 1.1]);
 h = legend(axY,legstr,'location','southoutside','fontsize',8);
 set(h,'box','off');
 
-function PlotDataHist(ax,data,spont,nstd)
-data = data(:); spont = spont(:);
-c = mean(spont) + std(spont) * nstd;
-if c == 0, c = 0.5; end
+function PlotDataHist(ax,data,spont,critval)
+cla(ax);
+data = data(:);
+mspnt = mean(spont(:));
+sspnt = std(spont(:)) * 3;
+lbs = mspnt - sspnt;
+ubs = mspnt + sspnt;
+if critval == 0, critval = 0.5; end
 [h,b] = hist(data,100);
-bar(ax,b,h,'edgecolor','none','facecolor',[0.6 0.6 0.6]);
-axis(ax,'tight')
+mh = max(h);
 hold(ax,'on');
-plot(ax,[c c],ylim(ax),'r')
+patch([lbs lbs ubs ubs],[0 mh mh 0],[0.8 0.94 1],'EdgeColor','none');
+bax = bar(ax,b,h,'edgecolor','none','facecolor',[0.6 0.6 0.6]);
+axis(ax,'tight')
+y = ylim(ax);
+plot(ax,critval*[1 1],y,'r')
 hold(ax,'off');
 set(ax,'fontsize',6);
 ylabel(ax,'Pixel Count','fontsize',6);
 xlabel(ax,'Firing Rate','fontsize',6);
-% set(ax,'ButtonDownFcn',{@AdjustThreshold},'HitTest','on');
-% set(get(ax,'children'),'HitTest','off');
+title(ax,'Threshold','fontsize',7);
+set([ax, bax],'ButtonDownFcn',@AdjustThreshold,'HitTest','on');
+% xlim(ax,[0 max(xlim(ax))]);
 
-
-% function AdjustThreshold
-% 
-% disp('asdf')
+function AdjustThreshold(hObj,~)
+h = guidata(hObj);
+cp = get(h.ax_hist,'CurrentPoint');
+thresh = cp(1);
+RFprocessing(h,thresh)
 
 
 
