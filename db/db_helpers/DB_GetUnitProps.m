@@ -21,10 +21,15 @@ narginchk(1,2);
 
 P = [];
 
+
+assert(isscalar(unit_id),'First input must be scalar.')
+
 if nargin == 1
     dbP = mym(['SELECT param,group_id,paramS,paramF FROM v_unit_props ', ...
                'WHERE unit_id = {Si} ORDER BY group_id,param'],unit_id);
 elseif nargin == 2
+    assert(ischar(group_id),'Second input must be a string.')
+    
     dbP = mym(['SELECT param,group_id,paramS,paramF FROM v_unit_props ', ...
                'WHERE unit_id = {Si} AND group_id REGEXP "{S}" ', ...
                'ORDER BY group_id,param'],unit_id,group_id);

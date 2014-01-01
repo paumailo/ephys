@@ -12,7 +12,7 @@ end
 
 f = findobj('tag','RF_FreqVsTime');
 if isempty(f)
-f = figure('Color',[0.98 0.98 0.98],'tag','RF_FreqVsTime');
+f = figure('Color',[0.98 0.98 0.98],'tag','RF_FreqVsTime','toolbar','figure');
 end
 
 h.unit_id = unit_id;
@@ -54,7 +54,8 @@ rwin  = [0 150]; % raster plot
 L = h.RF.P.lists.Levl;
 level = max(L);
 
-opts = getpref('RF_FreqVsTime',{'rfwin','rwin','level','windowpos'},{rfwin,rwin,level,[]});
+opts = getpref('RF_FreqVsTime',{'rfwin','rwin','level','windowpos','density'}, ...
+    {rfwin,rwin,level,[],0});
 
 rfwin = opts{1};
 rwin  = opts{2};
@@ -90,6 +91,13 @@ uicontrol(f,'Style','text','String','RF Window (ms):','HorizontalAlignment','rig
     'units','normalized','Position',[0.0 0.74 0.29 0.05], ...
     'BackgroundColor',fbc,'FontSize',12);
 
+
+h.density = uicontrol(f,'Style','checkbox','String','density', ...
+    'units','normalized','Position',[0.15 0.625 0.1 0.05], ...
+    'Callback',{@UpdateFig,f},'Tag','density','BackgroundColor',fbc, ...
+    'Value',opts{5});
+
+
 guidata(f,h);
 
 
@@ -123,14 +131,31 @@ set(po,'zdata',[z(1) z(1) z(2) z(2)],'facecolor','w','facealpha',0.5, ...
 plotrffeatures(gca,h.dBprops);
 hold off
     
+
+
 % raster
 subplot(3,5,[6 14],'replace')
 rast = genrast(h.RF.st,h.RF.P,level,rwin/1000);
-plotraster(h.RF.P,rast,rwin,rfwin,level);
-hold on
-plotrasterfeatures(gca,h.dBprops,level);
-plot([0 0],ylim,'-','color',[0.6 0.6 0.6]);
-hold off
+if get(h.density,'Value')
+    plotdensity(h.RF.P,rast,rwin,rfwin,level);
+    hold on
+    plotrasterfeatures(gca,h.dBprops,level,3);
+    c = get(gca,'zlim');
+    plot3([0 0],ylim,[1 1]*c(2),'-','color',[0.6 0.6 0.6]);
+else
+    plotraster(h.RF.P,rast,rwin,rfwin,level);
+    hold on
+    plotrasterfeatures(gca,h.dBprops,level,2);
+    plot([0 0],ylim,'-','color',[0.6 0.6 0.6]);
+    hold off
+end
+box on
+xlabel('Time (ms)','FontSize',9);
+ylabel('Frequency (kHz)','FontSize',9);
+title(sprintf('%d dB',level),'FontSize',14);
+
+
+
 
 % histogram
 rfdata = shapedata_spikes(h.RF.st,h.RF.P,{'Freq','Levl'}, ...
@@ -138,10 +163,24 @@ rfdata = shapedata_spikes(h.RF.st,h.RF.P,{'Freq','Levl'}, ...
 spontrate = mean(rfdata(:));
 plothist(rast,h.RF.P.lists.Freq,rfwin,spontrate);
 hold on
-plotrasterfeatures(gca,h.dBprops,level);
+plotrasterfeatures(gca,h.dBprops,level,2);
 hold off
 
-setpref('RF_FreqVsTime',{'rfwin','rwin','level'},{rfwin,rwin,level});
+setpref('RF_FreqVsTime',{'rfwin','rwin','level','density','windowpos'}, ...
+    {rfwin,rwin,level,get(h.density,'Value'),get(f,'position')});
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 function plothist(rast,Freq,win,spontrate)
@@ -165,12 +204,16 @@ hold on
 b = barh(f,h,'hist');
 delete(findobj(gca,'marker','*'));
 set(b,'facecolor',[0.8 0.94 1],'edgecolor','none');
-set(gca,'yscale','log','ylim',[f(1) f(end)],'yaxislocation','right', ...
-    'ytick',[1 5 10 50],'yticklabel',[1 5 10 50])
+set(gca,'yscale','log','ylim',[f(1) f(end)],'yaxislocation','right')
 plot([1 1]*spontrate,ylim,'-','color',[0.5 0.5 0.5])
 hold off
 
 xlabel('Mean spike count','fontsize',8);
+
+
+
+
+
 
 function plotrf(data,vals)
 %% Plot Receptive Field
@@ -192,8 +235,7 @@ view(2)
 axis tight
 md = max(data(:));
 if isnan(md) || md == 0, md = 1; end
-set(gca,'xscale','log','fontsize',7,'xtick',[1 5 10 50],'xticklabel',[1 5 10 50], ...
-    'zlim',[0 md])
+set(gca,'xscale','log','fontsize',7,'zlim',[0 md])
 set(hax,'ButtonDownFcn',{@clickrf,gcf});
 xlabel('Frequency (kHz)','fontsize',7)
 ylabel('Level (dB)','fontsize',7)
@@ -201,6 +243,9 @@ h = colorbar('EastOutside','fontsize',7);
 c = get(gca,'clim');
 set(gca,'clim',[0 c(2)]);
 ylabel(h,'Firing Rate (Hz)','fontsize',7)
+
+
+
 
 
 function clickrf(hObj,event,f) %#ok<INUSL>
@@ -212,6 +257,10 @@ i = interp1(L,1:length(L),level,'nearest');
 if isempty(i) || isnan(i), return; end
 set(h.LevelList,'Value',i);
 UpdateFig(h.LevelList,'clickrf',f)
+
+
+
+
 
 function rast = genrast(st,P,level,win)
 ind  = P.VALS.Levl == level;
@@ -226,6 +275,10 @@ end
 f = P.VALS.Freq(ind);
 [~,i] = sort(f);
 rast = rast(i);
+
+
+
+
 
 function plotraster(P,rast,win,respwin,level)
 rast = cellfun(@(a) (a*1000),rast,'UniformOutput',false); % s -> ms
@@ -255,16 +308,50 @@ end
 hold off
 % set(get(gca,'children'),'markersize',2,'markerfacecolor','k');
 set(gca,'yscale','log','ylim',[min(P.lists.Freq) max(P.lists.Freq)]/1000, ...
-    'ytick',[1 5 10 50],'yticklabel',[1 5 10 50],'xlim',win, ...
-    'tickdir','out');
+    'xlim',win,'tickdir','out');
+
+
+
+
+
+function plotdensity(P,rast,win,respwin,level)
+rast = cellfun(@(a) (a*1000),rast,'UniformOutput',false); % s -> ms
+nreps = sum(P.VALS.Freq == P.lists.Freq(end) & P.VALS.Levl == level);
+f = P.lists.Freq / 1000;
+f = interp1(1:length(f),f,linspace(1,length(f),length(f)*nreps),'cubic');
+
+binvec = win(1):win(2)-1;
+
+k = 1;
+sdata = zeros(length(rast)/nreps,length(binvec));
+for i = 1:nreps:length(rast)
+    t = cell2mat(rast(i:i+nreps-1));
+    sdata(k,:) = hist(t,binvec);
+    k = k + 1;
+end
+sdata = sdata / nreps;
+m = max(sdata(:));
+
+gw = gausswin(5) * gausswin(9)';
+sdata = conv2(sdata,gw,'same');
+
+sdata = sdata / max(sdata(:)) * m;
+
+surf(binvec,P.lists.Freq/1000,sdata);
+
+view(2)
+shading interp
+set(gca,'yscale','log','ylim',[min(P.lists.Freq) max(P.lists.Freq)]/1000, ...
+    'xlim',win,'tickdir','out');
+axis tight
 box on
-xlabel('Time (ms)','FontSize',9);
-ylabel('Frequency (kHz)','FontSize',9);
-title(sprintf('%d dB',level),'FontSize',14);
-    
+
+% colorbar
+
+
 
     
-function plotrasterfeatures(ax,p,level)
+function plotrasterfeatures(ax,p,level,dims)
 if isempty(p), return; end
 
 x = xlim(ax);
@@ -281,6 +368,11 @@ if isnan(mlevel), mlevel = 0; end
 
 set(ax,'clipping','off')
 
+if dims == 3
+    c = get(ax,'zlim');
+    mv = [1 1] * c(2);
+end
+
 fn = fieldnames(p)';
 for f = fn
     f = char(f); %#ok<FXSET>
@@ -289,19 +381,39 @@ for f = fn
         
         case 'charfreq'
             if level ~= mlevel, continue; end
-            plot(ax,x,[1 1]*p.charfreq/1000,'-r');
-            plot(ax,x(1),p.charfreq/1000,'>r','markerfacecolor','r');
-            plot(ax,x(2),p.charfreq/1000,'<r','markerfacecolor','r');
-                    
+            if dims == 2
+                plot(ax,x,[1 1]*p.charfreq/1000,'-r');
+                plot(ax,x(1),p.charfreq/1000,'>r','markerfacecolor','r');
+                plot(ax,x(2),p.charfreq/1000,'<r','markerfacecolor','r');
+            elseif dims == 3
+                plot3(ax,x,[1 1]*p.charfreq/1000,mv,'-r');
+                plot3(ax,x(1),p.charfreq/1000,mv,'>r','markerfacecolor','r');
+                plot3(ax,x(2),p.charfreq/1000,mv,'<r','markerfacecolor','r');
+            end
         case LowFreq
-            plot(ax,x,[1 1]*p.(f)/1000,'-^','color',[0.57 0.57 0.98], ...
-                'markerfacecolor',[0.57 0.57 0.98]);
+            if dims == 2
+                plot(ax,x,[1 1]*p.(f)/1000,'-^','color',[0.57 0.57 0.98], ...
+                    'markerfacecolor',[0.57 0.57 0.98]);
+            elseif dims == 3
+                plot3(ax,x,[1 1]*p.(f)/1000,mv,'-^','color',[0.57 0.57 0.98], ...
+                    'markerfacecolor',[0.57 0.57 0.98]);
+            end
+            
             
         case HighFreq
-            plot(ax,x,[1 1]*p.(f)/1000,'-v','color',[0.98 0.57 0.57], ...
-                'markerfacecolor',[0.98 0.57 0.57]);
+            if dims == 2
+                plot(ax,x,[1 1]*p.(f)/1000,'-v','color',[0.98 0.57 0.57], ...
+                    'markerfacecolor',[0.98 0.57 0.57]);
+            elseif dims == 3
+                plot3(ax,x,[1 1]*p.(f)/1000,mv,'-v','color',[0.98 0.57 0.57], ...
+                    'markerfacecolor',[0.98 0.57 0.57]);
+            end
+
     end    
 end
+
+
+
 
 
 function plotrffeatures(ax,p)
