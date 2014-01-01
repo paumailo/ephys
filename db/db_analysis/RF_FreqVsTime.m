@@ -342,10 +342,12 @@ surf(binvec,P.lists.Freq/1000,sdata);
 view(2)
 shading interp
 set(gca,'yscale','log','ylim',[min(P.lists.Freq) max(P.lists.Freq)]/1000, ...
-    'xlim',win,'tickdir','out');
+    'xlim',win,'tickdir','out','clipping','off');
 axis tight
 box on
-
+hold on
+plot3(respwin,[1 1]*max(f),[m m],'-','color',[0.8 0.94 1],'linewidth',7)
+hold off
 % colorbar
 
 
