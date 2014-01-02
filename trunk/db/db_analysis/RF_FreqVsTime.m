@@ -158,6 +158,7 @@ title(sprintf('%d dB',level),'FontSize',14);
 
 
 % histogram
+subplot(3,5,[10 15],'replace');
 rfdata = shapedata_spikes(h.RF.st,h.RF.P,{'Freq','Levl'}, ...
     'win',[-0.05 0],'binsize',0.001,'func','sum');
 spontrate = mean(rfdata(:));
@@ -184,7 +185,6 @@ setpref('RF_FreqVsTime',{'rfwin','rwin','level','density','windowpos'}, ...
 
 
 function plothist(rast,Freq,win,spontrate)
-subplot(3,5,[10 15]);
 f = Freq / 1000;
 nfreqs = length(f);
 nreps = length(rast) / length(f);
