@@ -110,16 +110,7 @@ end
 
 fclose(fid);
 
-% replace '\' with '\\'  ... there's gotta be a bette way to do this
-dbfname = '';
-i = strfind(fname,'\');
-k = 1;
-for j = 1:length(i)
-    dbfname = [dbfname '\\',fname(k:i(j)-1)]; %#ok<AGROW>
-    k = i(j)+1;
-end
-dbfname(1:2) = []; dbfname = [dbfname '\\'];
-dbfname = fullfile(dbfname,'DB_TMP.txt');
+dbfname = strrep(fname,'\','\\');
 
 fprintf('Updating ...')
 mym(sprintf(['LOAD DATA LOCAL INFILE ''%s'' INTO TABLE unit_properties ', ...
@@ -128,6 +119,6 @@ mym(sprintf(['LOAD DATA LOCAL INFILE ''%s'' INTO TABLE unit_properties ', ...
     '(unit_id,param_id,group_id,paramS,paramF)',],dbfname))
 fprintf(' done\n')
 
-
+delete(fname);
 
 

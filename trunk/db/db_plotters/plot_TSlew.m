@@ -1,5 +1,9 @@
 function plot_TSlew(unit_id)
-
+% plot_TSlew(unit_id)
+% 
+% Plot and analyze temporal slewing experiment
+% 
+% Daniel.Stolzberg@gmail.com 2014
 
 
 if nargin == 0 || isempty(unit_id)

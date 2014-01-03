@@ -1,20 +1,21 @@
 function SCRATCH_WAV2STA
 %% DB2STA WAV
 pvar = 'BuID';
-subselection = [1 7];
-subselection = 13 - subselection;
+subselection = [1:12];
+% subselection = 13 - subselection;
 tadjustments = [];
 
-fullwin = [0 0.6];
+fullwin = [0 0.7];
+% fullwin = [0.05 0.5];
 clear opts
 opts.clustering_exponent = -2;
 opts.unoccupied_bins_strategy = -1;
-opts.metric_family = 0; % 0: Dspike; 1: Dinterval
+opts.metric_family = 0; % 0: D^spike; 1: D^interval
 opts.parallel = 1;
 opts.possible_words = 'unique';
 
 opts.start_time = 0;
-opts.end_time   = 0.6;
+opts.end_time   = 0.65;
 opts.shift_cost = [0 2.^(-2:13)];
 
 
