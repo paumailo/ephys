@@ -59,6 +59,7 @@ STA.sites.time_resolution = 1/P.spike_fs; % ? 0.001
 STA.sites.si_unit = 'none';
 STA.sites.si_prefix = 1;
 
+k = 1;
 for m = 1:STA.M
     STA.categories(m,1).label = {num2str(Levels(m),'%d')};
     idx = find(Levels(m) == P.VALS.(pvar));
@@ -71,15 +72,84 @@ for m = 1:STA.M
         ind = st >= P.VALS.onset(x) + adjwin(1) & st <= P.VALS.onset(x) + adjwin(2);
         STA.categories(m).trials(p).Q    = int32(sum(ind));
         STA.categories(m).trials(p).list = st(ind)-P.VALS.onset(x)-adjwin(1);
+        
+        raster{k} = STA.categories(m).trials(p).list;
+        values(k) = Levels(m);
+        k = k + 1;
     end
     
 end
 
 
 statin_summ(STA);
+assignin('base','STA',STA);
 
 
-%
+
+
+
+
+%% metric
+
+opts.entropy_estimation_method = {'plugin','tpmc','jack'};
+% opts.entropy_estimation_method = {'jack'};
+% opts.variance_estimation_method = {'jack'};
+[Y,optout] = metric(STA,opts);
+assignin('base','Y',Y);
+assignin('base','opts',optout);
+
+
+f = findobj('name','STA');
+if isempty(f)
+f = figure('Color',[0.98 0.98 0.98],'name','STA');
+end
+figure(f)
+
+
+for i = 1:length(Y)
+    for j = 1:length(optout.entropy_estimation_method)
+        Iv(i,j) = Y(i).table.information(j).value;  %#ok<AGROW>
+    end
+end
+
+plot(optout.shift_cost,Iv);
+set(gca,'xscale','log');
+ylim([-0.2 2]);
+zidx = find(optout.shift_cost == 0);
+if ~isempty(zidx)
+    hold on
+    plot(repmat(xlim',1,length(optout.entropy_estimation_method)),[Iv(zidx,:); Iv(zidx,:)],':');
+    hold off
+end
+
+
+legend(optout.entropy_estimation_method);
+
+assignin('base','Iv',Iv);
+
+
+f = findobj('name','STAraster');
+if isempty(f)
+f = figure('Color',[0.98 0.98 0.98],'name','STAraster');
+end
+figure(f)
+
+PlotRaster(raster,values,[1 0 0;0 1 0;0 0 1]);
+
+
+return
+
+
+
+
+
+
+
+
+
+
+
+%%
 clear out out_unshuf shuf out_unjk jk;
 clear info_plugin info_tpmc info_jack info_unshuf info_unjk;
 clear temp_info_shuf temp_info_jk;

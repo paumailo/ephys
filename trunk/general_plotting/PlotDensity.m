@@ -22,7 +22,7 @@ function varargout = PlotDensity(raster,values,varargin)
 
 
 
-assert(length(varargin)>=2,'Requires atleast 2 inputs.');
+assert(nargin>=2,'Requires atleast 2 inputs.');
 assert(iscell(raster),'raster must be a cell array.');
 assert(isnumeric(values)&&length(values)==length(raster), ...
     'values must be a numerical array the same size as raster.');
@@ -40,12 +40,16 @@ if isempty(bins)
     bins = min(t):0.001:max(t)-0.001;
 end
 
+raster = raster(:);
+values = values(:);
 
 [values,i] = sort(values);
 raster     = raster(i);
 
 uvals = unique(values);
 nvals = length(uvals);
+
+raster = cellfun(@(x) (x(:)),raster,'UniformOutput',false);
 
 D = zeros(nvals,length(bins));
 for i = 1:nvals
