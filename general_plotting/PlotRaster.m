@@ -53,12 +53,16 @@ assert(isnumeric(values)&&length(values)==length(raster), ...
     'values must be a numerical array the same size as raster.');
 assert(size(colors,2)==3,'colors must be an Nx3 matrix of RGB values.');
 
+raster = raster(:);
+values = values(:);
 
 [values,i] = sort(values);
 raster     = raster(i);
 
 uvals = unique(values);
 nvals = length(uvals);
+
+% spacing
 for i = 1:nvals
     ind = values == uvals(i);
     n(i) = sum(ind); %#ok<AGROW>
@@ -74,25 +78,42 @@ cvals = num2cell(values);
 cy = cellfun(@(a,b) (a*ones(size(b))),cvals,raster,'UniformOutput',false);
 
 % alternating colors
+ncolors = size(colors,1);
 k = 1;
 for i = 1:nvals
-    pcolors(k:k+n(i)-1,:) = repmat(colors(mod(i,2) + 1,:),n(i),1);
+    pcolors(k:k+n(i)-1,:) = repmat(colors(mod(i,ncolors) + 1,:),n(i),1);
     k = k + n(i);
 end
 colors = num2cell(pcolors,2);
 
 eind = cellfun(@isempty,raster);
-raster(eind)   = [];
+raster(eind) = [];
 cy(eind)     = [];
 colors(eind) = [];
 
+% plot
 cla(ax);
-h = cellfun(@(x,y) (line(x,y,'Parent',ax)),...
-    raster,cy);
+h = cellfun(@(x,y) (line(x,y,'Parent',ax)),raster,cy);
 set(h,'linestyle','none','markersize',2,'marker','s');
-cellfun(@(a,c) (set(a,'markerfacecolor',c,'markeredgecolor',c)),num2cell(h),colors)
+cellfun(@(a,c) (set(a,'markerfacecolor',c,'markeredgecolor',c,'markersize',1)),num2cell(h),colors)
 
 set(ax,'ylim',[values(1) values(end)]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
