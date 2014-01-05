@@ -260,7 +260,9 @@ p.OPTIONS.compile_at_runtime = get(h.opt_compile_at_runtime,'Value');
 p.OPTIONS.ISI                = str2num(get(h.opt_iti,       'String')); %#ok<ST2NM>
 p.OPTIONS.num_reps           = str2num(get(h.opt_num_reps,  'String')); %#ok<ST2NM>
 p.OPTIONS.trialfunc          = get(h.trial_selectfunc,      'String');
+p.OPTIONS.optcontrol         = get(h.opt_optcontrol,        'Value');
 p.INFO                       = get(h.protocol_info,         'String');
+
 
 
 

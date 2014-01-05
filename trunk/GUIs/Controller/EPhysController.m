@@ -381,25 +381,32 @@ if G_COMPILED.OPTIONS.optcontrol
         DAHalt(h,G_DA);
         return
     end
-    if isempty(G_FLAGS.update)
-        errordlg('''~Update'' tag must be on a module when using operational trigger control.', ...
-            '''~Update'' not found','modal');
-        DAHalt(h,G_DA);
-        return
-    end
+%     if isempty(G_FLAGS.update)
+%         errordlg('''~Update'' tag must be on a module when using operational trigger control.', ...
+%             '''~Update'' not found','modal');
+%         DAHalt(h,G_DA);
+%         return
+%     end
 end
     
 % Set first trial parameters
 G_COMPILED.tidx = 1;
 DAUpdateParams(G_DA,G_COMPILED);
+if G_COMPILED.OPTIONS.optcontrol
+    % ZBus Trigger on modules
+    t   = DAZBUSBtrig(G_DA,G_FLAGS);
+    per = -1;
+else
+    % figure out first timer period
+    t   = hat;
+    per = t + ITI(G_COMPILED.OPTIONS);
+end
 G_COMPILED.tidx = G_COMPILED.tidx + 1;
 
 % Set monitor channel
 monitor_channel_Callback(h.monitor_channel, [], h);
 
-% figure out first timer period
-t = hat;
-per = t + ITI(G_COMPILED.OPTIONS);
+
 
 
 % Create new timer to control experiment
@@ -559,7 +566,7 @@ function DATrigger(DA,trig_str)
 % trigger using DevAcc.X control like with RPco.X SoftTrg component.
 
 trig_str = cellstr(trig_str);
-for i = 1:length(trigstr)
+for i = 1:length(trig_str)
     DA.SetTargetVal(trig_str{i},1);
     DA.SetTargetVal(trig_str{i},0);
 end
@@ -729,7 +736,7 @@ DAUpdateParams(G_DA,G_COMPILED);
 
 % Optional: Trigger '~Update' tag on module following DAUpdateParams
 %     > confirms to module that parameters have been updated
-if G_FLAGS.update
+if ~isempty(G_FLAGS.update)
     DATrigger(G_DA,G_FLAGS.update);
     set(h.trigger_indicator,'BackgroundColor',[0 1 0]); drawnow expose
     pause(0.2)
