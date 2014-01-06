@@ -12,12 +12,12 @@ function subdirs = ephys_startup(rootdir)
 
 fprintf('** Setting Paths for EPhys **\n')
 
-if ~nargin || isempty(rootdir), rootdir = cd; end
+if ~nargin || isempty(rootdir), rootdir = 'C:\MATLAB\work\ephys'; end
 
 p = genpath(rootdir);
 
 t = textscan(p,'%s','delimiter',';');
-i = cellfun(@strfind,t{1},repmat({'svn'},size(t{1})),'UniformOutput',false);
+i = cellfun(@(x) (strfind(x,'.')),t{1},'UniformOutput',false);
 ind = cell2mat(cellfun(@isempty,i,'UniformOutput',false));
 subdirs = t{1}(ind);
 
