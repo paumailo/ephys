@@ -21,7 +21,7 @@ end
 p = genpath(rootdir);
 
 t = textscan(p,'%s','delimiter',';');
-i = cellfun(@(x) (strfind(x,'.')),t{1},'UniformOutput',false);
+i = cellfun(@(x) (strfind(x,'\.')),t{1},'UniformOutput',false);
 ind = cell2mat(cellfun(@isempty,i,'UniformOutput',false));
 subdirs = t{1}(ind);
 
