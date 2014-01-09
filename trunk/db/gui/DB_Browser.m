@@ -321,7 +321,7 @@ unit = getpref('DB_BROWSER_SELECTION','units');
 
 note = myms(sprintf('SELECT note FROM units WHERE id = %d',unit));
 
-if isempty(note{1})
+if isempty(note) || isempty(note{1})
     bgc = [0.941 0.941 0.941];
 else
     bgc = [0.7 1 0.73];
