@@ -14,8 +14,8 @@ opts.metric_family = 0; % 0: D^spike; 1: D^interval
 opts.parallel = 1;
 opts.possible_words = 'unique';
 
-opts.start_time = 0;
-opts.end_time   = 0.65;
+opts.start_time = 0.03;
+opts.end_time   = 0.6;
 opts.shift_cost = [0 2.^(-2:13)];
 
 
@@ -114,7 +114,6 @@ end
 
 plot(optout.shift_cost,Iv);
 set(gca,'xscale','log');
-ylim([-0.2 2]);
 zidx = find(optout.shift_cost == 0);
 if ~isempty(zidx)
     hold on

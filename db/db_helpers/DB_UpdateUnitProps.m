@@ -52,7 +52,7 @@ end
 fstrs = 'unit id %d\t%s: %s\t%- 16s % 12s\n';
 
 
-fname = fullfile(cd,'DB_TMP.txt');
+fname = fullfile('C:\DB_TMP.txt');
 fid = fopen(fname,'w');
 
 [pnames,pids] = myms('SELECT DISTINCT name,id FROM db_util.analysis_params');

@@ -23,12 +23,10 @@ p = genpath(rootdir);
 t = textscan(p,'%s','delimiter',';');
 i = cellfun(@(x) (strfind(x,'\.')),t{1},'UniformOutput',false);
 ind = cell2mat(cellfun(@isempty,i,'UniformOutput',false));
-subdirs = t{1}(ind);
+subdirs = cellfun(@(x) ([x ';']),t{1}(ind),'UniformOutput',false);
+subdirs = cell2mat(subdirs');
 
-subdirs = cellfun(@(x) ([x ';']),subdirs,'UniformOutput',false);
-catsubdirs = cell2mat(subdirs');
-
-addpath(catsubdirs);
+addpath(subdirs);
 
 
 
