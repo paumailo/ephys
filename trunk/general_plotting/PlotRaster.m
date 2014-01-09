@@ -74,7 +74,7 @@ for i = 1:nvals
     values(ind) = values(ind) + d*linspace(0,0.95,n(i))';    
 end
 
-cvals = num2cell(values);
+cvals = num2cell(values-values(1));
 cy = cellfun(@(a,b) (a*ones(size(b))),cvals,raster,'UniformOutput',false);
 
 % alternating colors
@@ -92,15 +92,21 @@ cy(eind)     = [];
 colors(eind) = [];
 
 % plot
-cla(ax);
+% cla(ax);
 h = cellfun(@(x,y) (line(x,y,'Parent',ax)),raster,cy);
-set(h,'linestyle','none','markersize',2,'marker','s');
-cellfun(@(a,c) (set(a,'markerfacecolor',c,'markeredgecolor',c,'markersize',1)),num2cell(h),colors)
+set(h,'linestyle','none','marker','s');
+cellfun(@(a,c) (set(a,'markerfacecolor',c,'markeredgecolor',c,'markersize',2)),num2cell(h),colors)
 
-set(ax,'ylim',[values(1) values(end)]);
+y = values([1 end])-values(1);
+dy = diff(y);
+sp = dy/nvals/2;
+ts = sp:dy/nvals:dy;
 
+set(ax,'ylim',y,'ytick',ts,'yticklabel',uvals, ...
+    'tickLength',[0 0]);
+box on
 
-
+xlabel('Time (s)');
 
 
 

@@ -229,6 +229,8 @@ Check4AnalysisTools(h);
 setpref('DB_Browser',{'map_channels', 'hide_unclassed_units'}, ...
     {get(h.map_channels,'Value'),get(h.hide_unclassed_units,'Value')});
 
+CheckUnitNote(h);
+
 set(h.DB_Browser,'Pointer','arrow');
 
 function UpdatePrefs(ord,h)
@@ -314,8 +316,39 @@ set(hObj,'BackgroundColor',bgc);
 
 
 
+function note = CheckUnitNote(h)
+unit = getpref('DB_BROWSER_SELECTION','units');
+
+note = myms(sprintf('SELECT note FROM units WHERE id = %d',unit));
+
+if isempty(note{1})
+    bgc = [0.941 0.941 0.941];
+else
+    bgc = [0.7 1 0.73];
+end
+set(h.unit_note,'BackgroundColor',bgc);
 
 
+
+function UnitNote(h) %#ok<DEFNU>
+% retrieve or update unit note on database
+unit = getpref('DB_BROWSER_SELECTION','units');
+
+note = CheckUnitNote(h);
+
+p = sprintf('Update note for Unit ID %d',unit);
+n = sprintf('Unit %d',unit);
+opts.Resize = 'on';
+opts.WindowStyle = 'normal';
+opts.Interpreter = 'none';
+
+a = inputdlg(p,n,5,note,opts);
+
+if isempty(a), return; end
+
+myms(sprintf('UPDATE units SET note = "%s" WHERE id = %d',a{1},unit));
+
+CheckUnitNote(h);
 
 %% Get Data
 function get_protocol_Callback(h) %#ok<DEFNU>
