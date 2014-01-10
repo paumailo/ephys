@@ -37,6 +37,10 @@ end
 
 if nargin < 4, verbose = true; end
 
+% check that all fields of P are of equal length
+n = structfun(@length,P);
+assert(all(n==n(1)),'All fields of P must be the same length.');
+
 ap = mym('SELECT id, name FROM db_util.analysis_params');
 
 fn = fieldnames(P)';
