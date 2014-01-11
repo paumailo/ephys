@@ -40,19 +40,23 @@ ugrp = unique(dbP.group_id);
 
 for i = 1:length(upar)
     iind = ismember(dbP.param,upar{i});
+    P.(upar{i}) = nan(1,length(ugrp));
     for j = 1:length(ugrp)
         ind = iind & ismember(dbP.group_id,ugrp{j});
         if ~any(ind), continue; end
         if isnan(dbP.paramF(ind))
             S = dbP.paramS(ind);
             if strcmpi(S,'NULL'), S = nan; end
+            if isnumeric(P.(upar{i}))
+                P.(upar{i}) = cell(1,length(ugrp));
+            end
             P.(upar{i})(j) = S;
         else
             P.(upar{i})(j) = dbP.paramF(ind);
         end
     end
 end
-if ~isempty(P), P.group_id = ugrp; end
+if ~isempty(P), P.group_id = ugrp'; end
 
 
 
