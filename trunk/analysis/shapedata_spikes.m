@@ -2,6 +2,7 @@ function varargout = shapedata_spikes(spiketimes,P,dimparams,varargin)
 % data = shapedata_spikes(spiketimes,P,dimparams)
 % data = shapedata_spikes(...,'PropertyName',PropertyValue)
 % [data,vals] = shapedata_spikes(...) 
+% [data,vals,raster] = shapedata_spikes(...) 
 %
 % Returns an N+1-dimensional matrix which can be used for analysis and
 % plotting.  The number of dimensions N of the return matrix, data, is
@@ -21,6 +22,10 @@ function varargout = shapedata_spikes(spiketimes,P,dimparams,varargin)
 % The second output, vals, is a cell array with the parameter values
 % corresponding to the dimensions of data.
 %
+% [data,vals,raster] = shapedata_spikes(...) 
+% Returns a cell array with the spike times of individual trials adjusted
+% for stimulus onset time.
+% 
 % For example, if we have noise-burst intensity function, we can sort raw
 % spiketime into average responses within a 50 millisecond window following
 % stimulus onset (returns a 2D matrix):
@@ -92,11 +97,19 @@ for i = 1:length(ons)
     psth(:,i) = histc(raster{i},binvec);
 end
 
-
 % select parameter for dimensions
 for i = 1:length(dimparams)
     vals{i} = unique(P.VALS.(dimparams{i})); %#ok<AGROW>
 end
+
+% sort raster/psth by first dimension parameter
+[~,i] = sort(P.VALS.(dimparams{1}));
+raster = raster(i); 
+n = length(P.lists.(dimparams{1}));
+raster = reshape(raster,length(raster)/n,n);
+psth   = psth(:,i);
+
+P.VALS = structfun(@(x) (x(i)),P.VALS,'UniformOutput',false);
 
 ndp = length(dimparams);
 
@@ -186,4 +199,4 @@ varargout{2} = [{binvec},vals];
 end
 
 varargout{1} = data;
-
+varargout{3} = raster;
