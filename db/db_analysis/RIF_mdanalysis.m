@@ -28,11 +28,14 @@ offstr = cellstr(num2str((10:20:90)','offset%dpk'))';
 ondstr  = strtrim(cellstr(num2str((10:20:90)','Onset latency at %d%% of peak firing rate')))';
 offdstr = strtrim(cellstr(num2str((10:20:90)','Offset latency at %d%% of peak firing rate')))';
 
-name = [onstr, offstr, {'ci', 'p', 'peakfr', 'bestlevel','magnitude','rejectnullh','latency','maxmag','bestlevel','monotonicity','yintercept'}];
-unit = [cellstr(repmat('sec',10,1))', {[], [], 'Hz', 'dB', [], [],'sec','Hz','dB','Hz/dB','Hz'}];
+name = [onstr, offstr, {'ci', 'p', 'peakfr', 'bestlevel','magnitude', ...
+    'rejectnullh','latency','maxmag','bestlevel','monotonicity','yintercept', ...
+    'SchreiberCorr'}];
+unit = [cellstr(repmat('sec',10,1))', {[], [], 'Hz', 'dB', [], [],'sec', ...
+    'Hz','dB','Hz/dB','Hz',[]}];
 desc = [ondstr, offdstr, {'Confidence Interval', 'Statistical P-Value', 'Peak Firing Rate', ...
     'Best Response Level', 'Magnitude of response', 'Reject Null Hypothesis','Response latency','Maximum response magnitude','Best Response Level','Monotonicity', ...
-    'Y-Intercept'}];
+    'Y-Intercept','Schreiber et al, 2003, correlation for spike timing reliability'}];
 DB_CheckAnalysisParams(name,desc,unit);
 
 
@@ -61,8 +64,10 @@ set(f,'ToolBar','figure');
 h.figure = f;
 
 h.mainax = axes('position',[0.1  0.05  0.45 0.73],'tag','main');
-h.ioax   = axes('position',[0.65 0.05  0.3 0.35],'tag','io');
-h.latax  = axes('position',[0.65 0.45  0.3 0.35],'tag','latency');
+h.ioax   = axes('position',[0.65 0.35  0.3  0.22],'tag','io');
+h.rcorrax= axes('position',[0.65 0.05  0.3  0.22],'tag','rcorr');
+h.latax  = axes('position',[0.65 0.65  0.3  0.15],'tag','latency');
+
 
 fbc = get(f,'color');
 
@@ -139,8 +144,6 @@ drawnow
 UD = get(f,'UserData');
 A = UD.A;
 
-
-
 [x,~,b] = ginput(1);
 
 ax = gca;
@@ -151,7 +154,8 @@ if b ~= 1 || ~any(strcmp(get(ax,'tag'),{'peakio','respio'}))
 end
 
 levels = UD.vals{2};
-xi = interp1(levels,1:length(levels),x,'nearest');
+% xi = interp1(levels,1:length(levels),x,'nearest','extrap');
+xi = nearest(levels,x);
 A.(type).features.transpoint = levels(xi);
 
 if A.(type).features.transpoint == levels(end)
@@ -190,17 +194,18 @@ end
 
 ax = gca;
 switch  get(ax,'tag')
-    case 'main'
+    case {'main','latency'}
         dB = y;
         
     case {'peakio','respio'}
         dB = x;
-        
-    case 'latency'
-        dB = y;
+    
+    otherwise
+        dB = x;
 end
 
-dBi = interp1(UD.vals{2},1:length(UD.vals{2}),dB,'nearest');
+% dBi = interp1(UD.vals{2},1:length(UD.vals{2}),dB,'nearest');
+dBi = nearest(UD.vals{2},dB);
 A.response.features.threshold = UD.vals{2}(dBi);
 
 fprintf('\tNew threshold = %d dB\n',A.response.features.threshold);
@@ -234,7 +239,8 @@ end
 
 label = sprintf('%sset%dpk',type,level);
 
-y = interp1(UD.vals{2},1:length(UD.vals{2}),y,'nearest');
+% y = interp1(UD.vals{2},1:length(UD.vals{2}),y,'nearest','extrap');
+y = nearest(UD.vals{2},y);
 y = UD.vals{2}(y);
 ind = A.levels == y;
 A.response.(label)(ind) = x;
@@ -267,18 +273,29 @@ bwin = str2num(get(h.prewin,'String'));
 binsize = 0.001;
 
 [psth,vals] = shapedata_spikes(h.RIF.st,h.RIF.P,{'Levl'}, ...
-    'win',vwin,'binsize',binsize,'func',@mean);
+    'win',vwin,'binsize',binsize,'func',@mean,'returntrials',true);
 psth = psth / binsize;
 
 mp = max(psth(:));
 v = window(@gausswin,5);
 cpsth = zeros(size(psth));
 for i = 1:size(psth,2)
-    cpsth(:,i) = conv(psth(:,i),v,'same');
+    for j = 1:size(psth,3)
+    cpsth(:,i,j) = conv(psth(:,i,j),v,'same');
+    end
 end
 cpsth = cpsth / max(cpsth(:)) * mp;
 
+v = nearest(vals{1},rwin);
+for i = 1:size(cpsth,3)
+    Rcorr(i) = SchreiberCorr(cpsth(v(1):v(2),:,i));  %#ok<AGROW>
+end
+
+cpsth = squeeze(mean(cpsth,2));
+vals(2) = [];
+
 A = PSTHstats(cpsth,vals{1},'levels',vals{2},'prewin',bwin,'rspwin',rwin,'alpha',0.001);
+A.response.Rcorr = Rcorr;
 
 settings.respwin    = str2num(get(h.respwin,'String'));
 settings.viewwin    = str2num(get(h.viewwin,'String'));
@@ -332,6 +349,7 @@ if get(h.show_raster,'Value')
 end
 PlotPSTH(h.mainax,UD.cpsth,UD.vals,UD.A);
 PlotIO(h.ioax,UD.A,UD.vals{2})
+PlotRcorr(h.rcorrax,UD.vals{2},UD.A.response.Rcorr,UD.A)
 PlotLatency(h.latax,UD.A,UD.vals{2})
 
 
@@ -351,7 +369,6 @@ h = guidata(f);
 do = findobj(f,'enable','on');
 set(do,'enable','off');
 drawnow
-
 
 data = get(f,'UserData');
 
@@ -579,6 +596,17 @@ set(h(1),'FontSize',6,'box','off');
 set(h(2),'FontSize',6,'box','off');
 set(yyax(1),'tag','peakio');
 set(yyax(2),'tag','respio');
+
+
+function PlotRcorr(ax,x,Rcorr,A)
+plot(ax,x,Rcorr,'-o');
+xlabel(ax,'Level (dB)');
+title(ax,'Spike Timing Reliability');
+grid(ax,'on');
+hold(ax,'on');
+thresh = A.response.features.threshold;
+plot(ax,thresh*[1 1],ylim(ax),'-b');
+hold(ax,'off');
 
 function PlotLatency(ax,A,x)
 axes(ax);
