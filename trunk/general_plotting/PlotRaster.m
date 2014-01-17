@@ -59,19 +59,19 @@ values = values(:);
 [values,i] = sort(values);
 raster     = raster(i);
 
-uvals = unique(values);
+% flipud so that plotted order of raster conditions matches input
+values = flipud(values);
+raster = flipud(raster);
+
+
+uvals = unique(values,'stable');
 nvals = length(uvals);
 
 % spacing
 for i = 1:nvals
     ind = values == uvals(i);
     n(i) = sum(ind); %#ok<AGROW>
-    if i == nvals
-        d = abs(diff(uvals([i i-1])));
-    else
-        d = abs(diff(uvals([i i+1])));
-    end
-    values(ind) = values(ind) + d*linspace(0,0.95,n(i))';    
+    values(ind) = linspace(i-1,i-0.05,n(i));
 end
 
 cvals = num2cell(values-values(1));
@@ -97,8 +97,9 @@ h = cellfun(@(x,y) (line(x,y,'Parent',ax)),raster,cy);
 set(h,'linestyle','none','marker','s');
 cellfun(@(a,c) (set(a,'markerfacecolor',c,'markeredgecolor',c,'markersize',2)),num2cell(h),colors)
 
-y = values([1 end])-values(1);
+y = ylim;
 dy = diff(y);
+y = [min(y)-0.01; max(y)+0.01];
 sp = dy/nvals/2;
 ts = sp:dy/nvals:dy;
 
