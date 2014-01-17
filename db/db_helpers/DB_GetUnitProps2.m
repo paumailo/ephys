@@ -1,8 +1,14 @@
-function P = DB_GetUnitProps(unit_id,group_id)
-% P = DB_GetUnitProps(unit_id)
-% P = DB_GetUnitProps(unit_id,group_id)
+function P = DB_GetUnitProps2(unit_id,group_id,regexp)
+% P = DB_GetUnitProps2(unit_id)
+% P = DB_GetUnitProps2(unit_id,group_id)
+% P = DB_GetUnitProps2(unit_id,group_id,regexp)
 % 
 % Retrieve and sort unit properties.
+% 
+% This function is updated and provides a better structure as an output
+% than the original version.  The original version is being kept for now
+% for compatibility with existing functions/GUIs.
+% 
 %
 % group_id should be a string and is used in the database query to narrow
 % what is returned from the database.  The actual search query uses 'REGEXP'
@@ -17,7 +23,9 @@ function P = DB_GetUnitProps(unit_id,group_id)
 % 
 % DJS 2013 daniel.stolzberg@gmail.com
 
-narginchk(1,2);
+narginchk(1,3);
+
+if nargin < 3 || ~islogical(regexp), regexp = false; end
 
 P = [];
 
@@ -27,36 +35,34 @@ assert(isscalar(unit_id),'First input must be scalar.')
 if nargin == 1
     dbP = mym(['SELECT param,group_id,paramS,paramF FROM v_unit_props ', ...
                'WHERE unit_id = {Si} ORDER BY group_id,param'],unit_id);
-elseif nargin == 2
+elseif nargin >= 2
     assert(ischar(group_id),'Second input must be a string.')
     
+    if regexp, sstr = 'REGEXP'; else sstr = '='; end
+    
     dbP = mym(['SELECT param,group_id,paramS,paramF FROM v_unit_props ', ...
-               'WHERE unit_id = {Si} AND group_id REGEXP "{S}" ', ...
-               'ORDER BY group_id,param'],unit_id,group_id);
+               'WHERE unit_id = {Si} AND group_id {S} "{S}" ', ...
+               'ORDER BY group_id,param'],unit_id,sstr,group_id);
 end
 
 upar = unique(dbP.param);
 ugrp = unique(dbP.group_id);
 
 for i = 1:length(upar)
-    iind = ismember(dbP.param,upar{i});
-    P.(upar{i}) = nan(1,length(ugrp));
     for j = 1:length(ugrp)
-        ind = iind & ismember(dbP.group_id,ugrp{j});
-        if ~any(ind), continue; end
-        if isnan(dbP.paramF(ind))
-            S = dbP.paramS(ind);
-            if strcmpi(S,'NULL'), S = nan; end
-            if isnumeric(P.(upar{i}))
-                P.(upar{i}) = cell(1,length(ugrp));
-            end
-            P.(upar{i})(j) = S;
+        iind = ismember(dbP.param,upar{i});
+        if all(cellfun(@(x) (isempty(x)),dbP.paramS(iind))) || any(ismember(dbP.paramS(iind),'NULL'))
+            v = dbP.paramF(iind);
         else
-            P.(upar{i})(j) = dbP.paramF(ind);
+            v = dbP.paramS{iind};
         end
+        if isnan(v), continue; end
+        P.(ugrp{j}).(upar{i}) = v;
     end
 end
-if ~isempty(P), P.group_id = ugrp'; end
+
+
+
 
 
 
