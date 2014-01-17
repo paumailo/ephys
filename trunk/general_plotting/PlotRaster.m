@@ -59,10 +59,6 @@ values = values(:);
 [values,i] = sort(values);
 raster     = raster(i);
 
-% flipud so that plotted order of raster conditions matches input
-values = flipud(values);
-raster = flipud(raster);
-
 
 uvals = unique(values,'stable');
 nvals = length(uvals);
@@ -85,6 +81,7 @@ for i = 1:nvals
     k = k + n(i);
 end
 colors = num2cell(pcolors,2);
+colors = colors(1:length(raster));
 
 eind = cellfun(@isempty,raster);
 raster(eind) = [];
@@ -95,7 +92,8 @@ colors(eind) = [];
 % cla(ax);
 h = cellfun(@(x,y) (line(x,y,'Parent',ax)),raster,cy);
 set(h,'linestyle','none','marker','s');
-cellfun(@(a,c) (set(a,'markerfacecolor',c,'markeredgecolor',c,'markersize',2)),num2cell(h),colors)
+cellfun(@(a,c) (set(a,'markerfacecolor',c,'markeredgecolor',c,'markersize',2)), ...
+    num2cell(h),colors)
 
 y = ylim;
 dy = diff(y);
