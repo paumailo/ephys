@@ -102,6 +102,10 @@ if isempty(dbpref)
     dbpref = dbs{i};
 end
 
+if ~ismember(dbpref,dbs)
+    dbpref = dbs{1};
+end
+
 mym('use',dbpref);
 
 % this will ensure that all tables and views exist
@@ -186,7 +190,8 @@ for i = starth:length(ord)
                 'FROM channels WHERE block_id = {Si} {S} ORDER BY channel'],id,iustr);
             if get(h.map_channels,'Value')
                 elec = DB_GetElectrode(get_listid(h.list_tanks));
-                e.str = e.str(elec.map(:));
+                m = elec.map(:);
+                e.str = e.str(m(1:length(e.str))); % NEEDS TO BE FIXED!!
             end
             
             

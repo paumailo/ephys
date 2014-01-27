@@ -20,6 +20,18 @@ function varargout = GenSTA(ST,P,PVar,opts,varargin)
 % (i.e., plotdata = true).  Otherwise, the opts.start_time and
 % opts.end_time are used.
 % 
+% Some values for opts...
+%   clear opts
+%   opts.clustering_exponent        = -2;
+%   opts.unoccupied_bins_strategy   = -1;
+%   opts.metric_family              = 0; % 0: D^spike; 1: D^interval
+%   opts.parallel                   = 1;
+%   opts.possible_words             = 'unique';
+%   opts.start_time = 0;
+%   opts.end_time   = 0.5;
+%   opts.shift_cost = [0 2.^(0:0.1:10)];
+%   opts.entropy_estimation_method = {'jack'};
+% 
 % See also, metric, DB_GetSpiketimes, DB_GetParams
 % 
 % Daniel.Stolzberg@gmail.com 2014
