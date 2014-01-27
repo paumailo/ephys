@@ -37,8 +37,8 @@ for i = 1:length(uRate)
     trials.(tname) = cell(sum(ind),1);
     trials.(tname) = raster(ind);
 end
-assignin('base','trials',trials);
-assignin('base','uRate',uRate);
+% assignin('base','trials',trials);
+% assignin('base','uRate',uRate);
 
 %% Plot Rasters
 f = findobj('name','DBRRTF_RASTER');
@@ -90,9 +90,9 @@ for i = 1:length(uRate)
     stats(i) = circ_stats(alpha{i});  %#ok<AGROW>
     R(i)     = circ_r(alpha{i}); % resultant vector length    
 end
-assignin('base','alpha',alpha);
-assignin('base','stats',stats);
-assignin('base','R',R);
+% assignin('base','alpha',alpha);
+% assignin('base','stats',stats);
+% assignin('base','R',R);
 
 %% Polar Plot of resultant vectors
 f = findobj('name','DBRRTF_Analysis');

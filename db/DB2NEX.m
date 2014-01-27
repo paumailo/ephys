@@ -27,7 +27,7 @@ end
 
 
 
-event = 'BuID';
+event = 'Levl';
 
 eval(sprintf('clear %s*',event));
 p = DB_GetParams(ids.blocks);

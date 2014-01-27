@@ -349,7 +349,7 @@ if get(h.show_raster,'Value')
 end
 PlotPSTH(h.mainax,UD.cpsth,UD.vals,UD.A);
 PlotIO(h.ioax,UD.A,UD.vals{2})
-PlotRcorr(h.rcorrax,UD.vals{2},UD.A.response.Rcorr,UD.A)
+% PlotRcorr(h.rcorrax,UD.vals{2},UD.A.response.Rcorr,UD.A)
 PlotLatency(h.latax,UD.A,UD.vals{2})
 
 

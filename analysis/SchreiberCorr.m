@@ -17,13 +17,15 @@ function Rcorr = SchreiberCorr(S)
 
 S(:,~any(S)) = [];
 
-d = sqrt(sum(S.^2));
+d = sqrt(sum(S.^2)); % normalize vectors
+
+St = S';
 
 N = size(S,2);
 A = 0;
 for i = 1:N
     for j = i+1:N
-        A = A + (S(:,i)' * S(:,j) / (d(i)*d(j)));
+        A = A + (St(i,:) * S(:,j) / (d(i)*d(j)));
     end
 end
 
