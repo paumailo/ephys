@@ -129,6 +129,10 @@ if ~fn, return; end
 file = fullfile(pn,fn);
 
 group = get_string(h.groups);
+if isempty(group)
+    disp('Select a group');
+    return
+end
 for f = fieldnames(h.DATA.data)'
     f = char(f); %#ok<FXSET>
     if isfield(h.DATA.data.(f),group)
@@ -138,6 +142,11 @@ end
 
 params = get(h.params,'String');
 param  = get_string(h.params);
+if isempty(param)
+    disp('Select at least one parameter');
+    return
+end
+
 ind = ~ismember(params,param);
 if any(ind)
     for f = fieldnames(unitdata)'
