@@ -120,7 +120,20 @@ UpdateParamsList(h.groups,[]);
 function ExportData(hObj,~)
 h = guidata(hObj);
 
-loc = getpref('DB2XLS','SaveLoc',cd);
+group = get_string(h.groups);
+if isempty(group)
+    msgbox('Select a group','Export','help','modal');
+    return
+end
+
+
+param  = get_string(h.params);
+if isempty(param)
+    msgbox('Select at least one parameter','Export','help','modal');
+    return
+end
+
+loc = getpref('DBExportUnitData','SaveLoc',cd);
 
 [fn,pn] = uiputfile({'*.tsv',loc},'Export Unit Data (*.tsv)');
 
@@ -128,11 +141,6 @@ if ~fn, return; end
 
 file = fullfile(pn,fn);
 
-group = get_string(h.groups);
-if isempty(group)
-    disp('Select a group');
-    return
-end
 for f = fieldnames(h.DATA.data)'
     f = char(f); %#ok<FXSET>
     if isfield(h.DATA.data.(f),group)
@@ -141,11 +149,6 @@ for f = fieldnames(h.DATA.data)'
 end
 
 params = get(h.params,'String');
-param  = get_string(h.params);
-if isempty(param)
-    disp('Select at least one parameter');
-    return
-end
 
 ind = ~ismember(params,param);
 if any(ind)
