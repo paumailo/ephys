@@ -57,6 +57,10 @@ for i = 1:length(upar)
             v = dbP.paramS{iind};
         end
         if isnan(v), continue; end
+        ns = strfind(ugrp{j},'.');
+        if ~isempty(ns)
+            ugrp{j}(ns) = '_';
+        end
         P.(ugrp{j}).(upar{i}) = v;
     end
 end
