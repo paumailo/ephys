@@ -123,16 +123,17 @@ end
 figure(f)
 
 subplot(222)
-[h,hl1,hl2] = plotyy(uRate,R,uRate,angle(zm));
+% skip 1
+[h,hl1,hl2] = plotyy(uRate(2:end),R(2:end),uRate(2:end),abs(angle(zm(2:end))));
 set(h(1),'ylim',[0 1]);
-set(h(2),'ylim',[-pi pi],'ytick',[-pi 0 pi],'yticklabel',{'-pi',0,'pi'});
+set(h(2),'ylim',[0 pi],'ytick',[0 pi/2 pi],'yticklabel',{0,'pi/2','pi'});
 set(h,'xlim',[uRate(1) uRate(end)]);
 set(hl1,'linewidth',1.5,'marker','o');
 set(hl2,'linewidth',1.5,'marker','+','linestyle',':');
 
 grid on
 ylabel(h(1),'Resultant Vector Length');
-ylabel(h(2),'Resultant Vector Phase');
+ylabel(h(2),'Abs Resultant Vector Phase');
 xlabel('Repetition Rate (Hz)');
 
 
@@ -187,15 +188,14 @@ for i = 1:length(Cspk)
 %         'o:','color',lc(i,:),'LineWidth',1,'MarkerSize',5,'MarkerFaceColor',[0.4 0.4 0.4])
 %     plot3(T(i)*(0:length(Cspk{i})-1),ones(size(Cspk{i}))*(length(Cspk)-i),Cspk{i}, ...
 %         '-','color',lc(i,:),'LineWidth',1)
-    plot(Ts{i},Cspk{i},'-o','color',lc(i,:),'LineWidth',2)
+    plot(Ts{i},Cspk{i}/Cspk{i}(1),'-o','color',lc(i,:),'LineWidth',2)
 end
 hold off
-title('Mean Spikes per Click')
 grid on
 % set(gca,'yticklabel',flipud(uRate));
 xlabel('time');
 % ylabel('Rep Rate (Hz)');
-ylabel('Mean # Spikes');
+ylabel('Firing Rate re First Click');
 % legend(fn,'Location','BestOutside')
 
 
