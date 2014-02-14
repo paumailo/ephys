@@ -154,15 +154,19 @@ for i = 1:length(lStores)
                 data.snips.(name) = struct('data',[],'chan',[],'sort',[],'ts',[],'index',[]);
                 TTX.SetUseSortName(SORTNAME);
                 data.snips.(name).sortname = SORTNAME;
-                N = TTX.ReadEventsV(1e7, name, 0, 0, 0.0, 0.0, 'ALL');
-                if N
+                t = 0:100:1e4;
+                for k = 1:length(t)-1;
+                    N = TTX.ReadEventsV(1e6, name, 0, 0, t(k), t(k+1), 'ALL');
+                    if ~N, continue; end
                     data.snips.(name).data(end+1:end+N,:) = TTX.ParseEvV(0, N)';
                     data.snips.(name).chan(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 4);
                     data.snips.(name).sort(end+1:end+N)   = TTX.ParseEvInfoV(0, N, 5);
                     data.snips.(name).ts(end+1:end+N)     = TTX.ParseEvInfoV(0, N, 6);
+                    
                 end
-                N = TTX.ReadEventsV(N,name,0,0,0,0,'IDXPSQ');
-                if N
+                for k = 1:length(t)-1;
+                    N = TTX.ReadEventsV(1e6,name,0,0,t(k),t(k+1),'IDXPSQ');
+                    if ~N, continue; end
                     data.snips.(name).index(end+1:end+N)  = TTX.GetEvTsqIdx;
                 end
             else
