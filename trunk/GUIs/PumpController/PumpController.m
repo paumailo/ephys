@@ -308,7 +308,7 @@ switch get(hObj,'Tag')
         else
             COM = ports;
         end
-        Settings.COM = char(COM);
+        Settings.COM = ports{COM};
         setappdata(f,'Settings',Settings);
 end
 
@@ -351,7 +351,8 @@ A.QueryStates = false;
 A.AnalogRange = A.C_AnalogRange;
 
 % approx calibration with V-divider 50k-50k resistors from 5V (2/2/14)
-A.AnalogCal = polyfit([59.2 72.4 82.5],[14.7 22.0 27.7],1);
+% A.AnalogCal = polyfit([59.2 72.4 82.5],[14.7 22.0 27.7],1);
+A.AnalogCal = polyfit([58.0 71.2],[23.2 30.3],1);
 
 A.AnalogOpt = 'Cal';
 
@@ -441,9 +442,10 @@ set(h.txt_txrx,'String',''); drawnow
 
 set(h.lbl_probetemp,'String',num2str(Temp.Data(end),'% 2.1f'));
 
-set(h.txt_pumpspeed,'String',num2str(Pump.Data(end)));
+
 
 if ~States.Manual
+    set(h.txt_pumpspeed,'String',num2str(Pump.Data(end)));
     % Automation code goes here
     if Time.Data(end) >= Sched.NData{Sched.Index,1}
         if Sched.Index == Sched.StopIndex
