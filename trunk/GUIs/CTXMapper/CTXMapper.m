@@ -90,8 +90,8 @@ guidata(h.figure1,h);
 setpref('CTXMapper','CTXfpath',fpath);
 
 C.dispCTXImage;
-% C.plotTessell;
-C.plotPoints;
+C.plotTessell;
+% C.plotPoints;
 
 function saveCTXmap_ClickedCallback(hObj, ~, h) %#ok<INUSL,DEFNU>
 C = h.C;
