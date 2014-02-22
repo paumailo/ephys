@@ -15,19 +15,22 @@ function TDT2PLX(tank,blocks,varargin)
 %   EVENT           (depends)       % Event name.  If not specified, then
 %                                     the default event will be the first
 %                                     snip type event.
-%
+%   CHANNELS        []              % Use a subset of channels specified by
+%                                     an array of channels. If empty, use
+%                                     all channels with spikes.
+% 
 % See also, PLX2TDT
 %
 % DJS 2013
 %
-% Daniel.Stolzberg at gmail dot com
+% Daniel.Stolzberg@gmail.com
 
 
 % defaults are modifiable using varargin parameter, value pairs
 PLXDIR        = [];
 SERVER        = 'Local';
 EVENT         = [];
-
+CHANNELS      = [];
 
 if isempty(blocks)
     blocks = TDT2mat(tank); % returns all blocks from tank
@@ -64,6 +67,9 @@ for i = 1:length(blocks)
     d.data = d.data * 6e6; % scale for Plexon
     
     channels = unique(d.chan);
+    if ~isempty(CHANNELS)
+        channels = CHANNELS(ismember(CHANNELS,channels));
+    end
     
     if i == 1
         ts   = cell(512,1);
