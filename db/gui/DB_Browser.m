@@ -67,7 +67,7 @@ set(h.hide_unclassed_units,'Value',chkpref{2});
 Connect2DB(h,dbpref);
 
 
-function closeme(hObj,~) %#ok<DEFNU>
+function closeme(hObj,~)
 myclose;
 fprintf('\nConnection to database closed\n')
 delete(hObj);
@@ -95,6 +95,12 @@ elseif ~myisopen % if connection is lost, reconnect to database
     dbs = DB_Connect;
 else
     dbs = dblist;
+end
+
+if isempty(dbs)
+    helpdlg('Seems as though there are no compatible databases on the server.  Please use DB_UploadUtility to build a new database.','DB_Browser');
+    closeme(gcf);
+    return
 end
 
 if isempty(dbpref)
