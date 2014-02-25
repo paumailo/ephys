@@ -197,7 +197,7 @@ for i = starth:length(ord)
             if get(h.map_channels,'Value')
                 elec = DB_GetElectrode(get_listid(h.list_tanks));
                 m = elec.map(:);
-                e.str = e.str(m(1:length(e.str))); % NEEDS TO BE FIXED!!
+                e.str = e.str(m); % NEEDS TO BE FIXED!!
             end
             
             
