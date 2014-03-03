@@ -65,7 +65,7 @@ fRSP = RSP(2:end,:) < RSP(1:end-1,:); % falling slope samples
 for i = 1:ncols
     for j = 1:length(threshlevels)
         f = sprintf('onset%dpk',threshlevels(j));       
-        
+        if peakidx(i) > size(rRSP,1), peakidx(i) = size(rRSP,1); end
         sigind = RSP(1:peakidx(i),i) >= thresh(i,j) & rRSP(1:peakidx(i),i);
         if any(sigind)
             idx = find(sigind,1,'first');
