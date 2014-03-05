@@ -5,17 +5,22 @@ function varargout = shapedata_wave(wave,tvec,params,dimparams,varargin)
 %
 % Reshapes continuously sampled data based on some parameters (dimparams)
 %
-% PropertyName  ... PropertyValue
-% 'win'         ... window (eg, [-0.1 0.5]) in seconds
+% PropertyName   ... PropertyValue
+% 'win'          ... window (eg, [-0.1 0.5]) in seconds
+% 'func'         ... function to compute response magnitude (default = "mean")
+% 'returntrials' ... if true, returns an extra dimension with each trial
+%                           (default = false)
 % 
-% Daniel.Stolzberg at gmail com 2013
+% Daniel.Stolzberg@gmail.com 2013
 %
 % See also, shapedata_spikes, DB_GetWave
 
 
 win = [0 0.1];
+returntrials = false;
+func         = 'mean';
 
-ParseVarargin('win',[],varargin);
+ParseVarargin({'win','returntrials'},[],varargin);
 
 Fs = params.wave_fs;
 
@@ -37,15 +42,21 @@ for i = 1:length(ons)
 end
 
 for i = 1:length(dimparams)
-    vals{i} = unique(params.VALS.(dimparams{i})); %#ok<AGROW>
+    vals{i} = params.lists.(dimparams{i});
 end
 
 if length(vals) == 1
     % data:    samples/param1
-    data = zeros(length(winsamps),length(vals{1}));
+    if ~returntrials
+        data = zeros(length(winsamps),length(vals{1}));
+    end
     for i = 1:length(vals{1})
         ind = params.VALS.(dimparams{1}) == vals{1}(i);
-        data(:,i) = mean(tdata(:,ind),2);
+        if returntrials
+            data(:,:,i) = tdata(:,ind);
+        else
+            data(:,i) = feval(func,tdata(:,ind),2);
+        end
     end
     
     
@@ -56,7 +67,11 @@ elseif length(dimparams) == 2
         for j = 1:length(vals{2})
             ind = params.VALS.(dimparams{1}) == vals{1}(i) ...
                 & params.VALS.(dimparams{2}) == vals{2}(j);
-            data(:,i,j) = mean(tdata(:,ind),2);
+            if returntrials
+                data(:,:,i,j) = tdata(:,ind);
+            else
+                data(:,i,j) = feval(func,tdata(:,ind),2);
+            end
         end
     end
     
@@ -70,7 +85,11 @@ elseif length(dimparams) == 3
                 ind = params.VALS.(dimparams{1}) == vals{1}(i) ...
                     & params.VALS.(dimparams{2}) == vals{2}(j) ...
                     & params.VALS.(dimparams{3}) == vals{3}(k);
-                data(:,i,j,k) = mean(tdata(:,ind),2);
+                if returntrials
+                    data(:,:,i,j,k) = tdata(:,ind);
+                else
+                    data(:,i,j,k) = feval(func,tdata(:,ind),2);
+                end
             end
         end
     end
@@ -79,6 +98,10 @@ end
 
 
 varargout{1} = data;
+
+if returntrials
+    vals = [1:size(data,2) vals];
+end
 varargout{2} = [{winsamps},vals];
 
 

@@ -4,8 +4,7 @@ function CSD = computecsd(PHI,H,N,SIGMA,SPATIALFILTER)
 % CSD = computecsd(PHI,H,N,SIGMA)
 % CSD = computecsd(PHI,H,N,SIGMA,SPATIALFILTER)
 % 
-% Approximate 2nd spatial derivative of M x N matrix PHI where M is greater
-% than 3 elements and N represents each sample.
+% Uses spline iCSD method from iCSD Plotter (Pettersen et al, 2006)
 % 
 % H is the distance between electrode sites.  If length(H) == 1 then the
 % value is used as the distance parameter between electrode sites (rows).
@@ -22,21 +21,10 @@ function CSD = computecsd(PHI,H,N,SIGMA,SPATIALFILTER)
 % DJS (c) 2010
 
 
-if isempty(whos('H')) || isempty(H)
-    H = 1;
-end
-
-if isempty(whos('N')) || isempty(N)
-    N = 1;
-end
-
-if isempty(whos('SIGMA')) || isempty(SIGMA)
-    SIGMA = 0.3;
-end
-
-if isempty(whos('SPATIALFILTER')) || isempty(SPATIALFILTER)
-    SPATIALFILTER = false;
-end
+if isempty(whos('H')) || isempty(H), H = 1; end
+if isempty(whos('N')) || isempty(N), N = 1; end
+if isempty(whos('SIGMA')) || isempty(SIGMA), SIGMA = 0.3; end
+if isempty(whos('SPATIALFILTER')) || isempty(SPATIALFILTER), SPATIALFILTER = false; end
 
 yvec = H:H:size(PHI,1)*H;
 diam = 5e-4;
