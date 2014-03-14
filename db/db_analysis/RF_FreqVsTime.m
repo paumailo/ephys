@@ -341,8 +341,11 @@ surf(binvec,P.lists.Freq/1000,sdata);
 
 view(2)
 shading interp
+UD.data = sdata;
+UD.freq = P.lists.Freq;
+UD.binvec = binvec;
 set(gca,'yscale','log','ylim',[min(P.lists.Freq) max(P.lists.Freq)]/1000, ...
-    'xlim',win,'tickdir','out','clipping','off');
+    'xlim',win,'tickdir','out','clipping','off','UserData',UD);
 axis tight
 box on
 hold on
