@@ -32,6 +32,9 @@ elseif nargin == 0
             mym('open',host,user,pass);
         end
     end
+
+elseif nargin == 3
+    mym('open',host,user,pass);
     
 end
 
