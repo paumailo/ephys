@@ -45,7 +45,7 @@ for i = 1:length(upar)
         ind = iind & ismember(dbP.group_id,ugrp{j});
         if ~any(ind), continue; end
         
-        if ~iscell(P.(upar{i})) && ~any(isnan(dbP.paramS{ind}))
+        if ~iscell(P.(upar{i})) && ~isnan(dbP.paramF(ind)) && ~any(isnan(dbP.paramS{ind}))
             P.(upar{i})(j) = dbP.paramF(ind);
         
         else
