@@ -579,7 +579,11 @@ mdata(Cdata.mask) = data(Cdata.mask);
 
 F.minthresh = min(Cdata.contour(2,:));  % minimum threshold
 ind = Cdata.contour(2,:) <= F.minthresh + 1; % find mean CF near threshold
-F.charfreq = mean(Cdata.contour(1,ind)); % characteristic frequency
+if fix(mean(xvals)) == fix(median(xvals)) % linear data
+    F.charfreq = mean(Cdata.contour(1,ind)); % CF for linear frequency spacing
+else
+    F.charfreq = geomean(Cdata.contour(1,ind)); % CF for logarithmic frequency spacing
+end
 xi = interp1(xvals,xvals,F.charfreq,'nearest');
 F.EXTRAS.cfio = data(:,xvals==xi); %*CharFreq IO function
 
