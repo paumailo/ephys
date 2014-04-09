@@ -22,7 +22,7 @@ end
 
 [protocol,fail] = CompileProtocol(protocol);
 if fail
-    warning('Unable to properly compile protocol.n\nCheck all ''buddy'' variables are balanced.')
+    fprintf(2,'Unable to properly compile protocol.n\nCheck all ''buddy'' variables are balanced.')
     varargout{1} = [];
     varargout{2} = fail;
     return

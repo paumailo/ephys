@@ -56,7 +56,7 @@ end
 fstrs = 'unit id %d\t%s: %s\t%- 16s % 12s\n';
 
 
-fname = fullfile('C:\DB_TMP.txt');
+fname = fullfile(matlabroot,'DB_TMP.txt');
 fid = fopen(fname,'w');
 
 [pnames,pids] = myms('SELECT DISTINCT name,id FROM db_util.analysis_params');
@@ -118,11 +118,10 @@ dbfname = strrep(fname,'\','\\');
 
 fprintf('Updating ...')
 mym(sprintf(['LOAD DATA LOCAL INFILE ''%s'' INTO TABLE unit_properties ', ...
-    'FIELDS TERMINATED BY '','' OPTIONALLY ENCLOSED BY ''"''', ...
-    'LINES TERMINATED BY ''\r\n''', ...
+    'FIELDS TERMINATED BY '','' OPTIONALLY ENCLOSED BY ''"'' ', ...
+    'LINES TERMINATED BY ''\r\n'' ', ...
     '(unit_id,param_id,group_id,paramS,paramF)',],dbfname))
 fprintf(' done\n')
 
 delete(fname);
-
 

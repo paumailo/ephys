@@ -321,7 +321,8 @@ end
 
 % Copy COMPILED protocol to global variable (G_COMPILED)
 G_COMPILED = protocol.COMPILED;
-
+G_COMPILED.HALTED = false;
+G_COMPILED.FINISHED = false;
 
 % Instantiate OpenDeveloper ActiveX control and select active tank
 if ~isa(G_DA,'COM.TDevAcc_X'), G_DA = TDT_SetupDA; end
@@ -371,7 +372,7 @@ if isempty(G_FLAGS.ZBUSB_ON),  w{end+1} = 'ZBUSB_ON';   end
 if ~isempty(G_FLAGS.ZBUSB_ON) && isempty(G_FLAGS.ZBUSB_OFF), w{end+1} = 'ZBUSB_OFF';  end
 if isempty(G_FLAGS.trigstate), w{end+1} = '~TrigState'; end
 for i = 1:length(w)
-    fprintf('WARNING: ''%s'' was not discovered on any module\n',w{i})
+    fprintf(2,'WARNING: ''%s'' was not discovered on any module\n',w{i})
 end
 
 if G_COMPILED.OPTIONS.optcontrol
@@ -388,10 +389,16 @@ if G_COMPILED.OPTIONS.optcontrol
 %         return
 %     end
 end
-    
+
+
+% Set monitor channel
+monitor_channel_Callback(h.monitor_channel, [], h);
+
 % Set first trial parameters
 G_COMPILED.tidx = 1;
-DAUpdateParams(G_DA,G_COMPILED);
+G_COMPILED.FINISHED = false;
+
+
 if G_COMPILED.OPTIONS.optcontrol
     % ZBus Trigger on modules
     t   = DAZBUSBtrig(G_DA,G_FLAGS);
@@ -401,12 +408,19 @@ else
     t   = hat;
     per = t + ITI(G_COMPILED.OPTIONS);
 end
+
+% Call user-defined trial select function
+if strcmpi(G_COMPILED.OPTIONS.trialfunc,'< default >'), G_COMPILED.OPTIONS.trialfunc = []; end
+if isfield(G_COMPILED.OPTIONS,'trialfunc') && ~isempty(G_COMPILED.OPTIONS.trialfunc)
+    G_COMPILED.EXPT.NextTriggerTime = per;
+    try %#ok<TRYNC>
+        % The global variable G_DA can be accessed from the trialfunc
+        G_COMPILED = feval(G_COMPILED.OPTIONS.trialfunc,G_COMPILED);
+    end
+end
+DAUpdateParams(G_DA,G_COMPILED);
+
 G_COMPILED.tidx = G_COMPILED.tidx + 1;
-
-% Set monitor channel
-monitor_channel_Callback(h.monitor_channel, [], h);
-
-
 
 
 % Create new timer to control experiment
@@ -538,6 +552,8 @@ end
 
 %% DA Open Developer Functions
 function DAHalt(h,DA)
+global G_COMPILED
+
 % Stop recording and update GUI
 set(h.get_thresholds, 'Enable','on');
 set(h.control_record, 'Enable','on');
@@ -550,6 +566,15 @@ set(ph,'Enable','on');
 if ~isa(DA,'COM.TDevAcc_X'), DA = TDT_SetupDA; end
 
 DA.SetSysMode(0); % Halt system
+
+% Call user-defined trial select function in case it wants to close up
+G_COMPILED.HALTED = true;
+if isfield(G_COMPILED.OPTIONS,'trialfunc') && ~isempty(G_COMPILED.OPTIONS.trialfunc)
+    try %#ok<TRYNC>
+        % The global variable G_DA can be accessed from the trialfunc
+        G_COMPILED = feval(G_COMPILED.OPTIONS.trialfunc,G_COMPILED);
+    end
+end
 
 % Stop the timer
 T = timerfind('Name','EPhysTimer');
@@ -683,6 +708,7 @@ else
     if ~G_COMPILED.OPTIONS.optcontrol
         % Figure out time of next trigger
         ud{3} = ud{2} + ITI(G_COMPILED.OPTIONS);
+        G_COMPILED.EXPT.NextTriggerTime = ud{3};
     end
     
     
@@ -704,7 +730,9 @@ if G_COMPILED.FINISHED
         pause(1)
     end
     set(h.progress_status,'ForegroundColor',[0 0 0],'String','');
+        
     DAHalt(h,G_DA);
+    
     fprintf(' done\n')
     fprintf('Presented %d trials.\nTime is now %s.\n\n',G_COMPILED.tidx-1, ...
         datestr(now,'HH:MM:SS PM'))
@@ -726,9 +754,9 @@ end
 
 %--------------------------------------------------------------------------
 % Call user-defined trial select function
-if isfield(G_COMPILED,'trialfunc') && ~isempty(G_COMPILED.trialfunc)
+if isfield(G_COMPILED.OPTIONS,'trialfunc') && ~isempty(G_COMPILED.OPTIONS.trialfunc)
     % The global variable G_DA can be accessed from the trialfunc
-    G_COMPILED = feval(G_COMPILED.trialfunc,G_COMPILED);
+    G_COMPILED = feval(G_COMPILED.OPTIONS.trialfunc,G_COMPILED);
 end
 
 % Update parameters

@@ -21,7 +21,8 @@ function e = DAUpdateParams(DA,C)
 % characters (could be 'ChA_Atten' or 'ChB_Atten', etc) then this function
 % will automatically use small steps from the previous attenuation value to
 % the new attenuation value rather than a big jump to avoid switching
-% transients (DS 10/4/13)
+% transients (DS 10/4/13)  ** This is still not very effective.  Recommend
+% using constant PA5 attenuation and adjusting voltage of ADC ** (DS 3/14)
 % 
 % See also, ProtocolDesign, EPhysController
 %
@@ -32,7 +33,7 @@ trial = C.trials(C.tidx,:);
 for j = 1:length(trial)
     param = C.writeparams{j};
 
-    if param(1) == '*', continue; end 
+    if any(param=='*'), continue; end 
     
     par = trial{j};
     
@@ -60,6 +61,6 @@ for j = 1:length(trial)
     end
     
     if ~e
-        fprintf('** WARNING: Parameter: ''%s'' was not updated **\n',param);
+        fprintf(2,'** WARNING: Parameter: ''%s'' was not updated **\n',param);
     end
 end
