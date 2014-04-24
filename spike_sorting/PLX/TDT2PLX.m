@@ -18,6 +18,8 @@ function TDT2PLX(tank,blocks,varargin)
 %   CHANNELS        []              % Use a subset of channels specified by
 %                                     an array of channels. If empty, use
 %                                     all channels with spikes.
+%   SCALE           5.5e6           % Rescale spike waveforms for
+%                                     OfflineSorter
 % 
 % See also, PLX2TDT
 %
@@ -31,6 +33,7 @@ PLXDIR        = [];
 SERVER        = 'Local';
 EVENT         = [];
 CHANNELS      = [];
+SCALE         = 5.5e6;
 
 if isempty(blocks)
     blocks = TDT2mat(tank); % returns all blocks from tank
@@ -64,7 +67,7 @@ for i = 1:length(blocks)
     
     d = d.snips.(EVENT);
     
-    d.data = d.data * 6e6; % scale for Plexon
+    d.data = d.data * SCALE; % scale for Plexon
     
     channels = unique(d.chan);
     if ~isempty(CHANNELS)
