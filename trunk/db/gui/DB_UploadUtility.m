@@ -603,7 +603,7 @@ allobjs = findobj(h.figure1,'Enable','on');
 set(allobjs,'Enable','off');
 drawnow
 
-% try
+try
     for i = 1:length(Queue)
         Q = Queue(i);
         
@@ -652,11 +652,12 @@ drawnow
         
         ei = strcmp('streams',Q.eventtype);
         if any(ei), streamEvent = Q.events{ei}; end
-        
+        TN = shiftdim(Q.tanknotes,1);
+        TN = TN(:)';
         mym(['INSERT tanks (exp_id,tank_condition,tank_date,tank_time,name,spike_fs,wave_fs,tank_notes) ', ...
             'VALUES ({Si},"{S}","{S}","{S}","{S}",{S},{S},"{S}")'], ...
             exptid,Q.condition,datestr(B(1).info.date,'yyyy-mm-dd'),datestr(B(1).info.begintime,'HH:MM:SS'), ...
-            Q.tank,num2str(snipsFs,'%0.5f'),num2str(streamsFs,'%0.5f'),Q.tanknotes);
+            Q.tank,num2str(snipsFs,'%0.5f'),num2str(streamsFs,'%0.5f'),TN);
         tid = myms(sprintf('SELECT DISTINCT id FROM tanks WHERE name = "%s"',Q.tank));
                 
         % update electrode
@@ -752,7 +753,7 @@ drawnow
             fprintf('done\n')
             
             % update units
-            if ~isempty(data.snips)
+            if ismember('snips',Q.eventtype)
                 snips = data.snips.(snipEvent);
                 schans = unique(snips.chan);
                 for k = 1:length(schans)
@@ -792,7 +793,8 @@ drawnow
                 
             end
             
-            if ~isempty(data.streams) && ~isempty(streamEvent)
+%             if ~isempty(data.streams) && ~isempty(streamEvent)
+            if ismember('streams',Q.eventtype)
                 % update wave_data
                 DB_UploadWaveData(Q.tank,B(j).info.blockname,streamEvent);
                 
@@ -800,10 +802,11 @@ drawnow
         end
     end
     fprintf('\nCompleted upload at %s\n\n',datestr(now,'dd-mmm-yyyy HH:MM:SS'))
-% catch ME
-%    set(allobjs,'Enable','on');
-%    rethrow(ME)
-% end
+catch ME
+   set(allobjs,'Enable','on');
+   rethrow(ME)
+   return
+end
 set(allobjs,'Enable','on');
 
 
