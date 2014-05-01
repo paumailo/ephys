@@ -54,6 +54,7 @@ for i = 1:length(upar)
             if isnumeric(P.(upar{i}))
                 P.(upar{i}) = cell(1,length(ugrp));
             end
+            if ~iscell(S) && isnan(S), S = {nan}; end
             P.(upar{i})(j) = S;
         end
             

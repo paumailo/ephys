@@ -599,8 +599,7 @@ curdb = get_string(h.db_list);
 if ~myisopen, DB_Connect; end
 if ~strcmp(dbcurr,curdb), dbopen(curdb); end
 
-allobjs = findobj(h.figure1,'Enable','on');
-set(allobjs,'Enable','off');
+set(findobj(h.figure1,'Enable','on'),'Enable','off');
 drawnow
 
 try
@@ -803,11 +802,10 @@ try
     end
     fprintf('\nCompleted upload at %s\n\n',datestr(now,'dd-mmm-yyyy HH:MM:SS'))
 catch ME
-   set(allobjs,'Enable','on');
+   set(findobj(h.figure1,'Enable','on'),'Enable','on');
    rethrow(ME)
-   return
 end
-set(allobjs,'Enable','on');
+set(findobj(h.figure1,'Enable','on'),'Enable','on');
 
 
 

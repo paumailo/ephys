@@ -68,8 +68,10 @@ for i = 1:ncols
         if peakidx(i) > size(rRSP,1), peakidx(i) = size(rRSP,1); end
         sigind = RSP(1:peakidx(i),i) >= thresh(i,j) & rRSP(1:peakidx(i),i);
         if any(sigind)
-            idx = find(sigind,1,'first');
-            A.response.(f)(i) = bins(rspidx(idx));
+            [bigrun(1),bigrun(2)] = findbiggestrun(sigind,1);
+            A.response.(f)(i) = bins(rspidx(bigrun(1)));
+%             idx = find(sigind,1,'first');
+%             A.response.(f)(i) = bins(rspidx(idx));
         else
             A.response.(f)(i) = nan;
         end
@@ -77,8 +79,10 @@ for i = 1:ncols
         f = sprintf('offset%dpk',threshlevels(j));
         sigind = RSP(peakidx(i):end-1,i) >= thresh(i,j) & fRSP(peakidx(i):end,i);
         if any(sigind)
-            idx = peakidx(i) + find(sigind,1,'last') - 1;
-            A.response.(f)(i) = bins(rspidx(idx));
+            [bigrun(1),bigrun(2)] = findbiggestrun(sigind,1);
+            A.response.(f)(i) = bins(rspidx(peakidx(i)+bigrun(2)));
+%             idx = peakidx(i) + find(sigind,1,'last') - 1;
+%             A.response.(f)(i) = bins(rspidx(idx));
         else
             A.response.(f)(i) = nan;
         end

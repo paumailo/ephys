@@ -80,10 +80,12 @@ lidxstr = 'UPDATE unit_properties SET paramF = %d WHERE group_id = "%s"';
 
 for u = k:nunits
     fprintf('Unit %d of %d\n',k,nunits)
-    af = feval(analysisfcn,units(k));
+    
+    af = feval(analysisfcn,units(k)); % returns analysis figure handle
     f = LaunchBatchGUI(af);
     set(f,'Name',sprintf('BATCH: Unit %d of %d',k,nunits));
     uiwait(af);
+    
     myms(sprintf(lidxstr,k,groupid));
     if KILLBATCH, break; end %#ok<UNRCH>
     k = k + 1;

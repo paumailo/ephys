@@ -219,6 +219,7 @@ do = findobj(f,'enable','off');
 set(do,'enable','on');
 
 function AdjustOnOff(hObj,event,f) %#ok<INUSL>
+persistent prompt
 info = get(hObj,'UserData');
 type = info{1};
 level = info{2};
@@ -230,20 +231,39 @@ drawnow
 UD = get(f,'UserData');
 A = UD.A;
 
-[x,y,b] = ginput(1);
-ax = gca;
-if b ~= 1 || ~strcmp(get(ax,'tag'),'main')
+if isempty(prompt)
+    uiwait(msgbox('Click left mouse button to adjust onset/offset of one or multiple histgrams.  Click right mouse button to finish.','Adjust Onset/Offset','modal'));
+    prompt = 1;
+end
+
+i = 1; b = 1;
+while b == 1
+    [x(i),y(i),b(i)] = ginput(1);
+    i = i + 1;
+end
+% ax = gca;
+% if b ~= 1 || ~strcmp(get(ax,'tag'),'main')
+%     set(do,'enable','on');
+%     return
+% end
+if b(end) == 27 % escape
     set(do,'enable','on');
     return
 end
 
+x = x(b==1);
+y = y(b==1);
+    
+
 label = sprintf('%sset%dpk',type,level);
 
-% y = interp1(UD.vals{2},1:length(UD.vals{2}),y,'nearest','extrap');
-y = nearest(UD.vals{2},y);
-y = UD.vals{2}(y);
-ind = A.levels == y;
-A.response.(label)(ind) = x;
+for i = 1:length(x)
+    % y = interp1(UD.vals{2},1:length(UD.vals{2}),y,'nearest','extrap');
+    y(i) = nearest(UD.vals{2},y(i));
+    y(i) = UD.vals{2}(y(i));
+    ind = A.levels == y(i);
+    A.response.(label)(ind) = x(i);
+end
 
 UD.A = A;
 set(f,'UserData',UD);
@@ -287,15 +307,15 @@ end
 cpsth = cpsth / max(cpsth(:)) * mp;
 
 v = nearest(vals{1},rwin);
-for i = 1:size(cpsth,3)
-    Rcorr(i) = SchreiberCorr(cpsth(v(1):v(2),:,i));  %#ok<AGROW>
-end
+% for i = 1:size(cpsth,3)
+%     Rcorr(i) = SchreiberCorr(cpsth(v(1):v(2),:,i));  %#ok<AGROW>
+% end
 
 cpsth = squeeze(mean(cpsth,2));
 vals(2) = [];
 
 A = PSTHstats(cpsth,vals{1},'levels',vals{2},'prewin',bwin,'rspwin',rwin,'alpha',0.001);
-A.response.Rcorr = Rcorr;
+% A.response.Rcorr = Rcorr;
 
 settings.respwin    = str2num(get(h.respwin,'String'));
 settings.viewwin    = str2num(get(h.viewwin,'String'));
