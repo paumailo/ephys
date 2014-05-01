@@ -11,12 +11,20 @@ function Rcorr = SchreiberCorr(S)
 % 
 % Reference: Schreiber et al, 2003 Neurocomputing 52-54, p925-931
 % 
-% ***** RESULTS OF JITTER TEST DO NOT SEEM TO MATCH SCHREIBER ET AL, 2003
-% FIGURE 2A.  NOT SURE WHAT IS WRONG.  USE WITH CAUTION.  DS 1/28/2014 ***
+% *************************************************************************
+% RESULTS OF JITTER TEST DO NOT SEEM TO MATCH SCHREIBER ET AL, 2003
+% FIGURE 2A.  NOT SURE WHAT IS WRONG.  USE WITH CAUTION.  DS 1/28/2014 
+% *************************************************************************
 % 
 % Daniel.Stolzberg@gmail.com 2014
 
+persistent WARNED
 
+if isempty(WARNED)
+    fprintf(2,['\nRESULTS OF JITTER TEST DO NOT SEEM TO MATCH SCHREIBER ET AL, 2003\n', ...
+        'FIGURE 2A.  NOT SURE WHAT IS WRONG.  USE WITH CAUTION.  DS 1/28/2014\n'])
+    WARNED = 1;
+end
 % S(:,~any(S)) = [];
 
 N = size(S,2);
