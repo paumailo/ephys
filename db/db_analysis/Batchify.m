@@ -20,13 +20,13 @@ exptname = char(myms(sprintf('SELECT name FROM experiments WHERE id = %d',exptid
 
 prot = myms(sprintf('SELECT protocol FROM blocks WHERE id = %d LIMIT 1',blockid));
 
-exclunc = questdlg('Include unclassified (UNC) unit type?','Batchify','Include','Exclude','Exclude');
-
-if strcmp(exclunc,'Exclude')
+% exclunc = questdlg('Include unclassified (UNC) unit type?','Batchify','Include','Exclude','Exclude');
+% 
+% if strcmp(exclunc,'Exclude')
     excluncstr = 'AND u.pool > 0';
-else
-    excluncstr = '';
-end
+% else
+%     excluncstr = '';
+% end
 
 units = myms(sprintf(['SELECT DISTINCT v.unit FROM v_ids v ', ...
                       'JOIN units u ON u.id = v.unit ', ...

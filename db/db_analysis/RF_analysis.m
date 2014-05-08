@@ -643,8 +643,8 @@ end
 if LfC(1,1) > LfC(1,end) &&  HfC(1,1) < HfC(1,end)
     LfC = fliplr(LfC); Lfyi = fliplr(Lfyi);
     HfC = fliplr(HfC); Hfyi = fliplr(Hfyi);
-elseif HfC(1,1) > HfC(1,end)
-    HfC = fliplr(HfC); Hfyi = fliplr(Hfyi); 
+% elseif HfC(1,1) > HfC(1,end)
+%     HfC = fliplr(HfC); Hfyi = fliplr(Hfyi); 
 end
 
 for i = 2:length(Lfyi)
