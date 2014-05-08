@@ -105,31 +105,38 @@ h.updatedb = uicontrol(f,'Style','pushbutton','String','Update DB', ...
 
 h.response_threshold = uicontrol(f,'Style','pushbutton','String','Response Threshold', ...
     'units','normalized','Position',[0.65 0.86 0.2 0.025], ...
-    'Callback',{@ResponseThreshold,f},'Tag','response_threshold','Fontsize',8);
+    'Callback',{@ResponseThreshold,f},'Tag','response_threshold','Fontsize',8, ...
+    'ForegroundColor','b');
 
 h.resptranspoint = uicontrol(f,'Style','pushbutton','String','Response Trans Pnt', ...
     'units','normalized','Position',[0.65 0.83 0.15 0.025], ...
-    'Callback',{@TransPoint,'response',f},'Tag','resptranspoint','Fontsize',8);
+    'Callback',{@TransPoint,'response',f},'Tag','resptranspoint','Fontsize',8, ...
+    'ForegroundColor','k');
 
 h.peaktranspoint = uicontrol(f,'Style','pushbutton','String','Peak Trans Pnt', ...
     'units','normalized','Position',[0.8 0.83 0.1 0.025], ...
-    'Callback',{@TransPoint,'peak',f},'Tag','peaktranspoint','Fontsize',8);
+    'Callback',{@TransPoint,'peak',f},'Tag','peaktranspoint','Fontsize',8, ...
+    'ForegroundColor','m');
 
 h.adjonset50 = uicontrol(f,'Style','pushbutton','String','50% Onset', ...
     'units','normalized','Position',[0.15 0.83 0.1 0.025], ...
-    'Callback',{@AdjustOnOff,f},'Tag','adjustonset','Fontsize',8,'UserData',{'on',50});
+    'Callback',{@AdjustOnOff,f},'Tag','adjustonset','Fontsize',8, ...
+    'ForegroundColor','g','UserData',{'on',50});
 
 h.adjoffset50 = uicontrol(f,'Style','pushbutton','String','50% Offset', ...
     'units','normalized','Position',[0.26 0.83 0.1 0.025], ...
-    'Callback',{@AdjustOnOff,f},'Tag','adjoffset','Fontsize',8,'UserData',{'off',50});
+    'Callback',{@AdjustOnOff,f},'Tag','adjoffset','Fontsize',8, ...
+    'ForegroundColor','g','UserData',{'off',50});
 
 h.adjonset10 = uicontrol(f,'Style','pushbutton','String','10% Onset', ...
     'units','normalized','Position',[0.15 0.80 0.1 0.025], ...
-    'Callback',{@AdjustOnOff,f},'Tag','adjustonset','Fontsize',8,'UserData',{'on',10});
+    'Callback',{@AdjustOnOff,f},'Tag','adjustonset','Fontsize',8, ...
+    'ForegroundColor','r','UserData',{'on',10});
 
 h.adjoffset10 = uicontrol(f,'Style','pushbutton','String','10% Offset', ...
     'units','normalized','Position',[0.26 0.80 0.1 0.025], ...
-    'Callback',{@AdjustOnOff,f},'Tag','adjoffset','Fontsize',8,'UserData',{'off',10});
+    'Callback',{@AdjustOnOff,f},'Tag','adjoffset','Fontsize',8, ...
+    'ForegroundColor','r','UserData',{'off',10});
 
 
 
@@ -241,11 +248,6 @@ while b == 1
     [x(i),y(i),b(i)] = ginput(1);
     i = i + 1;
 end
-% ax = gca;
-% if b ~= 1 || ~strcmp(get(ax,'tag'),'main')
-%     set(do,'enable','on');
-%     return
-% end
 if b(end) == 27 % escape
     set(do,'enable','on');
     return
@@ -258,7 +260,6 @@ y = y(b==1);
 label = sprintf('%sset%dpk',type,level);
 
 for i = 1:length(x)
-    % y = interp1(UD.vals{2},1:length(UD.vals{2}),y,'nearest','extrap');
     y(i) = nearest(UD.vals{2},y(i));
     y(i) = UD.vals{2}(y(i));
     ind = A.levels == y(i);
@@ -459,9 +460,17 @@ end
 
 for i = 10:20:90
     fn = sprintf('onset%dpk',i);
-    B.response.(fn) = [R.(fn)];
+    if iscell(R(1).(fn))
+        B.response.(fn) = cell2mat([R.(fn)]);
+    else
+        B.response.(fn) = [R.(fn)];
+    end
     fn = sprintf('offset%dpk',i);
-    B.response.(fn) = [R.(fn)];
+    if iscell(R(1).(fn))
+        B.response.(fn) = cell2mat([R.(fn)]);
+    else
+        B.response.(fn) = [R.(fn)];
+    end
 end
 
 Rf = DB_GetUnitProps(unit_id,'ResponseFeature');
@@ -514,6 +523,7 @@ end
 xlim(vals{1}([1 end]));
 ylim([vals{2}(1) vals{2}(end)+max(diff(vals{2}))]);
 plot(ax,[0 0],ylim(ax),'-k');
+if isempty(A.response.features.threshold), A.response.features.threshold = max(vals{2}); end
 plot(ax,xlim,A.response.features.threshold*[1 1],'-b','linewidth',2);
 
 hold(ax,'off');
@@ -592,6 +602,7 @@ hold(yyax(2),'on')
 plot(yyax(2),A.response.features.bestlevel,A.response.features.maxmag,'ok', ...
     'markerfacecolor','k');
 
+if isempty(A.response.features.threshold), A.response.features.threshold = max(ylim); end
 thresh = A.response.features.threshold;
 plot(yyax(2),thresh*[1 1],ylim,'-b');
 
@@ -624,6 +635,7 @@ xlabel(ax,'Level (dB)');
 title(ax,'Spike Timing Reliability');
 grid(ax,'on');
 hold(ax,'on');
+if isempty(A.response.features.threshold), A.response.features.threshold = max(ylim); end
 thresh = A.response.features.threshold;
 plot(ax,thresh*[1 1],ylim(ax),'-b');
 hold(ax,'off');
@@ -639,6 +651,7 @@ plot(ax,A.response.onset50pk*1000,x,'-+g', ...
     
 hold(ax,'on');
 
+if isempty(A.response.features.threshold), A.response.features.threshold = max(ylim); end
 thresh = A.response.features.threshold;
 plot(ax,xlim,thresh*[1 1],'-b');
 
@@ -646,7 +659,11 @@ hold(ax,'off');
     
 ylabel(ax,'Level (dB)','FontSize',8)
 xlabel(ax,'Latency (ms)','FontSize',8)
-xlim(ax,[0 max(A.response.offset10pk)*1000+5]);
+if isnan(max(A.response.offset10pk))
+    xlim(ax,[0 0.1]);
+else
+    xlim(ax,[0 max(A.response.offset10pk)*1000+5]);
+end
 mdx = mean(diff(x));
 ylim(ax,[x(1)-mdx x(end)+mdx]);
 h = legend(ax,{'50% Onset','50% Offset','10% Onset','10% Offset','Peak'},'location','northeast');

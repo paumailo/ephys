@@ -50,7 +50,7 @@ for i = 1:length(upar)
         
         else
             S = dbP.paramS(ind);
-            if strcmpi(S,'NULL'), S = nan; end
+            if strcmpi(S,'NULL'), P.(upar{i})(j) = nan; continue; end
             if isnumeric(P.(upar{i}))
                 P.(upar{i}) = cell(1,length(ugrp));
             end
