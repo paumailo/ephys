@@ -372,7 +372,7 @@ if isempty(G_FLAGS.ZBUSB_ON),  w{end+1} = 'ZBUSB_ON';   end
 if ~isempty(G_FLAGS.ZBUSB_ON) && isempty(G_FLAGS.ZBUSB_OFF), w{end+1} = 'ZBUSB_OFF';  end
 if isempty(G_FLAGS.trigstate), w{end+1} = '~TrigState'; end
 for i = 1:length(w)
-    fprintf(2,'WARNING: ''%s'' was not discovered on any module\n',w{i})
+    fprintf(2,'WARNING: ''%s'' was not discovered on any module\n',w{i}) %#ok<PRTCAL>
 end
 
 if G_COMPILED.OPTIONS.optcontrol
@@ -441,7 +441,7 @@ T = timer(                                   ...
 if strcmp(get(hObj,'String'),'Record')
     % Begin recording
     G_DA.SetSysMode(3); % Record
-    fprintf('Recording session started at %s\n',datestr(now,'HH:MM:SS PM'))
+    fprintf('Recording session started at %s\n',datestr(now,'HH:MM:SS'))
     pause(1);
     ht = G_DA.GetTankName;
     [TT,~,TDTfig] = TDT_SetupTT;

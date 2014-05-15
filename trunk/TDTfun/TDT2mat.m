@@ -67,21 +67,29 @@ if TTX.OpenTank(tank, 'R') ~= 1
     error(['Problem opening tank: ' tank]);
 end
 
+block_start_time = [];
 blocks{1} = TTX.QueryBlockName(0);
 i = 1;
 while strcmp(blocks{i}, '') == 0
     i = i+1;
-    blocks{i} = TTX.QueryBlockName(i); %#ok<AGROW>
+    b = TTX.QueryBlockName(i); 
+    if isempty(b), break; end
+    blocks{i} = b; %#ok<AGROW>
+    TTX.SelectBlock(blocks{i});
+    block_start_time(i) = TTX.CurBlockStartTime; %#ok<AGROW>
 end
-blocks(end) = [];
+
 
 % make sure blocks are in ascending order
-bidx = cellfun(@(x) str2num(x(find(x=='-',1,'last')+1:end)),blocks); %#ok<ST2NM>
-[~,i] = sort(bidx);
-blocks = blocks(i);
+if ~isempty(block_start_time) > 1
+    [~,i] = sort(block_start_time(2:end));
+    blocks = blocks(i);
+end
 
 if nargin == 1 || isempty(block)
+    if isempty(blocks{1}), blocks = []; end
     data = blocks;
+    CloseUp(TTX,TTXfig);
     return
 end
 
