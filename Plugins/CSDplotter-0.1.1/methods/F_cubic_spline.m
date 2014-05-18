@@ -27,9 +27,8 @@ if nargin<3; cond = 0.3; end;
 if nargin<4; cond_top = cond; end;
 if nargin<5; this_tol=1e-6; end;
 
-% tfilename = make_filename(d,0,length(el_pos),el_pos(2)-el_pos(1),el_pos(1),cond,cond_top); %part of Fd filename
-% full_filename = [matrix_folder() filesep 'Fcs' tfilename '.mat'];
-full_filename = '';
+tfilename = make_filename(d,0,length(el_pos),el_pos(2)-el_pos(1),el_pos(1),cond,cond_top); %part of Fd filename
+full_filename = [matrix_folder() filesep 'Fcs' tfilename '.mat'];
 
 try,
   load(full_filename,'Fcs','tol');
@@ -87,7 +86,7 @@ function F = compute_F_cubic_spline(full_filename,el_pos,d,cond,cond_top,tol)
   F(1,1) = 1;          %implies I_N+1 = Phi_N+1
   F(N+2,N+2) = 1;      %implies I_N+2 = Phi_N+2
   Fcs = F;
-%   save(full_filename, 'Fcs','tol');
+  save(full_filename, 'Fcs','tol');
 return;
 
 %Potential functions:
