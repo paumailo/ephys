@@ -28,6 +28,13 @@ filter_length = length(gaussian_filter);
 temp_CSD=zeros(m+2*filter_length,n);
 temp_CSD(filter_length+1:filter_length+m,:)=unfiltered_CSD(:,:); % one filter length of zeros on each side
 scaling_factor = sum(gaussian_filter);
-temp_CSD = filter(gaussian_filter/scaling_factor,1,temp_CSD); % filter works such that the first filter_length positions are crap
+chunksze = 500;
+for i = 1:chunksze:size(temp_CSD,2) % split up matrix into bitesized epochs for filtering
+    if i+chunksze-1 < size(temp_CSD,2)
+        temp_CSD(:,i:i+chunksze-1) = filter(gaussian_filter/scaling_factor,1,temp_CSD(:,i:i+chunksze-1)); % filter works such that the first filter_length positions are crap
+    else
+        temp_CSD(:,i:end) = filter(gaussian_filter/scaling_factor,1,temp_CSD(:,i:end)); % filter works such that the first filter_length positions are crap
+    end
+end
 gfiltered_CSD=temp_CSD(round(1.5*filter_length)+1:round(1.5*filter_length)+m,:); % first filter_length is crap, next 0.5 filter length corresponds to positions smaller than the original positions
 new_positions = positions;

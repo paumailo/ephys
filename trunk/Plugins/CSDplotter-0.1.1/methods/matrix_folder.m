@@ -12,6 +12,6 @@ function out = matrix_folder()
 %
 %See: http://www.gnu.org/copyleft/gpl.html
 
-[pathstr, name, ext, versn] = fileparts(mfilename('fullpath'));
+[pathstr, name, ext] = fileparts(mfilename('fullpath'));
 out = [pathstr filesep 'saved']; %folder in which matrixes are saved
 if exist(out,'dir')==0; mkdir(out); end; %create folder if it does not exist

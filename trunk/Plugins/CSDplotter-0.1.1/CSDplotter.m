@@ -53,7 +53,7 @@ function CSDplotter_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to CSDplotter (see VARARGIN)
 
 % Set path:
-[pathstr, name, ext, versn] = fileparts(mfilename('fullpath')); % parts of current directory
+[pathstr, name, ext] = fileparts(mfilename('fullpath')); % parts of current directory
 addpath(pathstr); % current directory
 addpath([pathstr filesep 'methods']); % methods directory
 addpath([pathstr filesep 'methods' filesep 'saved']); % saved transformations directory
@@ -315,7 +315,7 @@ if strcmp(get(handles.figure1,'SelectionType'),'open')
 		cd (filename);
 		load_listbox(pwd,handles); %pwd is current directory
 	else
-	   [path,name,ext,ver] = fileparts(filename);
+	   [path,name,ext] = fileparts(filename);
         try
 		  open(filename);
           matrixes=whos('-file',filename); % lists variables of filename
@@ -341,7 +341,7 @@ my_directories = [dir_struct.isdir]; %indexes of folders
 %{dir_struct.name} %print out all files and folders
 j=1; % counter
 for i=1:length({dir_struct.name}) %all files and folders
-  [pathstr, name, ext, versn] = fileparts(dir_struct(i).name); %get filetype
+  [pathstr, name, ext] = fileparts(dir_struct(i).name); %get filetype
   if strcmp(ext,'.mat') %filtype is .mat
       my_files{j} = dir_struct(i).name; %store it in my_files
       my_isdir(j) = 0;
