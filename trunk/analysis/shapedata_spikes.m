@@ -78,7 +78,7 @@ returntrials = false;
 ParseVarargin({'win','binsize','func','returntrials'},[],varargin);
 
 assert(isstruct(P),'Input ''P'' must be a structure returned from DB_GetParams')
-assert(numel(win)==2&win(2)>win(1),'Invalid format for parameter: ''win''')
+assert(size(win,2) == 2,'Invalid format for parameter: ''win''')
 
 binvec = win(1):binsize:win(2)-binsize;
 
