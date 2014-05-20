@@ -263,13 +263,13 @@ win(1) = str2num(get(h.opt_cwinon,'String')); %#ok<ST2NM>
 win(2) = str2num(get(h.opt_cwinoff,'String')); %#ok<ST2NM>
 
 [data,vals] = shapedata_spikes(st,P,{dimy,dimx},'binsize',0.001, ...
-    'win',win/1000,'func','sum');
+    'win',win/1000,'func','mean');
 
 data = data * 1000; % rescale data
 
 % estimate spontaneous activity
 spnt = shapedata_spikes(st,P,{dimy,dimx},'binsize',0.001, ...
-    'win',[-0.01 0],'func','sum');
+    'win',[-0.01 0],'func','mean');
 spnt = spnt * 1000; % rescale spont
 spnt = squeeze(mean(spnt));
 

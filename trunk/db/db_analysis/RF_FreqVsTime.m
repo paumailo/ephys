@@ -119,7 +119,7 @@ rfwin = str2num(get(h.rfwin,'String')); %#ok<ST2NM>
 % receptive field
 subplot(3,5,[4 5],'replace')
 [rfdata,rfvals] = shapedata_spikes(h.RF.st,h.RF.P,{'Freq','Levl'}, ...
-    'win',rfwin/1000,'binsize',0.001,'func','sum');
+    'win',rfwin/1000,'binsize',0.001,'func','mean');
 plotrf(rfdata*1000,rfvals);
 hold on
 set(gca,'clipping','off');
@@ -351,8 +351,8 @@ box on
 hold on
 plot3(respwin,[1 1]*max(f),[m m],'-','color',[0.8 0.94 1],'linewidth',7)
 hold off
-% colorbar
-
+h = colorbar;
+set(h,'fontSize',8)
 
 
     
