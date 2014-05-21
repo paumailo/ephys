@@ -496,8 +496,10 @@ plot3(axM,F.bestfreq,F.bestlevel,dz,'d','linewidth',2,'markersize',10, ...
 if ~isempty(E.bwHf)
     dzpk = max(data(:))*ones(2,length(E.BWy));
     dzmn = min(data(:))*ones(2,length(E.BWy));
-    plot3(axM,[E.bwLf; E.bwHf],[E.BWy; E.BWy],dzpk,'--k','linewidth',1);
-    plot3(axM,[E.bwLf; E.bwHf],[E.BWy; E.BWy],dzmn,'--k','linewidth',1);
+    plot3(axM,[E.bwLf; E.bwHf],[E.BWy; E.BWy],dzpk,'--ok','linewidth',1, ...
+        'MarkerSize',3,'markerfacecolor','k');
+    plot3(axM,[E.bwLf; E.bwHf],[E.BWy; E.BWy],dzmn,'--ok','linewidth',1, ...
+        'MarkerSize',3,'markerfacecolor','k');
 end
 
 hold(axM,'off');
