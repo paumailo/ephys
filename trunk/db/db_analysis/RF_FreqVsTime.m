@@ -54,8 +54,8 @@ rwin  = [0 150]; % raster plot
 L = h.RF.P.lists.Levl;
 level = max(L);
 
-opts = getpref('RF_FreqVsTime',{'rfwin','rwin','level','windowpos','density'}, ...
-    {rfwin,rwin,level,[],0});
+opts = getpref('RF_FreqVsTime',{'rfwin','rwin','level','windowpos','density','subtractmed'}, ...
+    {rfwin,rwin,level,[],0,0});
 
 rfwin = opts{1};
 rwin  = opts{2};
@@ -93,10 +93,13 @@ uicontrol(f,'Style','text','String','RF Window (ms):','HorizontalAlignment','rig
 
 
 h.density = uicontrol(f,'Style','checkbox','String','density', ...
-    'units','normalized','Position',[0.15 0.625 0.1 0.05], ...
+    'units','normalized','Position',[0.12 0.63 0.1 0.05], ...
     'Callback',{@UpdateFig,f},'Tag','density','BackgroundColor',fbc, ...
     'Value',opts{5});
-
+h.subtrmed = uicontrol(f,'Style','checkbox','String','subtract median', ...
+    'units','normalized','Position',[0.21 0.63 0.15 0.05], ...
+    'Callback',{@UpdateFig,f},'Tag','density','BackgroundColor',fbc, ...
+    'Value',opts{6});
 
 guidata(f,h);
 
@@ -137,7 +140,7 @@ hold off
 subplot(3,5,[6 14],'replace')
 rast = genrast(h.RF.st,h.RF.P,level,rwin/1000);
 if get(h.density,'Value')
-    plotdensity(h.RF.P,rast,rwin,rfwin,level);
+    plotdensity(h.RF.P,rast,rwin,rfwin,level,get(h.subtrmed,'value'));
     hold on
     plotrasterfeatures(gca,h.dBprops,level,3);
     c = get(gca,'zlim');
@@ -159,16 +162,16 @@ title(sprintf('%d dB',level),'FontSize',14);
 
 % histogram
 subplot(3,5,[10 15],'replace');
-rfdata = shapedata_spikes(h.RF.st,h.RF.P,{'Freq','Levl'}, ...
-    'win',[-0.05 0],'binsize',0.001,'func','sum');
-spontrate = mean(rfdata(:));
-plothist(rast,h.RF.P.lists.Freq,rfwin,spontrate);
+% rfdata = shapedata_spikes(h.RF.st,h.RF.P,{'Freq','Levl'}, ...
+%     'win',[-0.05 0],'binsize',0.001,'func','sum');
+% spontrate = mean(rfdata(:));
+plothist(rast,h.RF.P.lists.Freq,rfwin);
 hold on
 plotrasterfeatures(gca,h.dBprops,level,2);
 hold off
 
-setpref('RF_FreqVsTime',{'rfwin','rwin','level','density','windowpos'}, ...
-    {rfwin,rwin,level,get(h.density,'Value'),get(f,'position')});
+setpref('RF_FreqVsTime',{'rfwin','rwin','level','density','windowpos','subtractmed'}, ...
+    {rfwin,rwin,level,get(h.density,'Value'),get(f,'position'),get(h.subtrmed,'value')});
 
 
 
@@ -184,7 +187,7 @@ setpref('RF_FreqVsTime',{'rfwin','rwin','level','density','windowpos'}, ...
 
 
 
-function plothist(rast,Freq,win,spontrate)
+function plothist(rast,Freq,win)
 f = Freq / 1000;
 nfreqs = length(f);
 nreps = length(rast) / length(f);
@@ -198,14 +201,21 @@ h = mean(cnt);
 ch = conv(h,gausswin(5),'same');
 ch = ch / max(ch) * max(h);
 
+fi  = interp1(1:length(f),f,1:0.2:length(f),'pchip');
+if any(isnan(ch))
+    ich = zeros(size(fi));
+else
+    ich = interp1(f,ch,fi,'pchip');
+end
 
-plot(ch,f,'-','linewidth',2,'color',[0.4 0.4 0.4]);
+plot(ich,fi,'-','linewidth',2,'color',[0.4 0.4 0.4]);
 hold on
 b = barh(f,h,'hist');
 delete(findobj(gca,'marker','*'));
 set(b,'facecolor',[0.8 0.94 1],'edgecolor','none');
 set(gca,'yscale','log','ylim',[f(1) f(end)],'yaxislocation','right')
-plot([1 1]*spontrate,ylim,'-','color',[0.5 0.5 0.5])
+% plot([1 1]*spontrate,ylim,'-','color',[0.5 0.5 0.5])
+plot([1 1]*median(ch),ylim,'-','color',[0.5 0.5 0.5])
 hold off
 
 xlabel('Mean spike count','fontsize',8);
@@ -227,7 +237,7 @@ data = interp2(data,3,'cubic');
 ny = length(y);
 nx = length(x);
 x = interp1(logspace(log10(1),log10(nx),nx),x,logspace(log10(1),log10(nx),size(data,1)),'pchip');
-y = interp1(y,linspace(1,ny,size(data,2)),'linear');
+y = interp1(y,linspace(1,ny,size(data,2)),'pchip');
 
 hax = surf(x/1000,y,data');
 shading flat
@@ -243,7 +253,7 @@ h = colorbar('EastOutside','fontsize',7);
 c = get(gca,'clim');
 set(gca,'clim',[0 c(2)]);
 ylabel(h,'Firing Rate (Hz)','fontsize',7)
-
+title(gca,'Receptive Field','fontsize',7);
 
 
 
@@ -314,7 +324,7 @@ set(gca,'yscale','log','ylim',[min(P.lists.Freq) max(P.lists.Freq)]/1000, ...
 
 
 
-function plotdensity(P,rast,win,respwin,level)
+function plotdensity(P,rast,win,respwin,level,subtractmed)
 rast = cellfun(@(a) (a*1000),rast,'UniformOutput',false); % s -> ms
 nreps = sum(P.VALS.Freq == P.lists.Freq(end) & P.VALS.Levl == level);
 f = P.lists.Freq / 1000;
@@ -332,8 +342,14 @@ end
 sdata = sdata / nreps;
 m = max(sdata(:));
 
+
 gw = gausswin(5) * gausswin(9)';
 sdata = conv2(sdata,gw,'same');
+
+if nargin == 6 && subtractmed
+    medsdata = median(sdata(:));
+    sdata = sdata - medsdata;
+end
 
 sdata = sdata / max(sdata(:)) * m;
 
@@ -346,10 +362,13 @@ UD.freq = P.lists.Freq;
 UD.binvec = binvec;
 set(gca,'yscale','log','ylim',[min(P.lists.Freq) max(P.lists.Freq)]/1000, ...
     'xlim',win,'tickdir','out','clipping','off','UserData',UD);
+if nargin == 6 && subtractmed && ~any(isnan(sdata(:)))
+    set(gca,'clim',[0 max(sdata(:))]);
+end
 axis tight
 box on
 hold on
-plot3(respwin,[1 1]*max(f),[m m],'-','color',[0.8 0.94 1],'linewidth',7)
+plot3(respwin,[1 1]*max(f),[m m],'-','color',[0.8 0.94 1],'linewidth',7);
 hold off
 h = colorbar;
 set(h,'fontSize',8)
