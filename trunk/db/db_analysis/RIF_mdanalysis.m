@@ -211,11 +211,10 @@ switch  get(ax,'tag')
         dB = x;
 end
 
-% dBi = interp1(UD.vals{2},1:length(UD.vals{2}),dB,'nearest');
-dBi = nearest(UD.vals{2},dB);
-A.response.features.threshold = UD.vals{2}(dBi);
+dBi = UD.vals{2}(find(UD.vals{2}<dB,1,'last'));
+A.response.features.threshold = dBi;
 
-fprintf('\tNew threshold = %d dB\n',A.response.features.threshold);
+fprintf('\tNew threshold = %d dB\n',dBi);
 
 UD.A = A;
 set(f,'UserData',UD);
@@ -260,8 +259,8 @@ y = y(b==1);
 label = sprintf('%sset%dpk',type,level);
 
 for i = 1:length(x)
-    y(i) = nearest(UD.vals{2},y(i));
-    y(i) = UD.vals{2}(y(i));
+%     y(i) = nearest(UD.vals{2},floor(y(i)));
+    y(i) = UD.vals{2}(find(UD.vals{2} <= y(i),1,'last'));
     ind = A.levels == y(i);
     A.response.(label)(ind) = x(i);
 end
