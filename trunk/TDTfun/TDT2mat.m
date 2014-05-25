@@ -129,7 +129,7 @@ for i = 1:length(lStores)
             if d(:,3) == zeros(size(d(:,3)))
                 d(:,3) = [d(2:end,2); inf];
             end
-            data.epocs.(name).offset = d(:,2);
+            data.epocs.(name).offset = d(:,3);
             
         case 'Scalar'
             if ~any(TYPE==2), continue; end
