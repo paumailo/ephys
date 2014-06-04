@@ -23,6 +23,7 @@ function data = TDT2mat(tank, block, varargin)
 %           beginning of recording).
 %       "T2" is a scalar, retrieve data ending at T2 (0 for end at ending
 %           of recording).
+%       "CHANNELS" limit channels returned. Set to 0 for all channels (default is 0)
 %       "SORTNAME" is the sorted spikes to be returned. (default is online
 %       sorted spikes).
 %       "SILENT" a summary of tank data will be
@@ -48,6 +49,7 @@ data = struct('epocs',[],'snips',[],'streams',[],'info',[]);
 T1       = 0;
 T2       = 0;
 SILENT   = 0;
+CHANNELS = 0;
 TYPE     = 1;
 SORTNAME = 'TankSort';
 SERVER   = 'Local';
@@ -110,6 +112,7 @@ end
 
 TTX.SetGlobalV('WavesMemLimit',1e9);
 TTX.SetGlobalV('MaxReturn',1e7);
+TTX.SetGlobalV('Channel',CHANNELS);
 TTX.SetGlobalV('T1', T1);
 TTX.SetGlobalV('T2', T2);
 
