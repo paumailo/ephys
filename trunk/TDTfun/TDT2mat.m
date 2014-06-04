@@ -34,6 +34,11 @@ function data = TDT2mat(tank, block, varargin)
 %           2   ...   epocs
 %           3   ...   snips
 %           4   ...   streams
+% 
+%       "NAME" limits returned stream or snip data to a specific named
+%       event.  This is useful in the case where multiple stream or snip
+%       events exist in the tank.
+%       
 %
 % Built by TDT, modified by DJS 5/2013
 
@@ -46,6 +51,7 @@ SILENT   = 0;
 TYPE     = 1;
 SORTNAME = 'TankSort';
 SERVER   = 'Local';
+NAME     = [];
 
 % parse varargin
 for i = 1:2:length(varargin)
@@ -138,14 +144,12 @@ for i = 1:length(lStores)
             data.epocs.(name).onset = TTX.ParseEvInfoV(0, N, 6);
             
         case 'Stream'
-            if any(TYPE==4)
-                TTX.ReadEventsV(0, name, 0, 0, 0, 0, 'ALL');
+            if (any(TYPE==4) && isempty(NAME)) || (~isempty(NAME) && strcmp(name,NAME))
                 data.streams.(name).data = TTX.ReadWavesV(name);
                 num_channels = size(data.streams.(name).data,2);
             else
                 TTX.SetGlobalV('T1', 0);
-                TTX.SetGlobalV('T2', 30);
-                TTX.ReadEventsV(2^9, name, 0, 0, 0, 5, 'ALL');
+                TTX.SetGlobalV('T2', 1);
                 t = TTX.ReadWavesV(name);
                 TTX.SetGlobalV('T1', T1);
                 TTX.SetGlobalV('T2', T2);
@@ -158,7 +162,7 @@ for i = 1:length(lStores)
             if ~SILENT, fprintf('\t>Samp Rate:  \t%f\n',TTX.EvSampFreq); end
             
         case 'Snip'
-            if any(TYPE==3)
+            if (any(TYPE==3) && isempty(NAME)) || (~isempty(NAME) && strcmp(name,NAME))
                 data.snips.(name) = struct('data',[],'chan',[],'sort',[],'ts',[],'index',[]);
                 TTX.SetUseSortName(SORTNAME);
                 data.snips.(name).sortname = SORTNAME;

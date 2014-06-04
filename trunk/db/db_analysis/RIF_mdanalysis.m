@@ -19,7 +19,34 @@ defaults.binsize    = 0.001;
 defaults.showraster = 1;
 defaults.showhist   = 1;
 defaults.figpos     = get(gcf,'position');
+
+P  = DB_GetParams(unit_id,'unit');
+
+ind = ismember(P.param_type,{'onset','offset'});
+P.param_type(ind) = [];
+for i = 1:length(P.param_type), p.(P.param_type{i}) = P.lists.(P.param_type{i}); end
+P.lists = p;
+ne = structfun(@numel,P.lists);
+ind = ne > 1;
+[~,i] = max(ne(ind));
+P.param_type(~ind) = [];
+defaults.analysisparam = P.param_type{i};
+
 settings = getpref('RIF_mdanalysis','settings',defaults);
+settings.params = P.param_type;
+settings.analysisparam = P.param_type{i};
+
+h = InitGUI(settings);
+set(h.figure,'Name',sprintf('Unit ID: %d',unit_id),'units','normalized');
+set(h.analysis_param,'value',i);
+setpref('RIF_mdanalysis','settings',settings);
+
+h.unit_id = unit_id;
+h.RIF.P = P;
+h.RIF.st = DB_GetSpiketimes(unit_id);
+
+
+
 
 
 onstr  = cellstr(num2str((10:20:90)','onset%dpk'))';
@@ -37,14 +64,6 @@ desc = [ondstr, offdstr, {'Confidence Interval', 'Statistical P-Value', 'Peak Fi
     'Best Response Level', 'Magnitude of response', 'Reject Null Hypothesis','Response latency','Maximum response magnitude','Best Response Level','Monotonicity', ...
     'Y-Intercept','Schreiber et al, 2003, correlation for spike timing reliability'}];
 DB_CheckAnalysisParams(name,desc,unit);
-
-
-h = InitGUI(settings);
-set(h.figure,'Name',sprintf('Unit ID: %d',unit_id),'units','normalized');
-
-h.unit_id = unit_id;
-h.RIF.P  = DB_GetParams(unit_id,'unit');
-h.RIF.st = DB_GetSpiketimes(unit_id);
 
 guidata(h.figure,h);
 
@@ -138,11 +157,21 @@ h.adjoffset10 = uicontrol(f,'Style','pushbutton','String','10% Offset', ...
     'Callback',{@AdjustOnOff,f},'Tag','adjoffset','Fontsize',8, ...
     'ForegroundColor','r','UserData',{'off',10});
 
+h.analysis_param = uicontrol(f,'Style','popup','String',settings.params, ...
+    'units','normalized','Position',[0.87 0.86 0.1 0.025], ...
+    'Callback',{@AnalysisParam,f},'Tag','analysis_param','Fontsize',8);
 
 
 
 
 %% User interaction
+function AnalysisParam(hObj,event,f)  %#ok<INUSL>
+settings = getpref('RIF_mdanalysis','settings');
+settings.analysisparam = get_string(hObj);
+setpref('RIF_mdanalysis','settings',settings);
+UpdateFig([],[],false,f);
+
+
 function TransPoint(hObj,event,type,f) %#ok<INUSL>
 do = findobj(f,'enable','on');
 set(do,'enable','off');
@@ -287,12 +316,14 @@ set(do,'enable','on');
 
 %%
 function data = GenPSTH(h)
+settings = getpref('RIF_mdanalysis','settings');
+
 vwin = str2num(get(h.viewwin,'String')); %#ok<*ST2NM>
 rwin = str2num(get(h.respwin,'String'));
 bwin = str2num(get(h.prewin,'String'));
 binsize = 0.001;
 
-[psth,vals] = shapedata_spikes(h.RIF.st,h.RIF.P,{'Levl'}, ...
+[psth,vals] = shapedata_spikes(h.RIF.st,h.RIF.P,{settings.analysisparam}, ...
     'win',vwin,'binsize',binsize,'func',@mean,'returntrials',true);
 psth = psth / binsize;
 
@@ -485,6 +516,8 @@ B.peak.features = rmfield(Pf,'group_id');
 
 %% Plots
 function PlotPSTH(ax,psth,vals,A)
+settings = getpref('RIF_mdanalysis','settings');
+
 axes(ax);
 
 showhist = findobj(gcf,'tag','show_hist');
@@ -529,19 +562,23 @@ hold(ax,'off');
 box(ax,'on');
 
 xlabel('Time (s)','FontSize',10);
-ylabel('Level (dB)','FontSize',10);
+ylabel(settings.analysisparam,'FontSize',15);
 
 ud.psth = psth;
 ud.vals = vals;
 set(ax,'userdata',ud,'tag','main');
 
 function PlotRaster(ax,st,vals,win)
+settings = getpref('RIF_mdanalysis','settings');
+Levl = settings.analysisparam;
+
 axes(ax);
 
-nreps = sum(vals.Levl == vals.Levl(1));
-[L,idx] = sort(vals.Levl);
+nreps = sum(vals.(Levl) == vals.(Levl)(1));
+[L,idx] = sort(vals.(Levl));
 uL = unique(L);
 dL = mean(diff(uL));
+if isnan(dL), dL = uL; end
 ons  = vals.onset(idx);
 wons = ons + win(1);
 wofs = ons + win(2);
