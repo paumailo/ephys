@@ -15,7 +15,7 @@ P  = DB_GetParams(IDs.blocks);
 
 %%
 win = [0 0.55];
-awin = [0.025 0.525]; % analysis window
+awin = [0.0 0.525]; % analysis window
 
 fpidx = find(diff(P.VALS.Rate))+1;
 
