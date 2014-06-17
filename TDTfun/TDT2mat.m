@@ -88,9 +88,9 @@ while strcmp(blocks{i}, '') == 0
 end
 
 
-% make sure blocks are in ascending order
-if ~isempty(block_start_time) > 1
-    [~,i] = sort(block_start_time(2:end));
+% make sure blocks are in chronological order
+if ~isempty(block_start_time)
+    [~,i] = sort(block_start_time);
     blocks = blocks(i);
 end
 

@@ -378,8 +378,19 @@ blocks = TDT2mat(ptank);
 sortnames = {'TankSort'};
 bstr  = cell(size(blocks));
 bidx  = [];
+deadblocks = [];
 for i = 1:length(blocks)
-    d = TDT2mat(ptank,blocks{i},'silent',true,'Type',2);
+    try
+        d = TDT2mat(ptank,blocks{i},'silent',true,'Type',2);
+    catch ME
+        if strcmp(ME.message(1:37),'Block found, but problem selecting it')
+            deadblocks(end+1) = i; %#ok<AGROW>
+            bstr{i} = sprintf('%s - ERROR',blocks{i});
+            continue
+        else
+            rethrow(ME);
+        end
+    end
     c = struct2cell(d);
     f = fieldnames(d);
     ind = strcmp('epocs',f);
@@ -403,6 +414,7 @@ for i = 1:length(blocks)
         sortnames = union(sortnames,data(i).snips.(subfield).sorts);
     end
 end
+
 
 set(h.ds_blocks,'String',bstr,'Value',bidx,'UserData',data); % update listbox
 
