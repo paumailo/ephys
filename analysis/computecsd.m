@@ -9,7 +9,7 @@ function CSD = computecsd(PHI,H,N,SIGMA,SPATIALFILTER)
 % PHI is a 2D matrix of field potentials with a channel in each row and
 % time samples as columns.
 % 
-% H is the distance between electrode sites. 
+% H is the distance between electrode sites. 100e-6 is 100 microns.
 % 
 % SIGMA is the extracellular conductivity (default = 0.3)
 % 
