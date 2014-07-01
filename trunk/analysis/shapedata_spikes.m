@@ -46,11 +46,15 @@ function varargout = shapedata_spikes(spiketimes,P,dimparams,varargin)
 % Example where two parameters are in use (returns a 3D matrix):
 %   Spiketimes = DB_GetSpiketimes(unit_id);
 %   P = DB_GetParams(unit_id,'unit');
-%   [data,vals] = shapedata_spikes(Spiketimes,P,{'Freq','Levl'},'win',[0 0.05]);
+%   binsize = 0.001; % for computing mean firing rate
+%   [data,vals] = shapedata_spikes(Spiketimes,P,{'Freq','Levl'},'win',[0 0.05],'binsize',binsize);
+%   FRA = squeeze(mean(data))'/binsize; % average trials and convert to firing rate
 %   figure;
-%   surf(vals{2},vals{3},squeeze(mean(data))');
+%   surf(vals{2},vals{3},FRA);
 %   shading flat
-%   xlabel('Frequency (Hz)'); ylabel('Sound Level (dB)');
+%   xlabel('Frequency (Hz)'); 
+%   ylabel('Sound Level (dB)');
+%   zlabel('Mean Firing Rate (Hz)');
 % 
 % 
 % Example where individual trials are returned as an extra dimension:
@@ -78,7 +82,7 @@ returntrials = false;
 ParseVarargin({'win','binsize','func','returntrials'},[],varargin);
 
 assert(isstruct(P),'Input ''P'' must be a structure returned from DB_GetParams')
-assert(size(win,2) == 2,'Invalid format for parameter: ''win''')
+assert(numel(win) == 2,'Invalid format for parameter: ''win''')
 
 binvec = win(1):binsize:win(2)-binsize;
 

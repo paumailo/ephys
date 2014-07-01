@@ -39,6 +39,7 @@ if isempty(bins)
     t = cell2mat(raster);
     bins = min(t):0.001:max(t)-0.001;
 end
+binsize = bins(2)-bins(1);
 
 raster = raster(:);
 values = values(:);
@@ -55,23 +56,25 @@ D = zeros(nvals,length(bins));
 for i = 1:nvals
     ind = values == uvals(i);
     t   = cell2mat(raster(ind));
-    D(i,:) = histc(t,bins);
+    D(i,:) = histc(t,bins); % spike count
+    D(i,:) = D(i,:) / sum(ind); % spike count -> mean spike count
 end
 
+D = D / binsize; % mean spike count -> mean firing rate
+
 if smoothing
-    gw = gausswin(5);
+    gw = gausswin(5) * gausswin(10)';
     mD = max(D(:));
-    for i = 1:nvals
-        D(i,:) = conv(D(i,:),gw,'same');
-    end
+    D = conv2(D,gw,'same');
     D  = D/max(D(:))*mD;
 end
 
-% h = surf(ax,bins,uvals,D);
-% shading(ax,'flat'); 
-h = imagesc(bins,uvals,D,'parent',ax);
-set(ax,'ydir','normal');
-
+h = surf(ax,bins,uvals,D);
+shading(ax,'interp'); 
+% h = imagesc(bins,uvals,D,'parent',ax);
+% set(ax,'ydir','normal');
+set(ax,'yscale','log','tickdir','out');
+axis tight
 view(ax,2)
 
 varargout{1} = D;
