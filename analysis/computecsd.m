@@ -16,7 +16,6 @@ function CSD = computecsd(PHI,H,N,SIGMA,SPATIALFILTER)
 % 
 % References: Mitzdorf 1985; Pettersen et al., 2006; Szymanski et al., 2009
 % 
-% See also, DB_GetCSDdata
 % 
 % DJS (c) 2010
 
