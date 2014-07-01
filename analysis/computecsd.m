@@ -13,10 +13,11 @@ function CSD = computecsd(PHI,H,N,SIGMA,SPATIALFILTER)
 % 
 % SIGMA is the extracellular conductivity (default = 0.3)
 % 
+% Returns CSD as a 2D matrix in micro-amps per cubic meter
+% 
 % References: Mitzdorf 1985; Pettersen et al., 2006; Szymanski et al., 2009
 % 
-% 
-% DJS (c) 2010
+% Daniel.Stolzberg@gmail.com 2014
 
 
 if isempty(whos('H')) || isempty(H), H = 1; end
