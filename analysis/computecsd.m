@@ -6,11 +6,10 @@ function CSD = computecsd(PHI,H,N,SIGMA,SPATIALFILTER)
 % 
 % Uses spline iCSD method from iCSD Plotter (Pettersen et al, 2006)
 % 
-% H is the distance between electrode sites.  If length(H) == 1 then the
-% value is used as the distance parameter between electrode sites (rows).
-% if length(H) == 2 then the additional value is used as a distance
-% parameter in the column dimension which can be used for inter-electrode
-% distance.
+% PHI is a 2D matrix of field potentials with a channel in each row and
+% time samples as columns.
+% 
+% H is the distance between electrode sites. 
 % 
 % SIGMA is the extracellular conductivity (default = 0.3)
 % 
