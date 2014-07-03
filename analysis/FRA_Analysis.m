@@ -26,11 +26,18 @@ function out = FRA_Analysis(spiketimes,params,varargin)
 % 'paramx'      ... 'Freq'      % X-axis parameter on database. Case sensitive
 % 'paramy'      ... 'Levl'      % Y-axis parameter on database. Case sensitive
 % 'smoothdata'  ... true        % Uses SGSMOOTH2D function to smooth
-%                                 receptive field before anlaysis.
+%                                 receptive field.  This will affect both
+%                                 analysis results and plotting.
 % 'subtractspont' ... true      % Subtract mean spontaneous firing rate
 %                                 from receptive field before analysis.
 % 'miny'        ... []          % minimum acceptable value for y parameter
 %                                   ex, minimum threshold
+% 'oct_range'   ... 0.5         % range around Best Frequency for computing
+%                                 Rate-Level Curve.  An oct_range of 0.5
+%                                 (half-octave) computes mean firing rate
+%                                 for 0.25 octaves above and below best
+%                                 frequency.
+% 
 %
 % e.g.
 % unit_id = 1234; % where 1234 is a valid unit on the database
@@ -61,21 +68,22 @@ paramx      = 'Freq';
 paramy      = 'Levl';
 smoothdata  = true;
 subtractspont = true;
+oct_range = 0.5; % octave range around estimated BF
 miny = [];
 
 % Parse varargin
 ParseVarargin({'window','spontwindow','threshold','plotFRA','plotRLC','FRAax', ...
-    'RLCax','paramx','paramy','smoothdata','subtractspont','conflevel','miny'}, ...
+    'RLCax','paramx','paramy','smoothdata','subtractspont','conflevel','miny','oct_range'}, ...
     {'win','swin','thresh','plotFRA','plotRLC','FRAax','RLCax','paramx','paramy', ...
-    'smoothdata','subtractspont','cl','miny'},varargin)
+    'smoothdata','subtractspont','cl','miny','oct_range'},varargin)
 
 % Make FRA
 [data,vals] = shapedata_spikes(spiketimes,params,{paramx,paramy},'win',win,'binsize',0.001);
 data = data / 0.001;
 
-Freqs  = vals{2};
-Levels = vals{3};
-bins   = vals{1};
+Freqs  = vals{2}(:);
+Levels = vals{3}(:);
+bins   = vals{1}(:);
 
 FRA = squeeze(mean(data))';
 if smoothdata
@@ -103,13 +111,13 @@ if ~isempty(miny)
     sig_ind(~ind,:) = false;
 end
 
-% clean up binary mask of significant pixels
+% clean up stray significant pixels
 sig_ind = bwareaopen(sig_ind,8);
 sig_ind = bwmorph(sig_ind,'fill');
 
 if ~any(sig_ind(:))
     fprintf(2,'No significant responses found at confidence level %0.3f\n',cl) %#ok<PRTCAL>
-    out.FRAax = PlotRF(FRAax,Freqs,Levels,FRA);
+    out.FRAax = PlotRF(FRAax,Freqs,Levels,FRA,smoothdata);
     return
 end
 
@@ -123,25 +131,39 @@ end
 Xm = nan(size(FRA,1),1);
 sm = nan(size(FRA,1),1);
 hl = nan(size(FRA,1),2);
+peakval = nan(size(FRA,1),1);
+peakfreq = nan(size(FRA,1),1);
 fr = min(Freqs); % reference frequency (minimum frequency presented)
 for i = 1:size(FRA,1)
     k = sig_ind(i,:);
-    if sum(k) < 4, continue; end
-    
-    fk = Freqs(k)';
-    Xk = log2(fk./fr);
-    
-    Xm(i) = sum(Xk.*FRA(i,k))./sum(FRA(i,k)); % centroid
-    sm(i) = sqrt(sum((Xk-Xm(i)).^2.*FRA(i,k))./sum(FRA(i,k))); % second order moment
+    if sum(k) < 3, continue; end
     
     bw = bwlabel(k);
     ul = unique(bw);
     ul(~ul) = [];
-    [~,j] = max(arrayfun(@(x) (sum(bw==x)),ul));
-    flow = find(bw==ul(j),1,'first');
-    fhigh = find(bw==ul(j),1,'last');
+    [~,j] = max(arrayfun(@(x) (median(FRA(i,bw==x))),ul));
+    bwind = bw==ul(j);
+    flow  = find(bwind,1,'first');
+    fhigh = find(bwind,1,'last');
+
+%     flow = find(k,1,'first');
+%     fhigh = find(k,1,'last');
+
     hl(i,:) = Freqs([flow fhigh]); % high and low frequency borders
     
+%     bwind = k;
+    fk = Freqs(bwind)';
+    Xk = log2(fk./fr);
+    
+    % compute cetroid
+    Xm(i) = sum(Xk.*FRA(i,bwind))./sum(FRA(i,bwind)); % centroid
+    sm(i) = sqrt(sum((Xk-Xm(i)).^2.*FRA(i,bwind))./sum(FRA(i,bwind))); % second order moment
+
+    
+    % find peak
+    [peakval(i),peaki] = max(FRA(i,bwind));
+    peakfreq(i) = Freqs(peaki+flow-1);
+
 end
 
 % Best frequency at each sound level above MT
@@ -156,60 +178,79 @@ nnind = ~isnan(BF);
 MT = min(Levels(nnind)); % Minimum threshold
 CF = BF(find(nnind,1));   % Characteristic frequency
 
-Vq = interp2(Freqs,Levels,FRA,BF,Levels,'spline');
+% Vq = interp2(Freqs,Levels,FRA,BF,Levels,'spline');
 
 
 % Plot FRA and tuning
 if plotFRA
     if all(isnan(BF))
         fprintf(2,'No significant responses found at confidence level %0.3f\n',cl) %#ok<PRTCAL>
-        out.FRAax = PlotRF(FRAax,Freqs,Levels,FRA);
+        out.FRAax = PlotRF(FRAax,Freqs,Levels,FRA,smoothdata);
         return
     else
-        FRAax = PlotRF(FRAax,Freqs,Levels,FRA,BF,CF,MT,hl,sm);
+        FRAax = PlotRF(FRAax,Freqs,Levels,FRA,smoothdata,BF,CF,MT,hl,sm);
     end
 end
 
+
+
 % Rate-Level Curve (RLC) from FRA (Escabi et al, 2007)
-oct_range = 0.5; % octave range around estimated BF
-
-
 BFt = BF;
 BFt(~nnind) = CF;
 
+peakfreqt = peakfreq;
+peakfreqt(~nnind) = CF;
+
 r = BFt*2.^([-oct_range oct_range]/2);
+
+pkr = peakfreqt*2.^([-oct_range oct_range]/2);
 
 r(r>max(Freqs)) = max(Freqs);
 r(r<min(Freqs)) = min(Freqs);
 
-ri = interp1(Freqs,1:length(Freqs),r,'nearest');
+ri   = interp1(Freqs,1:length(Freqs),r,'nearest','extrap');
+pkri = interp1(Freqs,1:length(Freqs),pkr,'nearest','extrap');
 
-RLCm = zeros(size(Levels));
+RLCm   = zeros(size(Levels));
 RLCvar = zeros(size(Levels));
-n    = zeros(size(Levels));
+n      = zeros(size(Levels));
+RLCmpk   = zeros(size(Levels));
+RLCvarpk = zeros(size(Levels));
 for i = 1:size(ri,1)
     idx = ri(i,1):ri(i,2);
     RLCm(i) = mean(FRA(i,idx));
     t = mean(data(:,idx,i),2);
     n(i) = numel(t);
     RLCvar(i) = var(t);
+    
+    idx = pkri(i,1):pkri(i,2);
+    RLCmpk(i) = mean(FRA(i,idx));
+    t = mean(data(:,idx,i),2);
+    RLCvarpk(i) = var(t);
 end
 
 % normalize RLC by computing D' at each sound level
 [RLCmax,RLCmaxi] = max(RLCm);
-
 Dp = (RLCm - RLCmax) ./ sqrt(RLCvar(RLCmaxi)+RLCvar);
+
+[RLCmaxpk,RLCmaxpki] = max(RLCmpk);
+Dppk = (RLCmpk - RLCmaxpk) ./ sqrt(RLCvarpk(RLCmaxpki)+RLCvarpk);
 
 % monotonicity index
 if RLCmaxi < numel(RLCm)
     MI = min(Dp(RLCmaxi+1:end));
+    MIpk = min(Dppk(RLCmaxpki+1:end));
 else
     MI = 0;
+    MIpk = 0;
 end
 
 % Plot RLC
-if plotRLC
-    RLCax = PlotRLC(RLCax,Levels,RLCm,RLCvar,Dp,MI,n);
+if ~all(isnan(BF)) && plotRLC
+    RLCax = PlotRLC(RLCax,Levels,RLCm,RLCvar,RLCmpk,RLCvarpk,Dp,Dppk,MI,n);
+else
+    cla(RLCax);
+    title(RLCax,'No Significant Responses found');
 end
 
 % Output structure
@@ -222,7 +263,6 @@ out.CF = CF;
 out.MT = MT;
 out.BWsm = BWsm;
 out.BWhl = BWhl;
-out.Vq   = Vq;
 out.highlowf  = hl;
 out.spontrate = mspont;
 out.FRAax   = FRAax;
@@ -238,6 +278,12 @@ out.FRA     = FRA;
 out.data    = data;
 out.spont   = spont;
 out.thresh  = thresh;
+out.peakval = peakval;
+out.peakfreq = peakfreq;
+out.RLCmpk   = RLCmpk;
+out.RLCvarpk = RLCvarpk;
+out.Dppk     = Dppk;
+out.MIpk     = MIpk;
 
 out = orderfields(out);
 
@@ -259,7 +305,7 @@ out = orderfields(out);
 
 
 
-function RLCax = PlotRLC(RLCax,Levels,RLCm,RLCvar,Dp,MI,n)
+function RLCax = PlotRLC(RLCax,Levels,RLCm,RLCvar,RLCmpk,RLCvarpk,Dp,Dppk,MI,n)
 if isempty(RLCax)
     f = findobj('type','figure','-and','name','RLC');
     if isempty(f), f = figure('name','RLC','units','normalized','color','w'); end
@@ -271,23 +317,27 @@ end
 axes(RLCax);
 
 sem = sqrt(RLCvar)./n;
+sempk = sqrt(RLCvarpk)./n;
 hold(RLCax,'on');
 errorbar(Levels,RLCm,sem,sem,'-ok','markersize',8,'linewidth',2);
+errorbar(Levels,RLCmpk,sempk,sempk,'-ob','markersize',8,'linewidth',2);
 xlim([min(Levels)-10 max(Levels)+10]);
-% ylim([0 max(get(RLCax,'ylim'))]);
 ylabel('Firing Rate (Hz)');
 xlabel('Sound Level (dB SPL)');
 hold(RLCax,'off');
+legend(RLCax,'RLC','peak RLC','Location','NorthWest');
 
 Dpax = axes('position',get(RLCax,'position'),'ycolor',[0.2 0.2 0.2], ...
     'ticklength',[0.001 0.01],'YAxisLocation','right','color','none','xtick',[]);
 hold(Dpax,'on');
 plot(Levels,Dp,'-.','linewidth',2,'color',[0.2 0.2 0.2]);
+plot(Levels,Dppk,'-.b')
 hold(Dpax,'off');
 xlim([min(Levels)-10 max(Levels)+10]);
 ylim([min(get(Dpax,'ylim')) 0.02]);
 ylabel('D''');
-box on
+box(Dpax,'on')
+legend(Dpax,'D''','peak D''','Location','SouthEast');
 
 title(sprintf('Monotonicity Index = %0.2f',MI))
 
@@ -311,7 +361,7 @@ RLCax = [RLCax Dpax];
 
 
 
-function FRAax = PlotRF(FRAax,Freqs,Levels,FRA,BF,CF,MT,hl,sm)
+function FRAax = PlotRF(FRAax,Freqs,Levels,FRA,smoothdata,BF,CF,MT,hl,sm)
 if isempty(FRAax)
     f = findobj('type','figure','-and','name','FRA');
     if isempty(f), f = figure('name','FRA','units','normalized','color','w'); end
@@ -322,14 +372,31 @@ end
 
 axes(FRAax);
 
-surf(FRAax,Freqs,Levels,FRA)
+% surf function doesn't display top and right boundary data so manually
+% account for this for display purposes
+xe = interp1(1:length(Freqs),Freqs,length(Freqs)+1,'pchip','extrap');
+x = [Freqs(:); xe];
+ye = interp1(1:length(Levels),Levels,length(Levels)+1,'linear','extrap');
+y = [Levels(:); ye];
+z = [FRA; FRA(end,:)];
+z = [z z(:,end)];
+
+surf(FRAax,x,y,z);
 set(FRAax,'xscale','log')
-shading interp
+
+if smoothdata
+    shading interp
+else
+    shading flat
+end
+
 axis tight
 view(2)
 
-if nargin > 4
+if nargin > 5
     hold(FRAax,'on')
+    
+    yadj = mean(diff(Levels))/2;
     
     nnind = ~isnan(BF);
     
@@ -337,19 +404,19 @@ if nargin > 4
     z  = repmat(mv,2,sum(nnind));
       
     x = BF(nnind)*2.^([-0.25 0.25]);
-    plot3(x',(Levels(nnind)*[1 1])'-0.5,z,'-','linewidth',5,'color',[0.6 0.6 0.6])
+    plot3(x',(Levels(nnind)*[1 1])'+yadj,z,'-','linewidth',5,'color',[0.6 0.6 0.6])
     
     x = [BF(nnind).*2.^(-sm(nnind)) BF(nnind).*2.^(sm(nnind))]; 
-    plot3(x',(Levels(nnind)*[1 1])'-0.5,z,'-k','linewidth',2)
+    plot3(x',(Levels(nnind)*[1 1])'+yadj,z,'-k','linewidth',2)
     
     
-    plot3(BF(nnind),Levels(nnind)-0.5,z,'ko','linewidth',2, ...
+    plot3(BF(nnind),Levels(nnind)+yadj,z,'ko','linewidth',2, ...
         'markersize',8,'markerfacecolor','none');
    
-    plot3(CF,MT-0.5,mv+10,'ko','linewidth',2, ...
+    plot3(CF,MT+yadj,mv+10,'ko','linewidth',2, ...
         'markersize',8,'markerfacecolor','w');
     
-    plot3(hl(nnind,:),(Levels(nnind)*[1 1])-0.5,z',':+w','linewidth',2)
+    plot3(hl(nnind,:),(Levels(nnind)*[1 1])+yadj,z',':+w','linewidth',2)
     
     set(FRAax,'clim',[0 max(get(FRAax,'clim'))]);
     

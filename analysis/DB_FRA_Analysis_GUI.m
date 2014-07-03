@@ -3,7 +3,7 @@ if nargin == 0 || (nargin == 3 && isempty(c))
     unit_id = getpref('DB_BROWSER_SELECTION','units');
 end
 
-if nargin == 1 && ~iesmpty(a)
+if nargin == 1 && ~isempty(a)
     unit_id = a;
 end
 
@@ -46,17 +46,13 @@ end
 figure(f);
 clf
 
-p = getpref('FRA_ANALYSIS',{'conflevel','awin'},{0.95,[0 0.05]});
+p = getpref('FRA_ANALYSIS',{'conflevel','awin','smoothdata'},{0.95,[0 0.05],1});
 
 uicontrol('parent',f,'style','text','units','normalized', ...
     'String','Confidence Level:','position',[0.01 0.80 0.25 0.15], ...
     'backgroundcolor','w','fontsize',10);
 
-h.confleveledit = uicontrol('parent',f,'style','edit','units','normalized', ...
-    'String',p{1},'position',[0.25 0.82 0.10 0.12],'tag','confleveledit', ...
-    'fontsize',12,'callback',@UpdateAnalysis);
-
-h.recalc = uicontrol('parent',f,'style','pushbutton','units','normalized', ...
+uicontrol('parent',f,'style','pushbutton','units','normalized', ...
     'String','Recalc','Position',[0.4 0.80 0.15 0.15],'tag','recalc', ...
     'fontsize',12,'callback',@UpdateAnalysis);
 
@@ -64,19 +60,33 @@ uicontrol('parent',f,'style','text','units','normalized', ...
     'String','Analysis Window (s):','Position',[0.01 0.65 0.25 0.15], ...
     'fontsize',10);
 
-h.analysiswin = uicontrol('parent',f,'style','edit','units','normalized', ...
-    'String',mat2str(p{2}),'Position',[0.25 0.69 0.10 0.12],'fontsize',10, ...
-    'callback',@UpdateAnalysis);
-
-h.distax = axes('parent',f,'units','normalized','position',[0.08 0.18 0.4 0.35]);
-
-h.updatedb = uicontrol('parent',f,'style','pushbutton','units','normalized', ...
+uicontrol('parent',f,'style','pushbutton','units','normalized', ...
     'String','Update DB','position',[0.7 0.2 0.25 0.25],'tag','updatedb', ...
     'fontsize',14,'callback',@UpdateDB);
 
-h.updatebad = uicontrol('parent',f,'style','pushbutton','units','normalized', ...
+uicontrol('parent',f,'style','pushbutton','units','normalized', ...
     'String','Bad Unit','Position',[0.75 0.05 0.15 0.13],'tag','badunit', ...
     'fontsize',8,'callback',@BadUnit);
+
+
+
+h.opt.confleveledit = uicontrol('parent',f,'style','edit','units','normalized', ...
+    'String',p{1},'position',[0.25 0.82 0.10 0.12],'tag','confleveledit', ...
+    'fontsize',12,'callback',@UpdateAnalysis);
+
+h.opt.analysiswin = uicontrol('parent',f,'style','edit','units','normalized', ...
+    'String',mat2str(p{2}),'Position',[0.25 0.69 0.10 0.12],'fontsize',10, ...
+    'callback',@UpdateAnalysis);
+
+h.opt.smoothdata = uicontrol('parent',f,'style','checkbox','units','normalized', ...
+    'String','smooth','Position',[0.36 0.69 0.15 0.10],'fontsize',8, ...
+    'value',p{3},'callback',@UpdateAnalysis);
+
+
+
+h.distax = axes('parent',f,'units','normalized','position',[0.08 0.18 0.4 0.35]);
+
+
 
 
 
@@ -85,7 +95,7 @@ h.fig = f;
 function BadUnit(~,~)
 h = GetMainH;
 S.group_id  = 'FRA';
-S.conflevel = str2num(get(h.confleveledit,'String')); %#ok<ST2NM>
+S.conflevel = str2num(get(h.opt.confleveledit,'String')); %#ok<ST2NM>
 S.is_good = false;
 DB_UpdateUnitProps(h.unit_id,S,'group_id',true);
 
@@ -96,7 +106,7 @@ set(mainf,'Pointer','watch'); drawnow
 
 S.group_id  = 'FRA';
 if ~isfield(h,'data') % no significant data
-    S.conflevel = str2num(get(h.confleveledit,'String')); %#ok<ST2NM>
+    S.conflevel = str2num(get(h.opt.confleveledit,'String')); %#ok<ST2NM>
     S.is_good = false;
     DB_UpdateUnitProps(h.unit_id,S,'group_id',true);
     return 
@@ -111,37 +121,50 @@ S.spontrate = h.data.spontrate;
 S.threshold = h.data.thresh;
 DB_UpdateUnitProps(h.unit_id,S,'group_id',true);
 
+P.group_id = 'FRApeak';
+P.monoindex = h.data.MIpk;
+DB_UpdateUnitProps(h.unit_id,P,'group_id',true);
+
 vidx = find(~isnan(h.data.BF));
 V.bestfreq = h.data.BF(vidx);
 V.bwoctaves = h.data.BWsm(vidx);
 V.lowfreq  = h.data.highlowf(vidx,1);
 V.highfreq = h.data.highlowf(vidx,2);
 V.dprime   = h.data.Dp(vidx);
+V.peakdprime = h.data.Dppk(vidx);
 for i = 1:length(vidx)
     V.Levels{i,1} = sprintf('FRA_%03ddB',h.data.y(vidx(i)));
+    K.Levels{i,1} = sprintf('FRApeak_%03ddB',h.data.y(vidx(i)));
 end
 DB_UpdateUnitProps(h.unit_id,V,'Levels',true);
+
+K.dprime = h.data.Dppk(vidx);
+DB_UpdateUnitProps(h.unit_id,K,'Levels',true);
+
+
+
+
+
 set(mainf,'Pointer','arrow'); drawnow
 
 function UpdateAnalysis(a,~)
 [h,mainf] = GetMainH;
 set(mainf,'Pointer','watch'); drawnow
 
-h.conflevel = str2double(get(h.confleveledit,'String'));
+h.conflevel  = str2double(get(h.opt.confleveledit,'String'));
+h.smoothdata = get(h.opt.smoothdata,'Value');
+h.awin       = str2num(get(h.opt.analysiswin,'String')); %#ok<ST2NM>
 
-h.awin = str2num(get(h.analysiswin,'String'));
-
-setpref('FRA_ANALYSIS',{'conflevel','awin'},{h.conflevel,h.awin});
+setpref('FRA_ANALYSIS',{'conflevel','awin','smoothdata'},{h.conflevel,h.awin,h.smoothdata});
 
 miny = [];
-if nargin
+if nargin>0 && ~strcmp(get(a,'type'),'uicontrol')
     cp = get(get(a,'parent'),'currentPoint');
     miny = cp(1,2);
 end
 
-
 out = FRA_Analysis(h.spiketimes,h.params,'conflevel',h.conflevel, ...
-    'window',h.awin,'miny',miny);
+    'window',h.awin,'miny',miny,'smoothdata',h.smoothdata);
 
 if ~isfield(out,'BF') % no significant response
     return
@@ -184,12 +207,12 @@ figure(f);
 
 [h,mainf] = GetMainH;
 
-hlevel = findobj(f,'style','popup','-and','tag','hlevel');
+hlevel = findobj(f,'tag','hlevel');
 
 if isempty(hlevel)
-    hlevel = uicontrol('parent',f,'style','popup', ...
+    hlevel = uicontrol('parent',f,'style','listbox', ...
         'String',sort(h.data.y,'descend'),'value',1, ...
-        'Units','normalized','position',[0.01 0.8 0.1 0.15], ...
+        'Units','normalized','position',[0.01 0.2 0.1 0.70], ...
         'FontSize',10, ...
         'Callback',@PlotTemporalResponse,'tag','hlevel');
 end
@@ -197,6 +220,8 @@ end
 Level = str2num(get_string(hlevel)); %#ok<ST2NM>
 
 h.temprfax = gca;
+
+set(h.temprfax,'position',[0.22 0.11 0.64 0.815])
 
 [rast,vals] = genrast(h.spiketimes,h.params,Level,[-0.05 0.25]);
 
@@ -306,39 +331,6 @@ end
 f = P.VALS.Freq(ind);
 [f,i] = sort(f);
 rast = rast(i);
-
-function plotraster(ax,P,rast,win,respwin,level)
-win = win * 1000;
-rast = cellfun(@(a) (a*1000),rast,'UniformOutput',false); % s -> ms
-nreps = sum(P.VALS.Freq == P.lists.Freq(end) & P.VALS.Levl == level);
-f = P.lists.Freq;
-f = interp1(1:length(f),f,linspace(1,length(f),length(f)*nreps),'cubic');
-
-minf = min(f);
-maxf = max(f);
-patch([respwin fliplr(respwin)],[minf minf maxf maxf],[0.8 0.94 1], ...
-    'EdgeColor','none');
-
-mcs = gray(nreps+2); mcs(nreps+1:end,:) = [];
-mcs = flipud(mcs);
-ki = mod(1:length(rast),nreps);
-ki(ki == 0) = nreps;
-
-k = 1;
-axes(ax);
-hold(ax,'on')
-for i = 1:length(rast)
-    if ki(i) == 1, k = 1;  end
-    if isempty(rast{i}), continue; end
-    line(rast{i},f(i),'marker','s','markersize',2, ...
-        'markerfacecolor',mcs(k,:),'color',mcs(k,:));
-    k = k + 1;
-end
-plot([0 0],ylim,'-','color',[0.6 0.6 0.6]);
-set(ax,'yscale','log','ylim',[minf maxf],'xlim',win,'tickdir','out');
-hold(ax,'off');
-% set(get(gca,'children'),'markersize',2,'markerfacecolor','k');
-
 
 
 

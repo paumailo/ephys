@@ -69,10 +69,15 @@ if smoothing
     D  = D/max(D(:))*mD;
 end
 
-h = surf(ax,bins,uvals,D);
+% surf function doesn't display top and right boundary data so manually
+% account for this for display purposes
+x = [bins(:); bins(end)];
+y = [uvals(:); uvals(end)];
+z = [D; D(end,:)];
+z = [z z(:,end)];
+
+h = surf(ax,x,y,z);
 shading(ax,'interp'); 
-% h = imagesc(bins,uvals,D,'parent',ax);
-% set(ax,'ydir','normal');
 set(ax,'yscale','log','tickdir','out');
 axis tight
 view(ax,2)
