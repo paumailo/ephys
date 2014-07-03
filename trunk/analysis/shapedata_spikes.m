@@ -103,7 +103,7 @@ end
 
 % select parameter for dimensions
 for i = 1:length(dimparams)
-    vals{i} = unique(P.VALS.(dimparams{i})); %#ok<AGROW>
+    vals{i} = P.lists.(dimparams{i}); %#ok<AGROW>
 end
 
 % sort raster/psth by first dimension parameter
