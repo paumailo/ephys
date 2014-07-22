@@ -37,7 +37,11 @@ ParseVarargin({'ax','bins','smoothing'},[],varargin);
 if isempty(ax),   ax = gca; end
 if isempty(bins)
     t = cell2mat(raster);
-    bins = min(t):0.001:max(t)-0.001;
+    if isempty(t)
+        bins = 0:0.001:0.01;
+    else
+        bins = min(t):0.001:max(t)-0.001;
+    end
 end
 binsize = bins(2)-bins(1);
 
@@ -77,8 +81,12 @@ z = [D; D(end,:)];
 z = [z z(:,end)];
 
 h = surf(ax,x,y,z);
-shading(ax,'interp'); 
-set(ax,'yscale','log','tickdir','out');
+if smoothing
+    shading(ax,'interp'); 
+else
+    shading(ax,'flat');
+end
+set(ax,'tickdir','out');
 axis tight
 view(ax,2)
 

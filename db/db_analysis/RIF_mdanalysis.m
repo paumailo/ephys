@@ -337,7 +337,7 @@ for i = 1:size(psth,2)
 end
 cpsth = cpsth / max(cpsth(:)) * mp;
 
-v = nearest(vals{1},rwin);
+% v = nearest(vals{1},rwin);
 % for i = 1:size(cpsth,3)
 %     Rcorr(i) = SchreiberCorr(cpsth(v(1):v(2),:,i));  %#ok<AGROW>
 % end
