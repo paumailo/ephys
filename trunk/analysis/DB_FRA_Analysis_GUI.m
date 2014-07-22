@@ -98,6 +98,7 @@ S.group_id  = 'FRA';
 S.conflevel = str2num(get(h.opt.confleveledit,'String')); %#ok<ST2NM>
 S.is_good = false;
 DB_UpdateUnitProps(h.unit_id,S,'group_id',true);
+mym('UPDATE units SET in_use = 0 WHERE id = {Si}',h.unit_id);
 
 
 function UpdateDB(~,~)
@@ -225,7 +226,7 @@ set(h.temprfax,'position',[0.22 0.11 0.64 0.815])
 
 [rast,vals] = genrast(h.spiketimes,h.params,Level,[-0.05 0.25]);
 
-D = PlotDensity(rast,vals,'ax',h.temprfax,'smoothing',true);
+D = PlotDensity(rast,vals,'ax',h.temprfax,'smoothing',true,'bins',-0.05:0.001:0.25);
 xlabel(h.temprfax,'Time (s)');
 ylabel(h.temprfax,'Frequency (Hz)');
 zlabel(h.temprfax,'Firing Rate (Hz)');

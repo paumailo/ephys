@@ -91,7 +91,7 @@ if smoothdata
 end
 
 % Threshold
-spont = shapedata_spikes(spiketimes,params,{'Freq','Levl'},'win',swin,'binsize',0.001);
+spont = shapedata_spikes(spiketimes,params,{paramx,paramy},'win',swin,'binsize',0.001);
 spont = squeeze(mean(spont))'/0.001;
 spont = spont(:);
 
@@ -116,8 +116,10 @@ sig_ind = bwareaopen(sig_ind,8);
 sig_ind = bwmorph(sig_ind,'fill');
 
 if ~any(sig_ind(:))
-    fprintf(2,'No significant responses found at confidence level %0.3f\n',cl) %#ok<PRTCAL>
+%     fprintf(2,'No significant responses found at confidence level %0.3f\n',cl) %#ok<PRTCAL>
     out.FRAax = PlotRF(FRAax,Freqs,Levels,FRA,smoothdata);
+    out.FRA = FRA;
+    out.sig_ind = sig_ind;
     return
 end
 
