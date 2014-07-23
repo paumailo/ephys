@@ -1,32 +1,41 @@
-function Rcorr = SchreiberCorr(S)
+function [Rcorr,nRcorr] = SchreiberCorr(S)
 % Rcorr = SchreiberCorr(S)
+% [Rcorr,nRcorr] = SchreiberCorr(S)
 %
 % Implements spike-train reliability measure introduced by Schreiber et al,
-% 2003.
+% 2003.  An Rcorr approaching 1 indicates very high spike-time reliability
+% across trials, whereas Rcorr approaching 0 indicates very poor
+% reliability across trials.
 % 
-% S is a 2D matrix of binned data with observations in columns and
-% samples (bins) in rows.  Typically, the binned data (S) will aready have
-% been convolved with a smoothing window, such as a gaussian window (see
-% reference).
+% S is an MxN matrix of binned data with N observations and M samples
+% (bins).  Typically, the matrix S will aready have been convolved
+% with a a gaussian window (see reference).
+% 
+% The optional output nRcorr is the correlation value based on a random
+% permutation of S.  This value is affected by the total number of events
+% (spikes) in S.  It may be useful to subtract nRcorr from Rcorr in order
+% to correct for bias based on the number of spikes (untested suggestion).
 % 
 % Reference: Schreiber et al, 2003 Neurocomputing 52-54, p925-931
 % 
-% *************************************************************************
-% RESULTS OF JITTER TEST DO NOT SEEM TO MATCH SCHREIBER ET AL, 2003
-% FIGURE 2A.  NOT SURE WHAT IS WRONG.  USE WITH CAUTION.  DS 1/28/2014 
-% *************************************************************************
-% 
 % Daniel.Stolzberg@gmail.com 2014
 
-persistent WARNED
+S(:,~any(S)) = [];
 
-if isempty(WARNED)
-    fprintf(2,['\nRESULTS OF JITTER TEST DO NOT SEEM TO MATCH SCHREIBER ET AL, 2003\n', ...
-        'FIGURE 2A.  NOT SURE WHAT IS WRONG.  USE WITH CAUTION.  DS 1/28/2014\n'])
-    WARNED = 1;
+if nargout >= 1
+    Rcorr = ComputeRCorr(S);
 end
-% S(:,~any(S)) = [];
 
+if nargout == 2
+    idx = randperm(numel(S));
+    idx = reshape(idx,size(S));
+    nRcorr = ComputeRCorr(S(idx));
+end
+
+
+
+
+function Rcorr = ComputeRCorr(S)
 N = size(S,2);
 A = 0;
 for i = 1:N
