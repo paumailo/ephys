@@ -7,7 +7,7 @@ function [Rcorr,nRcorr] = SchreiberCorr(S)
 % across trials, whereas Rcorr approaching 0 indicates very poor
 % reliability across trials.
 % 
-% S is an MxN matrix of binned data with N observations and M samples
+% S is an MxN matrix of binned data with N observations (trials) and M samples
 % (bins).  Typically, the matrix S will aready have been convolved
 % with a a gaussian window (see reference).
 % 
