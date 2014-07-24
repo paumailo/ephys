@@ -22,9 +22,13 @@ function [Rcorr,nRcorr] = SchreiberCorr(S)
 
 S(:,~any(S)) = [];
 
-if nargout >= 1
-    Rcorr = ComputeRCorr(S);
+if isempty(S)
+    Rcorr  = nan;
+    nRcorr = nan;
+    return
 end
+
+Rcorr = ComputeRCorr(S);
 
 if nargout == 2
     idx = randperm(numel(S));
