@@ -13,7 +13,9 @@ function [Rcorr,nRcorr] = mdRcorr(data,vals,gwlength)
 % equivalently, length(vals{4}).
 % 
 % Both of the required inputs, data and vals, are created from a call to
-% SHAPEDATA_SPIKES prior to calling this function.
+% SHAPEDATA_SPIKES prior to calling this function.  When calling
+% SHAPEDATA_SPIKES, make certain the 'returntrials' value is true as in the
+% examples below.
 % 
 % ex:
 %   st = DB_GetSpiketimes(unit_id);
