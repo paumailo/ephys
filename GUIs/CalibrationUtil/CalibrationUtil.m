@@ -652,9 +652,24 @@ try %#ok<TRYNC>
         
         buffer = GetBuffer(AcqRP,Fs,0.2+d(i));
         
+        % high-pass filter signal
+        Fstop = 100;         % Stopband Frequency
+        Fpass = 200;         % Passband Frequency
+        Astop = 40;          % Stopband Attenuation (dB)
+        Apass = 1;           % Passband Ripple (dB)
+        match = 'passband';  % Band to match exactly
+        
+        % Construct an FDESIGN object and call its BUTTER method.
+        fh  = fdesign.highpass(Fstop, Fpass, Astop, Apass, Fs);
+        Hd = design(fh, 'butter', 'MatchExactly', match);
+        
+        
         dc = buffer(1:t);
         buffer(1:t) = [];
         buffer = buffer - mean(dc);
+        
+        buffer = filter(Hd,fliplr(buffer));
+        buffer = filter(Hd,fliplr(buffer));
         
         % ANALYZE, PLOT, UPDATE TABLE
         pk = max(abs(buffer));
