@@ -672,7 +672,7 @@ try %#ok<TRYNC>
         buffer = filter(Hd,fliplr(buffer));
         
         % ANALYZE, PLOT, UPDATE TABLE
-        pk = min(buffer);
+        pk = abs(min(buffer));
         res.level = 20 * log10(pk/(ref.rms*sqrt(2))) + ref.level; % calibrated level
         res.adjV  = hdr.V * 10 ^ ((ref.norm-res.level) / 20); % adjusted voltage
         
